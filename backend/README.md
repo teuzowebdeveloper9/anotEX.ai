@@ -1,98 +1,203 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# anotEX.ai — Backend
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Backend do anotEX.ai. NestJS + Clean Architecture + Groq + Supabase + Cloudflare R2.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+---
 
-## Description
+## Checklist de Setup (faça nessa ordem)
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+### 1. Supabase
 
-## Project setup
+1. Acesse [supabase.com](https://supabase.com) e crie uma conta
+2. Clique em **New Project** e preencha nome e senha do banco
+3. Aguarde o projeto inicializar (~2 min)
+4. Vá em **Settings > API** e copie:
+   - `Project URL` → será o `SUPABASE_URL`
+   - `anon public` → será o `SUPABASE_ANON_KEY`
+   - `service_role secret` → será o `SUPABASE_SERVICE_ROLE_KEY` ⚠️ nunca exponha isso no frontend
+5. Vá em **SQL Editor**, cole o conteúdo do arquivo `supabase/migrations/001_initial_schema.sql` e clique em **Run**
+   - Isso cria as tabelas `audios` e `transcriptions` com RLS habilitado
 
-```bash
-$ npm install
-```
+---
 
-## Compile and run the project
+### 2. Groq
 
-```bash
-# development
-$ npm run start
+1. Acesse [console.groq.com](https://console.groq.com) e crie uma conta (gratuito)
+2. Vá em **API Keys > Create API Key**
+3. Copie a chave → será o `GROQ_API_KEY`
 
-# watch mode
-$ npm run start:dev
+---
 
-# production mode
-$ npm run start:prod
-```
+### 3. Cloudflare R2
 
-## Run tests
+1. Acesse [cloudflare.com](https://cloudflare.com) e crie uma conta (gratuito)
+2. No painel, vá em **R2 Object Storage > Create Bucket**
+3. Dê um nome ao bucket (ex: `anotex-audios`) → será o `R2_BUCKET_NAME`
+4. Vá em **Manage R2 API Tokens > Create API Token**
+   - Permissão: `Object Read & Write`
+   - Copie:
+     - `Access Key ID` → `R2_ACCESS_KEY_ID`
+     - `Secret Access Key` → `R2_SECRET_ACCESS_KEY`
+5. Vá em **R2 > Overview** e copie o **Account ID** → `R2_ACCOUNT_ID`
+6. Em **Bucket Settings**, configure o bucket como **privado** (sem acesso público)
+7. Copie a URL do bucket (formato `https://<account_id>.r2.cloudflarestorage.com`) → `R2_PUBLIC_URL`
 
-```bash
-# unit tests
-$ npm run test
+---
 
-# e2e tests
-$ npm run test:e2e
+### 4. Upstash Redis
 
-# test coverage
-$ npm run test:cov
-```
+1. Acesse [upstash.com](https://upstash.com) e crie uma conta (gratuito)
+2. Clique em **Create Database > Redis**
+3. Selecione a região mais próxima e clique em **Create**
+4. Na tela do banco, copie:
+   - `UPSTASH_REDIS_URL` (formato `redis://...`)
+   - `UPSTASH_REDIS_TOKEN`
 
-## Deployment
+---
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+### 5. Configurar variáveis de ambiente localmente
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+Na pasta `backend/`, crie o arquivo `.env` copiando o `.env.example`:
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+cp .env.example .env
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+Preencha com todos os valores coletados nos passos anteriores:
 
-## Resources
+```env
+NODE_ENV=development
+PORT=3000
+ALLOWED_ORIGINS=http://localhost:3000
 
-Check out a few resources that may come in handy when working with NestJS:
+SUPABASE_URL=https://xxxx.supabase.co
+SUPABASE_ANON_KEY=eyJ...
+SUPABASE_SERVICE_ROLE_KEY=eyJ...
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+GROQ_API_KEY=gsk_...
 
-## Support
+R2_ACCOUNT_ID=abc123
+R2_ACCESS_KEY_ID=...
+R2_SECRET_ACCESS_KEY=...
+R2_BUCKET_NAME=anotex-audios
+R2_PUBLIC_URL=https://abc123.r2.cloudflarestorage.com
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+UPSTASH_REDIS_URL=redis://...
+UPSTASH_REDIS_TOKEN=...
 
-## Stay in touch
+MAX_AUDIO_SIZE_MB=100
+SIGNED_URL_EXPIRES_IN_SECONDS=900
+```
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+---
 
-## License
+### 6. Rodar localmente
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+```bash
+cd backend
+npm install
+npm run start:dev
+```
+
+A API estará disponível em `http://localhost:3000/api/v1`.
+
+Para testar se está funcionando:
+
+```bash
+curl http://localhost:3000/api/v1/audio
+# Deve retornar 401 Unauthorized (correto, precisa de token)
+```
+
+---
+
+### 7. Deploy no Railway
+
+1. Acesse [railway.app](https://railway.app) e crie uma conta (gratuito — $5 de crédito/mês)
+2. Clique em **New Project > Deploy from GitHub Repo**
+3. Selecione o repositório `anotEX.ai` e a pasta `backend/` como root
+4. Vá em **Variables** e adicione todas as variáveis do `.env`, com:
+   - `NODE_ENV=production`
+   - `ALLOWED_ORIGINS` apontando para o domínio do frontend (ex: `https://anotex.pages.dev`)
+5. O Railway fará o build automaticamente
+6. Após o deploy, copie a URL gerada (ex: `https://anotex-backend.up.railway.app`) — será usada no frontend
+
+---
+
+## Endpoints disponíveis
+
+Todos exigem header `Authorization: Bearer <supabase_jwt_token>`.
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| `POST` | `/api/v1/audio/upload` | Upload de arquivo de áudio (multipart/form-data, campo `audio`) |
+| `GET` | `/api/v1/audio` | Lista todos os áudios do usuário autenticado |
+| `GET` | `/api/v1/audio/:id/status` | Consulta status do áudio e transcrição (polling) |
+| `DELETE` | `/api/v1/audio/:id` | Remove um áudio do usuário |
+
+### Exemplo de upload
+
+```bash
+curl -X POST http://localhost:3000/api/v1/audio/upload \
+  -H "Authorization: Bearer SEU_JWT_TOKEN" \
+  -F "audio=@/caminho/para/aula.webm" \
+  -F "language=pt"
+```
+
+### Resposta do upload
+
+```json
+{
+  "audioId": "uuid",
+  "transcriptionId": "uuid",
+  "status": "PENDING",
+  "fileName": "aula.webm",
+  "createdAt": "2026-03-05T..."
+}
+```
+
+### Polling de status
+
+```bash
+curl http://localhost:3000/api/v1/audio/{audioId}/status \
+  -H "Authorization: Bearer SEU_JWT_TOKEN"
+```
+
+```json
+{
+  "audio": { "id": "uuid", "status": "COMPLETED", "fileName": "aula.webm" },
+  "transcription": {
+    "id": "uuid",
+    "status": "COMPLETED",
+    "transcriptionText": "Hoje vamos falar sobre...",
+    "summaryText": "## Resumo\n1. Tópico A...",
+    "errorMessage": null
+  }
+}
+```
+
+Status possíveis: `PENDING` → `PROCESSING` → `COMPLETED` / `FAILED`
+
+---
+
+## Estrutura do projeto
+
+```
+backend/
+  src/
+    modules/
+      audio/
+        domain/          # Entidades, interfaces de repositório, use-cases
+        application/     # DTOs
+        infrastructure/  # Implementações: Supabase, Cloudflare R2
+        presentation/    # Controller, Guard de autenticação
+      transcription/
+        domain/          # Entidades, interfaces, use-cases
+        application/     # DTOs, processador da fila BullMQ
+        infrastructure/  # Groq Whisper, Groq Llama 3 70B, Supabase
+    shared/
+      domain/            # Result<T,E> pattern
+      infrastructure/    # Config Supabase, validação de env
+      presentation/      # Filtro global, interceptor de log, decorator @Public
+  supabase/
+    migrations/          # SQL para rodar no Supabase SQL Editor
+```
