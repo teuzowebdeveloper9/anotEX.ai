@@ -429,3 +429,4 @@ Queue:        BullMQ + Redis
 *Documentação criada em: Março 2026*
 *Última atualização: Março 2026*
 
+
