@@ -6,6 +6,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { envValidationSchema } from './shared/infrastructure/config/env.validation.js';
 import { AudioModule } from './modules/audio/audio.module.js';
 import { TranscriptionModule } from './modules/transcription/transcription.module.js';
+import { HealthController } from './shared/presentation/controllers/health.controller.js';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { TranscriptionModule } from './modules/transcription/transcription.modul
     AudioModule,
     TranscriptionModule,
   ],
+  controllers: [HealthController],
   providers: [
     {
       provide: APP_GUARD,

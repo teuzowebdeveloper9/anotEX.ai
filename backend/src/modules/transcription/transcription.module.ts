@@ -14,12 +14,14 @@ import { STORAGE_REPOSITORY } from '../audio/domain/repositories/storage.reposit
 import { AudioRepositoryImpl } from '../audio/infrastructure/repositories/audio.repository.impl.js';
 import { StorageRepositoryImpl } from '../audio/infrastructure/repositories/storage.repository.impl.js';
 import { SupabaseService } from '../../shared/infrastructure/config/supabase.config.js';
+import { TranscriptionController } from './presentation/controllers/transcription.controller.js';
 
 @Module({
   imports: [
     ConfigModule,
     BullModule.registerQueue({ name: TRANSCRIPTION_QUEUE }),
   ],
+  controllers: [TranscriptionController],
   providers: [
     SupabaseService,
     TranscriptionQueueProcessor,
