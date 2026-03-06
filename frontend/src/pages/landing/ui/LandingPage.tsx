@@ -44,7 +44,7 @@ export function LandingPage() {
           src={logoHero}
           alt="anotEX.ai"
           className="h-8 w-auto"
-          style={{ mixBlendMode: 'lighten' }}
+          style={{ filter: 'brightness(0) invert(1)' }}
         />
         <div className="flex items-center gap-3">
           <Link to="/login">

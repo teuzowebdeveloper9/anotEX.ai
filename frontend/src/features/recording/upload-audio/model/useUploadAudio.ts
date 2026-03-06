@@ -7,28 +7,36 @@ import type { UploadAudioResponse } from '@/shared/types/api.types'
 
 interface UseUploadAudioReturn {
   uploading: boolean
-  upload: (blob: Blob, language?: string) => Promise<void>
+  upload: (file: Blob | File, language?: string) => Promise<void>
 }
 
 export function useUploadAudio(): UseUploadAudioReturn {
   const [uploading, setUploading] = useState(false)
   const navigate = useNavigate()
 
-  const upload = async (blob: Blob, language = 'pt'): Promise<void> => {
+  const upload = async (file: Blob | File, language = 'pt'): Promise<void> => {
     setUploading(true)
     try {
+      const fileName = file instanceof File
+        ? file.name
+        : `recording-${Date.now()}.webm`
+
+      const mimeType = file instanceof File
+        ? (file.type || 'audio/mpeg')
+        : 'audio/webm'
+
       const formData = new FormData()
-      formData.append('audio', blob, `recording-${Date.now()}.webm`)
+      formData.append('audio', file, fileName)
       formData.append('language', language)
 
       const { data } = await api.post<UploadAudioResponse>(ENDPOINTS.audio.upload, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       })
 
-      toast.success('Gravação enviada! Processando transcrição...')
+      toast.success('Áudio enviado! Processando transcrição...')
       navigate(`/transcription/${data.audioId}`)
     } catch {
-      toast.error('Erro ao enviar gravação. Tente novamente.')
+      toast.error('Erro ao enviar áudio. Tente novamente.')
     } finally {
       setUploading(false)
     }

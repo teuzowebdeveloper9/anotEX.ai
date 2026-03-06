@@ -13,7 +13,7 @@ export function LoginPage() {
           src={logoFavicon}
           alt="anotEX.ai"
           className="h-12 w-auto"
-          style={{ mixBlendMode: 'lighten' }}
+          style={{ filter: 'brightness(0) invert(1)' }}
         />
 
         <Card className="w-full p-8">

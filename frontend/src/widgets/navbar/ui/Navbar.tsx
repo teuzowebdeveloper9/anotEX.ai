@@ -20,7 +20,7 @@ export function Navbar() {
             src={logoFavicon}
             alt="anotEX.ai"
             className="h-7 w-auto"
-            style={{ mixBlendMode: 'lighten' }}
+            style={{ filter: 'brightness(0) invert(1)' }}
           />
         </Link>
 
