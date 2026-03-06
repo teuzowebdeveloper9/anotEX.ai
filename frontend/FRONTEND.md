@@ -195,3 +195,54 @@ VITE_API_BASE_URL=http://localhost:3000/api/v1
 - Nunca chamar o backend diretamente sem o interceptor de auth
 - Nunca expor `SUPABASE_SERVICE_ROLE_KEY` no frontend
 - Nunca usar cores claras como base — o design é dark-first
+
+---
+
+## Assets — Imagens do Projeto
+
+Todas as imagens estão em `/images/` na raiz do repositório e devem ser copiadas para `frontend/src/assets/` no setup inicial.
+
+| Arquivo | Uso |
+|---------|-----|
+| `Gemini_Generated_Image_dwy78jdwy78jdwy7-removebg-preview.png` | **Favicon** + logo principal (fundo transparente, versão graffiti) |
+| `Gemini_Generated_Image_byi2w9byi2w9byi2-removebg-preview.png` | Landing page — hero ou seção de destaque |
+| `Gemini_Generated_Image_h9xhe5h9xhe5h9xh.png` | Landing page — seção secundária ou background decorativo |
+
+### Regras de uso
+- O favicon usa a logo com fundo transparente — configurar via `index.html` com link para `.ico` e `apple-touch-icon`
+- Na landing page, usar `mix-blend-mode` adequado para integrar ao fundo escuro sem borda branca visível
+- Preferir sempre as versões `-removebg-preview` (fundo transparente)
+- Nunca exibir a logo com fundo branco sobre o dark theme
+
+---
+
+## Claude Code — Instruções para o Frontend
+
+Bloco para adicionar ao `CLAUDE.md` do projeto:
+
+```
+## Frontend
+
+- Stack: Vite + React 19 + TypeScript strict
+- Tailwind CSS v4, Framer Motion, Lucide React
+- TanStack Query v5, Zustand, React Router v7
+- Supabase JS SDK (Magic Link), Axios com interceptor JWT
+
+### Design
+- Dark-first: fundo base #080a0f, accent indigo #6366f1
+- Nunca usar emojis — ícones exclusivamente via Lucide React
+- Landing page com luz radial seguindo o mouse (mousemove → CSS custom properties → radial-gradient)
+- Glassmorphism em cards (backdrop-filter: blur)
+
+### Assets
+- Favicon: images/Gemini_Generated_Image_dwy78jdwy78jdwy7-removebg-preview.png
+- Imagens da landing: /images/ (3 arquivos disponíveis)
+- Nunca exibir logos com fundo branco sobre dark theme
+
+### Regras
+- Nunca armazenar JWT manualmente — Supabase SDK gerencia sessão
+- Nunca expor SUPABASE_SERVICE_ROLE_KEY no frontend
+- Todo acesso ao backend via src/lib/axios.ts (interceptor de auth já configurado)
+- Polling de status via TanStack Query com refetchInterval condicional (5s se PENDING/PROCESSING)
+- Gravação: MediaRecorder API, formato audio/webm;codecs=opus
+```
