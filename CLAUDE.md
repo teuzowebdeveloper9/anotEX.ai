@@ -402,3 +402,61 @@ npm run test:cov       # gera relatório de cobertura
 - Nunca commitar `.env`
 - Nunca usar `*` no CORS em produção
 - Nunca confiar em dados do `user_metadata` JWT para autorização
+
+---
+
+## Frontend — Feature-Sliced Design (FSD)
+
+### Stack
+- Vite + React 19 + TypeScript strict
+- Tailwind CSS v4, Framer Motion, Lucide React
+- TanStack Query v5, Zustand, React Router v7
+- Supabase JS SDK (Magic Link), Axios com interceptor JWT
+- Sonner (toasts)
+
+### Arquitetura FSD — Camadas e regra de importação
+
+```
+app → pages → widgets → features → entities → shared
+```
+
+Camadas superiores importam das inferiores. **Nunca o contrário.**
+
+| Camada | Responsabilidade |
+|--------|-----------------|
+| `app` | Providers globais, router, estilos globais |
+| `pages` | Composição de widgets/features por rota |
+| `widgets` | Blocos de UI independentes (Navbar, RecordingPanel, MouseLight) |
+| `features` | Ações do usuário (login, gravar, deletar, copiar) |
+| `entities` | Modelos de negócio com UI e queries (Audio, Transcription, User) |
+| `shared` | UI base, axios, supabase client, hooks utilitários, tipos |
+
+### Regras do frontend
+
+- Nunca armazenar JWT manualmente — Supabase SDK gerencia sessão
+- Nunca expor `SUPABASE_SERVICE_ROLE_KEY` no frontend
+- Todo acesso ao backend via `shared/api/axios.ts` (interceptor injeta JWT automaticamente)
+- Polling de status via TanStack Query `refetchInterval` condicional (5s se PENDING/PROCESSING)
+- Gravação: MediaRecorder API, formato `audio/webm;codecs=opus`
+- Zero emojis na UI — ícones exclusivamente via Lucide React
+- Dark-first: fundo base `#080a0f`, accent indigo `#6366f1`
+- Landing page com luz radial seguindo o mouse via `widgets/mouse-light` (mousemove → CSS custom props → radial-gradient)
+
+### Assets
+- `shared/assets/logo-favicon.png` — favicon + logo Navbar (fundo transparente)
+- `shared/assets/logo-hero.png` — hero da landing page
+- `shared/assets/landing-bg.png` — seção secundária / decorativo
+- Sempre usar `mix-blend-mode: lighten` para integrar logos ao dark theme
+
+### Variáveis de ambiente
+```
+VITE_SUPABASE_URL=
+VITE_SUPABASE_ANON_KEY=
+VITE_API_BASE_URL=http://localhost:3000/api/v1
+```
+
+### O que nunca fazer no frontend
+- Nunca quebrar a regra de importação FSD
+- Nunca colocar lógica de negócio em `shared/ui`
+- Nunca importar de `features` dentro de `entities` ou `shared`
+- Nunca exibir logo com fundo branco sobre o dark theme

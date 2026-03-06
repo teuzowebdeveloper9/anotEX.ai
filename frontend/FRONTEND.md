@@ -14,6 +14,167 @@
 | Auth | Supabase JS SDK (Magic Link) |
 | Gravação | MediaRecorder API (nativo) |
 | HTTP | Axios (com interceptors para JWT) |
+| Notificações | Sonner |
+
+---
+
+## Arquitetura — Feature-Sliced Design (FSD)
+
+O frontend segue **Feature-Sliced Design**. A regra de ouro: **camadas superiores importam das inferiores, nunca o contrário.**
+
+```
+app → pages → widgets → features → entities → shared
+```
+
+### Estrutura completa
+
+```
+frontend/src/
+  app/
+    providers/
+      QueryProvider.tsx       # TanStack Query client
+      AuthProvider.tsx        # Supabase session listener
+      RouterProvider.tsx      # React Router config
+    styles/
+      globals.css             # CSS custom properties, reset, scrollbar
+    App.tsx
+    main.tsx
+
+  pages/
+    landing/
+      ui/
+        LandingPage.tsx
+    login/
+      ui/
+        LoginPage.tsx
+    auth-callback/
+      ui/
+        AuthCallbackPage.tsx
+    dashboard/
+      ui/
+        DashboardPage.tsx
+    record/
+      ui/
+        RecordPage.tsx
+    transcription/
+      ui/
+        TranscriptionPage.tsx
+
+  widgets/
+    navbar/
+      ui/
+        Navbar.tsx
+    mouse-light/
+      ui/
+        MouseLight.tsx        # luz radial que segue o cursor
+    recording-panel/
+      ui/
+        RecordingPanel.tsx    # waveform + timer + controles agrupados
+    transcription-viewer/
+      ui/
+        TranscriptionViewer.tsx
+
+  features/
+    auth/
+      login-with-magic-link/
+        ui/
+          MagicLinkForm.tsx
+        model/
+          useMagicLink.ts
+      logout/
+        ui/
+          LogoutButton.tsx
+        model/
+          useLogout.ts
+    recording/
+      start-recording/
+        ui/
+          RecordButton.tsx
+        model/
+          useRecorder.ts      # MediaRecorder + Web Audio API
+      upload-audio/
+        model/
+          useUploadAudio.ts   # POST /api/v1/audio/upload
+    transcription/
+      poll-status/
+        model/
+          useTranscriptionStatus.ts  # polling com TanStack Query
+      copy-text/
+        ui/
+          CopyButton.tsx
+        model/
+          useCopyText.ts
+      delete-audio/
+        ui/
+          DeleteAudioButton.tsx
+        model/
+          useDeleteAudio.ts
+
+  entities/
+    audio/
+      model/
+        audio.types.ts        # AudioStatus, AudioEntity
+        useAudioList.ts       # GET /api/v1/audio
+      ui/
+        AudioCard.tsx
+        AudioStatusBadge.tsx
+    transcription/
+      model/
+        transcription.types.ts
+        useTranscription.ts   # GET /api/v1/transcription/:audioId
+      ui/
+        TranscriptionCard.tsx
+        SummaryCard.tsx
+    user/
+      model/
+        user.types.ts
+        useCurrentUser.ts
+
+  shared/
+    api/
+      axios.ts                # instância com interceptor JWT
+      endpoints.ts            # constantes de URL
+    auth/
+      supabase.ts             # Supabase client singleton
+    ui/
+      Button/
+        Button.tsx
+        Button.types.ts
+      Input/
+        Input.tsx
+      Card/
+        Card.tsx
+      Badge/
+        Badge.tsx
+      Skeleton/
+        Skeleton.tsx
+      Waveform/
+        Waveform.tsx          # canvas animado Web Audio API
+      ProtectedRoute/
+        ProtectedRoute.tsx
+    hooks/
+      useMousePosition.ts     # posição do cursor para o efeito de luz
+      useAudioLevel.ts        # dados de amplitude para o waveform
+    lib/
+      cn.ts                   # clsx + tailwind-merge
+    types/
+      api.types.ts
+    assets/
+      logo-favicon.png        # Gemini_Generated_Image_dwy78j... (fundo transparente)
+      logo-hero.png           # Gemini_Generated_Image_byi2w9...
+      landing-bg.png          # Gemini_Generated_Image_h9xhe5...
+```
+
+### Regra de importação entre camadas
+
+| De \ Para | app | pages | widgets | features | entities | shared |
+|-----------|-----|-------|---------|----------|----------|--------|
+| **app** | — | ok | ok | ok | ok | ok |
+| **pages** | — | — | ok | ok | ok | ok |
+| **widgets** | — | — | — | ok | ok | ok |
+| **features** | — | — | — | — | ok | ok |
+| **entities** | — | — | — | — | — | ok |
+| **shared** | — | — | — | — | — | — |
 
 ---
 
@@ -21,25 +182,25 @@
 
 - Login exclusivamente via Magic Link (sem senha)
 - Template de e-mail personalizado via Supabase Dashboard > Auth > Email Templates
-  - Se não for possível customizar satisfatoriamente: desativar e-mail e usar OTP direto na UI
+  - Se não for possível customizar: desativar e-mail e usar OTP direto na UI
 - Fluxo:
   1. Usuário digita e-mail
   2. Supabase envia magic link
-  3. Callback redireciona para `/dashboard`
-  4. Token JWT armazenado via Supabase session (localStorage gerenciado pelo SDK)
-- Rotas protegidas via `ProtectedRoute` component que verifica sessão ativa
+  3. Callback `/auth/callback` captura sessão e redireciona para `/dashboard`
+  4. Token JWT gerenciado pelo SDK — nunca armazenar manualmente
+- `ProtectedRoute` em `shared/ui` verifica sessão ativa — sem sessão redireciona para `/login`
 
 ---
 
 ## Estrutura de Rotas
 
 ```
-/                   → Landing Page
-/login              → Tela de autenticação (Magic Link)
-/auth/callback      → Callback do Supabase após magic link
-/dashboard          → Lista de gravações do usuário
-/record             → Gravação em tempo real
-/transcription/:id  → Visualização de transcrição + resumo
+/                       → LandingPage
+/login                  → LoginPage
+/auth/callback          → AuthCallbackPage
+/dashboard              → DashboardPage (protegida)
+/record                 → RecordPage (protegida)
+/transcription/:id      → TranscriptionPage (protegida)
 ```
 
 ---
@@ -48,24 +209,21 @@
 
 ### 1. Gravação em Tempo Real
 - `MediaRecorder API` com formato `audio/webm;codecs=opus`
-- Visualizador de áudio em tempo real com `Web Audio API` (waveform animado)
+- Visualizador de amplitude com `Web Audio API` (canvas animado) em `shared/ui/Waveform`
 - Controles: iniciar, pausar, retomar, parar + enviar
-- Timer de duração visível durante gravação
-- Limite visual de 100MB (calculado em tempo real)
-- Ao parar: upload automático via `POST /api/v1/audio/upload`
+- Timer de duração em tempo real
+- Ao parar: upload automático via `features/recording/upload-audio`
 
 ### 2. Dashboard
-- Lista de todas as gravações do usuário com status
-- Status com polling automático via TanStack Query para itens `PENDING`
-- Intervalo de polling: 5s enquanto status = PENDING | PROCESSING
-- Cards com: nome do arquivo, data, status, duração
-- Ação de deletar com confirmação
+- Lista de áudios via `entities/audio/model/useAudioList`
+- Polling automático para itens `PENDING` ou `PROCESSING` a cada 5s
+- Cards com status, nome, data
+- Deletar via `features/transcription/delete-audio`
 
 ### 3. Visualização de Transcrição
-- Transcrição completa com scroll
-- Resumo estruturado destacado
-- Botão de copiar para ambos (transcrição e resumo)
-- Status de processamento com skeleton loading
+- Transcrição completa + resumo estruturado
+- Copiar texto via `features/transcription/copy-text`
+- Skeleton loading enquanto `PENDING`
 
 ---
 
@@ -74,105 +232,83 @@
 ### Paleta de Cores
 
 ```css
---bg-base: #080a0f;        /* fundo principal */
---bg-surface: #0e1117;     /* cards, painéis */
---bg-elevated: #161b24;    /* hover, inputs */
---border: #1e2530;         /* bordas sutis */
---text-primary: #e8eaf0;   /* texto principal */
---text-secondary: #6b7280; /* texto secundário */
---accent: #6366f1;         /* indigo — cor de destaque */
---accent-glow: #6366f140;  /* glow do accent */
+--bg-base: #080a0f;
+--bg-surface: #0e1117;
+--bg-elevated: #161b24;
+--border: #1e2530;
+--text-primary: #e8eaf0;
+--text-secondary: #6b7280;
+--accent: #6366f1;
+--accent-glow: #6366f140;
 --danger: #ef4444;
 ```
 
 ### Tipografia
-- Font: `Inter` (Google Fonts) — sans-serif, moderna, legível
-- Mono: `JetBrains Mono` — para transcrição e timestamps
+- `Inter` — texto geral
+- `JetBrains Mono` — transcrição e timestamps
 
 ### Efeitos Visuais
 
 **Landing Page:**
-- Fundo escuro com **radial gradient** que segue o cursor do mouse (mousemove → CSS custom properties → `radial-gradient`)
-- Partículas sutis ou grid de pontos com baixa opacidade
-- Hero title com gradiente animado no texto (`background-clip: text`)
+- `widgets/mouse-light` — `mousemove` atualiza CSS custom properties `--mouse-x` e `--mouse-y` aplicadas em `radial-gradient` no fundo
+- Grid de pontos com baixa opacidade como textura de fundo
+- Hero title com gradiente animado (`background-clip: text`)
 - Glassmorphism nos cards (`backdrop-filter: blur`)
-- Bordas com gradiente luminoso (`border-image` ou pseudo-element)
+- Logo com `mix-blend-mode: lighten` para integrar ao dark theme
 
 **Global:**
-- Transições suaves em todas as interações (200ms ease)
-- Focus rings com cor accent + glow
-- Scrollbar customizada (webkit)
-- Sem emojis — ícones exclusivamente via Lucide React
+- Transições: 200ms ease em todas as interações
+- Scrollbar customizada via webkit
+- Focus rings com glow accent
+- Zero emojis — ícones exclusivamente via Lucide React
 
-### Componentes Base
-- `Button` — variantes: primary, ghost, danger
-- `Input` — dark, com border glow no focus
+### Componentes base (`shared/ui`)
+- `Button` — primary, ghost, danger
+- `Input` — border glow no focus
 - `Card` — glassmorphism sutil
-- `Badge` — status: PENDING (amarelo), PROCESSING (azul), COMPLETED (verde), FAILED (vermelho)
+- `Badge` — PENDING (amarelo), PROCESSING (azul), COMPLETED (verde), FAILED (vermelho)
 - `Skeleton` — loading states
-- `Toast` — notificações (biblioteca: Sonner)
+- `Waveform` — canvas com barras animadas via Web Audio API
 
 ---
 
-## Estrutura de Pastas
+## Assets — Imagens do Projeto
 
-```
-frontend/
-  src/
-    assets/
-    components/
-      ui/               # Button, Input, Card, Badge, Skeleton, Toast
-      layout/           # Navbar, Sidebar, ProtectedRoute
-      recording/        # RecordButton, Waveform, Timer
-      transcription/    # TranscriptionView, SummaryCard, StatusBadge
-    pages/
-      Landing.tsx
-      Login.tsx
-      AuthCallback.tsx
-      Dashboard.tsx
-      Record.tsx
-      TranscriptionDetail.tsx
-    hooks/
-      useRecorder.ts    # MediaRecorder logic
-      useAudioLevel.ts  # Web Audio API waveform data
-      useAuth.ts        # Supabase session
-    lib/
-      supabase.ts       # Supabase client
-      axios.ts          # Axios instance com JWT interceptor
-      api.ts            # Funções de chamada à API
-    store/
-      auth.store.ts     # Zustand — sessão do usuário
-    types/
-      api.types.ts      # tipos das respostas do backend
-    App.tsx
-    main.tsx
-```
+Copiar de `/images/` para `frontend/src/shared/assets/`:
+
+| Arquivo original | Alias | Uso |
+|-----------------|-------|-----|
+| `Gemini_Generated_Image_dwy78jdwy78jdwy7-removebg-preview.png` | `logo-favicon.png` | Favicon + logo na Navbar |
+| `Gemini_Generated_Image_byi2w9byi2w9byi2-removebg-preview.png` | `logo-hero.png` | Hero da Landing Page |
+| `Gemini_Generated_Image_h9xhe5h9xhe5h9xh.png` | `landing-bg.png` | Seção secundária / decorativo |
+
+- Favicon configurado no `index.html` como `<link rel="icon">` e `apple-touch-icon`
+- Logos renderizadas com `mix-blend-mode: lighten` sobre dark theme
+- Nunca exibir logo com fundo branco visível
 
 ---
 
 ## Integração com o Backend
 
-### Axios Interceptor
+### Axios (`shared/api/axios.ts`)
 ```typescript
-// Injeta JWT em toda requisição automaticamente
-axios.interceptors.request.use(async (config) => {
-  const session = await supabase.auth.getSession();
-  const token = session.data.session?.access_token;
+instance.interceptors.request.use(async (config) => {
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token;
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 ```
 
-### Polling de Status
+### Polling de status
 ```typescript
-// TanStack Query com refetchInterval condicional
 useQuery({
-  queryKey: ['audio-status', audioId],
+  queryKey: ['transcription-status', audioId],
   queryFn: () => api.getAudioStatus(audioId),
-  refetchInterval: (data) =>
-    data?.transcription?.status === 'COMPLETED' || data?.transcription?.status === 'FAILED'
-      ? false
-      : 5000,
+  refetchInterval: (query) => {
+    const status = query.state.data?.transcription?.status;
+    return status === 'COMPLETED' || status === 'FAILED' ? false : 5000;
+  },
 });
 ```
 
@@ -190,59 +326,12 @@ VITE_API_BASE_URL=http://localhost:3000/api/v1
 
 ## O que NÃO fazer
 
+- Nunca quebrar a regra de importação do FSD (camada superior não importa de inferior)
 - Nunca usar emojis na UI — somente ícones Lucide
-- Nunca armazenar JWT manualmente — deixar o Supabase SDK gerenciar
-- Nunca chamar o backend diretamente sem o interceptor de auth
+- Nunca armazenar JWT manualmente — Supabase SDK gerencia
+- Nunca chamar o backend sem passar pelo `shared/api/axios.ts`
 - Nunca expor `SUPABASE_SERVICE_ROLE_KEY` no frontend
-- Nunca usar cores claras como base — o design é dark-first
-
----
-
-## Assets — Imagens do Projeto
-
-Todas as imagens estão em `/images/` na raiz do repositório e devem ser copiadas para `frontend/src/assets/` no setup inicial.
-
-| Arquivo | Uso |
-|---------|-----|
-| `Gemini_Generated_Image_dwy78jdwy78jdwy7-removebg-preview.png` | **Favicon** + logo principal (fundo transparente, versão graffiti) |
-| `Gemini_Generated_Image_byi2w9byi2w9byi2-removebg-preview.png` | Landing page — hero ou seção de destaque |
-| `Gemini_Generated_Image_h9xhe5h9xhe5h9xh.png` | Landing page — seção secundária ou background decorativo |
-
-### Regras de uso
-- O favicon usa a logo com fundo transparente — configurar via `index.html` com link para `.ico` e `apple-touch-icon`
-- Na landing page, usar `mix-blend-mode` adequado para integrar ao fundo escuro sem borda branca visível
-- Preferir sempre as versões `-removebg-preview` (fundo transparente)
-- Nunca exibir a logo com fundo branco sobre o dark theme
-
----
-
-## Claude Code — Instruções para o Frontend
-
-Bloco para adicionar ao `CLAUDE.md` do projeto:
-
-```
-## Frontend
-
-- Stack: Vite + React 19 + TypeScript strict
-- Tailwind CSS v4, Framer Motion, Lucide React
-- TanStack Query v5, Zustand, React Router v7
-- Supabase JS SDK (Magic Link), Axios com interceptor JWT
-
-### Design
-- Dark-first: fundo base #080a0f, accent indigo #6366f1
-- Nunca usar emojis — ícones exclusivamente via Lucide React
-- Landing page com luz radial seguindo o mouse (mousemove → CSS custom properties → radial-gradient)
-- Glassmorphism em cards (backdrop-filter: blur)
-
-### Assets
-- Favicon: images/Gemini_Generated_Image_dwy78jdwy78jdwy7-removebg-preview.png
-- Imagens da landing: /images/ (3 arquivos disponíveis)
-- Nunca exibir logos com fundo branco sobre dark theme
-
-### Regras
-- Nunca armazenar JWT manualmente — Supabase SDK gerencia sessão
-- Nunca expor SUPABASE_SERVICE_ROLE_KEY no frontend
-- Todo acesso ao backend via src/lib/axios.ts (interceptor de auth já configurado)
-- Polling de status via TanStack Query com refetchInterval condicional (5s se PENDING/PROCESSING)
-- Gravação: MediaRecorder API, formato audio/webm;codecs=opus
-```
+- Nunca usar cores claras como base — dark-first
+- Nunca exibir logo com fundo branco sobre o dark theme
+- Nunca colocar lógica de negócio em componentes de `shared/ui`
+- Nunca importar de `features` dentro de `entities` ou `shared`
