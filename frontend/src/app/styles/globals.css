@@ -1,0 +1,54 @@
+@import "tailwindcss";
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  --bg-base: #080a0f;
+  --bg-surface: #0e1117;
+  --bg-elevated: #161b24;
+  --border: #1e2530;
+  --text-primary: #e8eaf0;
+  --text-secondary: #6b7280;
+  --accent: #6366f1;
+  --accent-glow: #6366f140;
+  --danger: #ef4444;
+  --mouse-x: 50%;
+  --mouse-y: 50%;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--bg-base);
+  color: var(--text-primary);
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-surface);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
+
+::selection {
+  background: var(--accent-glow);
+  color: var(--text-primary);
+}
