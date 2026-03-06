@@ -317,6 +317,71 @@ MAX_AUDIO_SIZE_MB=100
 
 ---
 
+## Testes
+
+### Obrigatoriedade
+
+Todo código novo deve ter testes unitários. PRs sem testes não são aceitos.
+
+### O que testar
+
+| Camada | O que testar |
+|--------|-------------|
+| `use-cases` | Todos os fluxos: caminho feliz, erros esperados (not found, forbidden, bad request) |
+| `controllers` | Status HTTP correto, delegação ao use-case, resposta mapeada |
+| `guards` | Token ausente, token inválido, rota pública, rota protegida |
+| `providers` | Chamada correta à API externa, tratamento de erro |
+| `repositories` | Não testados unitariamente — cobertos por testes de integração futuros |
+
+### Padrões
+
+- Framework: **Jest** (já incluso no NestJS)
+- Um arquivo de teste por arquivo de produção: `upload-audio.use-case.spec.ts`
+- Localização: mesmo diretório do arquivo testado
+- Sempre usar mocks para dependências externas (repositórios, providers, filas)
+- Nomear os describes em português, its em português
+
+```typescript
+// Estrutura padrão
+describe('UploadAudioUseCase', () => {
+  let useCase: UploadAudioUseCase;
+  let audioRepository: jest.Mocked<IAudioRepository>;
+  let storageRepository: jest.Mocked<IStorageRepository>;
+
+  beforeEach(() => {
+    audioRepository = {
+      create: jest.fn(),
+      findById: jest.fn(),
+      // ...
+    } as jest.Mocked<IAudioRepository>;
+
+    useCase = new UploadAudioUseCase(audioRepository, storageRepository, configService);
+  });
+
+  describe('execute', () => {
+    it('deve retornar erro se o MIME type não for permitido', async () => {});
+    it('deve retornar erro se o arquivo exceder o tamanho máximo', async () => {});
+    it('deve salvar no storage e criar registro no banco com sucesso', async () => {});
+  });
+});
+```
+
+### Cobertura mínima
+
+- Use-cases: **100%** de cobertura de branches
+- Controllers: **80%**
+- Guards: **100%**
+
+### Comandos
+
+```bash
+npm run test           # roda todos os testes unitários
+npm run test:watch     # modo watch
+npm run test:cov       # gera relatório de cobertura
+```
+
+---
+
 ## Commits
 
 - Padrão Conventional Commits: `feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`

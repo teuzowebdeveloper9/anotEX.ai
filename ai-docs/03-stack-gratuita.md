@@ -478,3 +478,4 @@ Só migre para pago quando **precisar**, não antes!
 *Documentação criada em: Março 2026*
 
 
+
