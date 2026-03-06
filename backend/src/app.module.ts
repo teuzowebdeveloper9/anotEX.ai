@@ -21,14 +21,18 @@ import { HealthController } from './shared/presentation/controllers/health.contr
       },
     ]),
     BullModule.forRootAsync({
-      useFactory: () => ({
-        redis: {
-          host: process.env.UPSTASH_REDIS_URL ?? '',
-          port: 6379,
-          password: process.env.UPSTASH_REDIS_TOKEN ?? '',
-          tls: {},
-        },
-      }),
+      useFactory: () => {
+        const redisUrl = process.env.UPSTASH_REDIS_URL ?? '';
+        const host = redisUrl.replace(/^https?:\/\//, '');
+        return {
+          redis: {
+            host,
+            port: 6379,
+            password: process.env.UPSTASH_REDIS_TOKEN ?? '',
+            tls: {},
+          },
+        };
+      },
     }),
     AudioModule,
     TranscriptionModule,

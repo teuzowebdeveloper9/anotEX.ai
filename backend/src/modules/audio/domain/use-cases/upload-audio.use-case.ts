@@ -1,4 +1,4 @@
-import { Inject, Injectable, BadRequestException } from '@nestjs/common';
+import { Inject, Injectable, BadRequestException, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { randomUUID } from 'crypto';
 import type { AudioEntity } from '../entities/audio.entity.js';
@@ -18,6 +18,8 @@ export interface UploadAudioInput {
 
 @Injectable()
 export class UploadAudioUseCase {
+  private readonly logger = new Logger(UploadAudioUseCase.name);
+
   constructor(
     @Inject(AUDIO_REPOSITORY) private readonly audioRepository: IAudioRepository,
     @Inject(STORAGE_REPOSITORY) private readonly storageRepository: IStorageRepository,
@@ -28,18 +30,29 @@ export class UploadAudioUseCase {
     const maxSizeMb = this.configService.get<number>('MAX_AUDIO_SIZE_MB', 100);
     const maxSizeBytes = maxSizeMb * 1024 * 1024;
 
+    this.logger.log(`Upload iniciado | userId=${input.userId} | file=${input.file.originalname} | size=${input.file.size}B | mime=${input.file.mimetype}`);
+
     if (!ALLOWED_MIME_TYPES.includes(input.file.mimetype)) {
+      this.logger.warn(`MIME type não permitido: ${input.file.mimetype}`);
       return fail(new BadRequestException(`Unsupported audio format: ${input.file.mimetype}`));
     }
 
     if (input.file.size > maxSizeBytes) {
+      this.logger.warn(`Arquivo excede limite: ${input.file.size}B > ${maxSizeBytes}B`);
       return fail(new BadRequestException(`File exceeds maximum size of ${maxSizeMb}MB`));
     }
 
     const sanitizedName = input.file.originalname.replace(/[^a-zA-Z0-9._-]/g, '_');
     const storageKey = `audios/${input.userId}/${randomUUID()}-${sanitizedName}`;
 
-    await this.storageRepository.upload(storageKey, input.file.buffer, input.file.mimetype);
+    this.logger.log(`Enviando para R2 | key=${storageKey}`);
+    try {
+      await this.storageRepository.upload(storageKey, input.file.buffer, input.file.mimetype);
+    } catch (err) {
+      this.logger.error(`Falha no upload para R2 | key=${storageKey}`, err instanceof Error ? err.stack : String(err));
+      throw err;
+    }
+    this.logger.log(`Upload R2 concluído | key=${storageKey}`);
 
     const props: CreateAudioProps = {
       userId: input.userId,
@@ -50,6 +63,7 @@ export class UploadAudioUseCase {
     };
 
     const audio = await this.audioRepository.create(props);
+    this.logger.log(`Audio criado no banco | audioId=${audio.id}`);
     return ok(audio);
   }
 }
