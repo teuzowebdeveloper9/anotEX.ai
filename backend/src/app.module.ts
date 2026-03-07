@@ -6,6 +6,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { envValidationSchema } from './shared/infrastructure/config/env.validation.js';
 import { AudioModule } from './modules/audio/audio.module.js';
 import { TranscriptionModule } from './modules/transcription/transcription.module.js';
+import { StudyMaterialModule } from './modules/study-materials/study-material.module.js';
 import { HealthController } from './shared/presentation/controllers/health.controller.js';
 import { SupabaseAuthGuard } from './modules/audio/presentation/guards/auth.guard.js';
 
@@ -37,6 +38,7 @@ import { SupabaseAuthGuard } from './modules/audio/presentation/guards/auth.guar
     }),
     AudioModule,
     TranscriptionModule,
+    StudyMaterialModule,
   ],
   controllers: [HealthController],
   providers: [

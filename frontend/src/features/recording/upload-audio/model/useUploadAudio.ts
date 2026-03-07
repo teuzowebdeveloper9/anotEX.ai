@@ -21,10 +21,6 @@ export function useUploadAudio(): UseUploadAudioReturn {
         ? file.name
         : `recording-${Date.now()}.webm`
 
-      const mimeType = file instanceof File
-        ? (file.type || 'audio/mpeg')
-        : 'audio/webm'
-
       const formData = new FormData()
       formData.append('audio', file, fileName)
       formData.append('language', language)

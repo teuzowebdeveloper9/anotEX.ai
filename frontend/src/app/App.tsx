@@ -8,6 +8,9 @@ import { DashboardPage } from '@/pages/dashboard/ui/DashboardPage'
 import { RecordPage } from '@/pages/record/ui/RecordPage'
 import { TranscriptionPage } from '@/pages/transcription/ui/TranscriptionPage'
 import { TranscriptionsPage } from '@/pages/transcriptions/ui/TranscriptionsPage'
+import { SummariesPage } from '@/pages/summaries/ui/SummariesPage'
+import { MindMapsPage } from '@/pages/mindmaps/ui/MindMapsPage'
+import { FlashcardsPage } from '@/pages/flashcards/ui/FlashcardsPage'
 import { ProtectedRoute } from '@/shared/ui/ProtectedRoute/ProtectedRoute'
 
 export function App() {
@@ -47,6 +50,30 @@ export function App() {
             element={
               <ProtectedRoute>
                 <TranscriptionPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/summaries"
+            element={
+              <ProtectedRoute>
+                <SummariesPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/mindmaps"
+            element={
+              <ProtectedRoute>
+                <MindMapsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/flashcards"
+            element={
+              <ProtectedRoute>
+                <FlashcardsPage />
               </ProtectedRoute>
             }
           />

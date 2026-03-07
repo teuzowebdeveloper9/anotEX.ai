@@ -20,6 +20,7 @@ import { TranscriptionController } from './presentation/controllers/transcriptio
   imports: [
     ConfigModule,
     BullModule.registerQueue({ name: TRANSCRIPTION_QUEUE }),
+    BullModule.registerQueue({ name: 'study-material' }),
   ],
   controllers: [TranscriptionController],
   providers: [

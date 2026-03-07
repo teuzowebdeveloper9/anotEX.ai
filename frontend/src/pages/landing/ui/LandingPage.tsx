@@ -35,9 +35,9 @@ const steps = [
   {
     number: '03',
     icon: Sparkles,
-    title: 'Resumo inteligente',
+    title: 'Material de estudo completo',
     description:
-      'O anotEX.ai gera automaticamente resumo da aula, pontos principais e estrutura do conteúdo. Revise em minutos.',
+      'A IA gera automaticamente resumo, mapa mental interativo e flashcards da aula. Revise em minutos com revisão ativa.',
   },
 ]
 
@@ -45,6 +45,7 @@ const benefits = [
   'Revisar exatamente o que o professor explicou',
   'Encontrar partes específicas da aula em segundos',
   'Transformar horas de aula em material de estudo organizado',
+  'Fixar conteúdo com flashcards e mapas mentais gerados pela IA',
 ]
 
 const audiences = ['Faculdade', 'Escola', 'Cursos técnicos', 'Cursos online']
@@ -99,7 +100,7 @@ export function LandingPage() {
         >
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-[var(--accent)]/30 bg-[var(--accent)]/5 text-xs text-[var(--accent)] mb-8">
             <Sparkles size={12} />
-            Transcrição + Resumo automático com IA
+            Transcrição · Resumo · Mapa Mental · Flashcards com IA
           </div>
 
           <h1 className="text-5xl sm:text-6xl font-bold leading-tight mb-6">
@@ -302,10 +303,10 @@ export function LandingPage() {
             { icon: FileText,       label: 'Transcrição automática',    description: 'Groq Whisper Large v3.',                    available: true  },
             { icon: Sparkles,       label: 'Resumo com IA',             description: 'Llama 3.3 70B, pontos-chave da aula.',      available: true  },
             { icon: BookOpen,       label: 'Upload de arquivos',        description: 'MP3, MP4, WAV, OGG, WebM.',                 available: true  },
-            { icon: Map,            label: 'Mapas mentais',             description: 'Gerados automaticamente da aula.',          available: false },
-            { icon: MessageSquare,  label: 'Perguntas e respostas',     description: 'Tire dúvidas sobre o conteúdo.',            available: false },
-            { icon: ClipboardCheck, label: 'Testes automáticos',        description: 'Verifique se você realmente entendeu.',     available: false },
-            { icon: CheckCircle,    label: 'Materiais de revisão',      description: 'Flashcards e resumos estruturados.',        available: false },
+            { icon: Map,            label: 'Mapas mentais',             description: 'Gerados automaticamente da aula.',          available: true  },
+            { icon: BookOpen,       label: 'Flashcards',                description: 'Revisão ativa com cards gerados pela IA.',  available: true  },
+            { icon: ClipboardCheck, label: 'Quiz automático',           description: 'Verifique se você realmente entendeu.',     available: true  },
+            { icon: MessageSquare,  label: 'Chat com a aula',           description: 'Tire dúvidas sobre o conteúdo.',            available: false },
           ] as const).map((item, i) => (
             <motion.div
               key={item.label}

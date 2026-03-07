@@ -35,6 +35,37 @@ export interface UploadAudioResponse {
   createdAt: string
 }
 
+export type StudyMaterialType = 'flashcards' | 'mindmap' | 'quiz'
+export type StudyMaterialStatus = 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED'
+
+export interface FlashcardItem {
+  front: string
+  back: string
+  difficulty: 'easy' | 'medium' | 'hard'
+  topic: string
+}
+
+export interface MindmapContent {
+  markdown: string
+}
+
+export interface QuizItem {
+  question: string
+  options: [string, string, string, string]
+  correct: 0 | 1 | 2 | 3
+  explanation: string
+}
+
+export interface StudyMaterialEntity {
+  id: string
+  type: StudyMaterialType
+  status: StudyMaterialStatus
+  content: FlashcardItem[] | MindmapContent | QuizItem[] | null
+  errorMessage: string | null
+  createdAt: string
+  updatedAt: string
+}
+
 export interface AudioStatusResponse {
   audio: {
     id: string

@@ -32,11 +32,11 @@ export class ProcessTranscriptionUseCase {
     private readonly summaryProvider: ISummaryProvider,
   ) {}
 
-  async execute(input: ProcessTranscriptionInput): Promise<void> {
+  async execute(input: ProcessTranscriptionInput): Promise<boolean> {
     const transcription = await this.transcriptionRepository.findById(input.transcriptionId);
     if (!transcription) {
       this.logger.error(`Transcription ${input.transcriptionId} not found`);
-      return;
+      return false;
     }
 
     const audio = await this.audioRepository.findById(input.audioId);
@@ -46,7 +46,7 @@ export class ProcessTranscriptionUseCase {
         TranscriptionStatus.FAILED,
         'Audio not found',
       );
-      return;
+      return false;
     }
 
     try {
@@ -81,8 +81,9 @@ export class ProcessTranscriptionUseCase {
         TranscriptionStatus.COMPLETED,
       );
       await this.audioRepository.updateStatus(input.audioId, AudioStatus.COMPLETED);
+      return true;
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
+      const message = this.extractErrorMessage(error);
       this.logger.error(`Failed to process transcription ${input.transcriptionId}: ${message}`);
 
       await this.transcriptionRepository.updateStatus(
@@ -91,6 +92,21 @@ export class ProcessTranscriptionUseCase {
         message,
       );
       await this.audioRepository.updateStatus(input.audioId, AudioStatus.FAILED, message);
+      return false;
     }
+  }
+
+  private extractErrorMessage(error: unknown): string {
+    if (!(error instanceof Error)) return 'Unknown error';
+
+    // Groq returns errors as JSON strings — extract the human-readable message
+    try {
+      const parsed = JSON.parse(error.message) as { error?: { message?: string } };
+      if (parsed?.error?.message) return parsed.error.message;
+    } catch {
+      // not JSON, use as-is
+    }
+
+    return error.message;
   }
 }

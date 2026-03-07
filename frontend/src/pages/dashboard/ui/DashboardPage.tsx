@@ -53,7 +53,9 @@ export function DashboardPage() {
               </Link>
             </div>
           ) : (
-            audios?.map((audio) => <AudioCard key={audio.id} audio={audio} />)
+            audios
+              ?.filter((a) => a.status !== 'FAILED')
+              .map((audio) => <AudioCard key={audio.id} audio={audio} />)
           )}
         </div>
       </div>

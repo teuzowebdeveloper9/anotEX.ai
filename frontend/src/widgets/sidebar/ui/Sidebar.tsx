@@ -1,11 +1,10 @@
 import { NavLink } from 'react-router-dom'
-import { Mic, FileText, Map, MessageSquare, Sparkles, Clock } from 'lucide-react'
+import { Mic, FileText, Map, BookOpen, Sparkles } from 'lucide-react'
 
 interface NavItem {
   icon: React.ReactNode
   label: string
   to: string
-  comingSoon?: boolean
 }
 
 const mainItems: NavItem[] = [
@@ -13,10 +12,10 @@ const mainItems: NavItem[] = [
   { icon: <FileText size={16} />, label: 'Transcrições', to: '/transcriptions' },
 ]
 
-const soonItems: NavItem[] = [
-  { icon: <Map size={16} />, label: 'Mapas Mentais', to: '#', comingSoon: true },
-  { icon: <MessageSquare size={16} />, label: 'Perguntas & Respostas', to: '#', comingSoon: true },
-  { icon: <Sparkles size={16} />, label: 'Resumos Auto', to: '#', comingSoon: true },
+const studyItems: NavItem[] = [
+  { icon: <Sparkles size={16} />, label: 'Resumos', to: '/summaries' },
+  { icon: <Map size={16} />, label: 'Mapas Mentais', to: '/mindmaps' },
+  { icon: <BookOpen size={16} />, label: 'Flashcards', to: '/flashcards' },
 ]
 
 export function Sidebar() {
@@ -25,7 +24,7 @@ export function Sidebar() {
       <nav className="flex flex-col gap-1">
         {mainItems.map((item) => (
           <NavLink
-            key={item.to}
+            key={item.label}
             to={item.to}
             end
             className={({ isActive }) =>
@@ -44,23 +43,18 @@ export function Sidebar() {
 
       <div className="mt-6">
         <p className="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest text-[var(--text-secondary)]/50">
-          Em breve
+          Material de Estudo
         </p>
         <nav className="flex flex-col gap-1">
-          {soonItems.map((item) => (
-            <div
+          {studyItems.map((item) => (
+            <NavLink
               key={item.label}
-              className="flex items-center justify-between px-3 py-2 rounded-lg text-sm text-[var(--text-secondary)]/40 cursor-default select-none"
+              to={item.to}
+              className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] transition-colors"
             >
-              <span className="flex items-center gap-3">
-                {item.icon}
-                {item.label}
-              </span>
-              <span className="flex items-center gap-1 text-[9px] font-medium uppercase tracking-wide text-[var(--text-secondary)]/30 bg-[var(--bg-elevated)] border border-[var(--border)] rounded px-1.5 py-0.5">
-                <Clock size={8} />
-                logo
-              </span>
-            </div>
+              {item.icon}
+              {item.label}
+            </NavLink>
           ))}
         </nav>
       </div>

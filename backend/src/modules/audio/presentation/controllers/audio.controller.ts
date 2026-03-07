@@ -78,7 +78,7 @@ export class AudioController {
 
     await this.transcriptionQueue.add(
       PROCESS_TRANSCRIPTION_JOB,
-      { transcriptionId: transcription.id, audioId: result.data.id },
+      { transcriptionId: transcription.id, audioId: result.data.id, userId: req.user.id },
       {
         attempts: 3,
         backoff: { type: 'exponential', delay: 5000 },

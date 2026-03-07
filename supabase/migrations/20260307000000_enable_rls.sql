@@ -105,3 +105,9 @@ CREATE INDEX IF NOT EXISTS idx_transcriptions_audio_id
 -- índice composto para a policy de INSERT que faz EXISTS (audio_id + user_id)
 CREATE INDEX IF NOT EXISTS idx_audios_id_user_id
   ON audios (id, user_id);
+
+
+
+
+
+
