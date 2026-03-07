@@ -13,6 +13,10 @@ Seja conciso e objetivo. Responda em português.
 
 Transcrição:`;
 
+const TITLE_PROMPT = `Leia a transcrição a seguir e crie um título curto (máximo 8 palavras) que descreva o tema principal da aula. Responda APENAS com o título, sem aspas, sem pontuação final, sem explicação.
+
+Transcrição:`;
+
 @Injectable()
 export class GroqLlamaProviderImpl implements ISummaryProvider {
   private readonly logger = new Logger(GroqLlamaProviderImpl.name);
@@ -40,5 +44,25 @@ export class GroqLlamaProviderImpl implements ISummaryProvider {
     });
 
     return completion.choices[0]?.message?.content ?? '';
+  }
+
+  async generateTitle(transcriptionText: string): Promise<string> {
+    this.logger.log('Generating title with Groq Llama 3 70B...');
+
+    const preview = transcriptionText.slice(0, 1500);
+
+    const completion = await this.groq.chat.completions.create({
+      model: 'llama-3.3-70b-versatile',
+      messages: [
+        {
+          role: 'user',
+          content: `${TITLE_PROMPT}\n\n${preview}`,
+        },
+      ],
+      temperature: 0.3,
+      max_tokens: 32,
+    });
+
+    return (completion.choices[0]?.message?.content ?? '').trim();
   }
 }

@@ -2,19 +2,16 @@ import {
   Controller,
   Get,
   Param,
-  UseGuards,
   Req,
   ParseUUIDPipe,
+  Inject,
 } from '@nestjs/common';
-import { SupabaseAuthGuard } from '../../../audio/presentation/guards/auth.guard.js';
 import type { AuthenticatedRequest } from '../../../audio/presentation/guards/auth.guard.js';
 import { GetTranscriptionUseCase } from '../../domain/use-cases/get-transcription.use-case.js';
 import type { ITranscriptionRepository } from '../../domain/repositories/transcription.repository.js';
 import { TRANSCRIPTION_REPOSITORY } from '../../domain/repositories/transcription.repository.js';
-import { Inject } from '@nestjs/common';
 
 @Controller('transcription')
-@UseGuards(SupabaseAuthGuard)
 export class TranscriptionController {
   constructor(
     private readonly getTranscriptionUseCase: GetTranscriptionUseCase,
@@ -30,6 +27,7 @@ export class TranscriptionController {
       audioId: t.audioId,
       status: t.status,
       language: t.language,
+      title: t.title,
       transcriptionText: t.transcriptionText,
       summaryText: t.summaryText,
       createdAt: t.createdAt,
@@ -53,6 +51,7 @@ export class TranscriptionController {
       audioId: result.data.audioId,
       status: result.data.status,
       language: result.data.language,
+      title: result.data.title,
       transcriptionText: result.data.transcriptionText,
       summaryText: result.data.summaryText,
       errorMessage: result.data.errorMessage,

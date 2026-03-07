@@ -1,9 +1,20 @@
+import { useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { MouseLight } from '@/widgets/mouse-light/ui/MouseLight'
 import { MagicLinkForm } from '@/features/auth/login-with-magic-link/ui/MagicLinkForm'
 import { Card } from '@/shared/ui/Card/Card'
+import { supabase } from '@/shared/auth/supabase'
 import logoFavicon from '@/shared/assets/logo-favicon.png'
 
 export function LoginPage() {
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) navigate('/dashboard', { replace: true })
+    })
+  }, [navigate])
+
   return (
     <div className="relative min-h-screen flex items-center justify-center bg-[var(--bg-base)] px-4">
       <MouseLight />

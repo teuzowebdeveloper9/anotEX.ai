@@ -7,6 +7,7 @@ import { envValidationSchema } from './shared/infrastructure/config/env.validati
 import { AudioModule } from './modules/audio/audio.module.js';
 import { TranscriptionModule } from './modules/transcription/transcription.module.js';
 import { HealthController } from './shared/presentation/controllers/health.controller.js';
+import { SupabaseAuthGuard } from './modules/audio/presentation/guards/auth.guard.js';
 
 @Module({
   imports: [
@@ -39,9 +40,15 @@ import { HealthController } from './shared/presentation/controllers/health.contr
   ],
   controllers: [HealthController],
   providers: [
+    // Rate limiting global por IP — 100 req/min
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
+    },
+    // Auth global — todo controller protegido por padrão; use @Public() para rotas abertas
+    {
+      provide: APP_GUARD,
+      useClass: SupabaseAuthGuard,
     },
   ],
 })

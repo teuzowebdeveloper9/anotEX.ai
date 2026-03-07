@@ -6,7 +6,6 @@ import { UploadAudioUseCase } from './domain/use-cases/upload-audio.use-case.js'
 import { GetAudioStatusUseCase } from './domain/use-cases/get-audio-status.use-case.js';
 import { AudioRepositoryImpl } from './infrastructure/repositories/audio.repository.impl.js';
 import { StorageRepositoryImpl } from './infrastructure/repositories/storage.repository.impl.js';
-import { SupabaseAuthGuard } from './presentation/guards/auth.guard.js';
 import { AUDIO_REPOSITORY } from './domain/repositories/audio.repository.js';
 import { STORAGE_REPOSITORY } from './domain/repositories/storage.repository.js';
 import { TRANSCRIPTION_REPOSITORY } from '../transcription/domain/repositories/transcription.repository.js';
@@ -22,7 +21,6 @@ import { TRANSCRIPTION_QUEUE } from '../transcription/application/services/trans
   controllers: [AudioController],
   providers: [
     SupabaseService,
-    SupabaseAuthGuard,
     UploadAudioUseCase,
     GetAudioStatusUseCase,
     { provide: AUDIO_REPOSITORY, useClass: AudioRepositoryImpl },

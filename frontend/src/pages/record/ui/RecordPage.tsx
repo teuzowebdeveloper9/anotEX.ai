@@ -2,6 +2,7 @@ import { useRef } from 'react'
 import { Mic, Pause, Play, Square, RotateCcw, Send, Upload, FileAudio } from 'lucide-react'
 import { toast } from 'sonner'
 import { Navbar } from '@/widgets/navbar/ui/Navbar'
+import { Sidebar } from '@/widgets/sidebar/ui/Sidebar'
 import { Waveform } from '@/shared/ui/Waveform/Waveform'
 import { Button } from '@/shared/ui/Button/Button'
 import { Card } from '@/shared/ui/Card/Card'
@@ -53,7 +54,9 @@ export function RecordPage() {
   return (
     <div className="min-h-screen bg-[var(--bg-base)]">
       <Navbar />
-      <main className="max-w-xl mx-auto px-4 pt-24 pb-12">
+      <Sidebar />
+      <main className="pl-56 pt-14">
+      <div className="max-w-xl mx-auto px-8 pt-10 pb-12">
         <div className="mb-8">
           <h1 className="text-2xl font-semibold text-[var(--text-primary)]">Nova gravação</h1>
           <p className="text-sm text-[var(--text-secondary)] mt-1">
@@ -172,6 +175,7 @@ export function RecordPage() {
             </div>
           )}
         </button>
+      </div>
       </main>
     </div>
   )

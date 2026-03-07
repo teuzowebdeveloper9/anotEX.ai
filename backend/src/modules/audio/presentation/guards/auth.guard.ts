@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { Request } from 'express';
 import { IS_PUBLIC_KEY } from '../../../../shared/presentation/decorators/public.decorator.js';
 
@@ -16,10 +16,17 @@ export interface AuthenticatedRequest extends Request {
 
 @Injectable()
 export class SupabaseAuthGuard implements CanActivate {
+  private readonly supabase: SupabaseClient;
+
   constructor(
     private readonly reflector: Reflector,
-    private readonly configService: ConfigService,
-  ) {}
+    configService: ConfigService,
+  ) {
+    this.supabase = createClient(
+      configService.getOrThrow<string>('SUPABASE_URL'),
+      configService.getOrThrow<string>('SUPABASE_ANON_KEY'),
+    );
+  }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
@@ -34,12 +41,7 @@ export class SupabaseAuthGuard implements CanActivate {
 
     if (!token) throw new UnauthorizedException('Missing authorization token');
 
-    const supabase = createClient(
-      this.configService.getOrThrow<string>('SUPABASE_URL'),
-      this.configService.getOrThrow<string>('SUPABASE_ANON_KEY'),
-    );
-
-    const { data, error } = await supabase.auth.getUser(token);
+    const { data, error } = await this.supabase.auth.getUser(token);
 
     if (error || !data.user) {
       throw new UnauthorizedException('Invalid or expired token');

@@ -19,6 +19,7 @@ export interface TranscriptionEntity {
   userId: string
   status: TranscriptionStatus
   language: string
+  title: string | null
   transcriptionText: string | null
   summaryText: string | null
   errorMessage: string | null
@@ -43,6 +44,7 @@ export interface AudioStatusResponse {
   transcription: {
     id: string
     status: TranscriptionStatus
+    title: string | null
     transcriptionText: string | null
     summaryText: string | null
     errorMessage: string | null

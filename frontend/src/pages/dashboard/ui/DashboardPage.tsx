@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { Mic, Inbox } from 'lucide-react'
 import { Navbar } from '@/widgets/navbar/ui/Navbar'
+import { Sidebar } from '@/widgets/sidebar/ui/Sidebar'
 import { AudioCard } from '@/entities/audio/ui/AudioCard'
 import { Button } from '@/shared/ui/Button/Button'
 import { Skeleton } from '@/shared/ui/Skeleton/Skeleton'
@@ -12,7 +13,9 @@ export function DashboardPage() {
   return (
     <div className="min-h-screen bg-[var(--bg-base)]">
       <Navbar />
-      <main className="max-w-3xl mx-auto px-4 pt-24 pb-12">
+      <Sidebar />
+      <main className="pl-56 pt-14">
+      <div className="max-w-3xl mx-auto px-8 pt-10 pb-12">
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-2xl font-semibold text-[var(--text-primary)]">Suas gravações</h1>
@@ -53,6 +56,7 @@ export function DashboardPage() {
             audios?.map((audio) => <AudioCard key={audio.id} audio={audio} />)
           )}
         </div>
+      </div>
       </main>
     </div>
   )

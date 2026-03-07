@@ -65,12 +65,16 @@ export class ProcessTranscriptionUseCase {
         transcription.language,
       );
 
-      const summaryText = await this.summaryProvider.summarize(transcriptionText);
+      const [summaryText, title] = await Promise.all([
+        this.summaryProvider.summarize(transcriptionText),
+        this.summaryProvider.generateTitle(transcriptionText),
+      ]);
 
       await this.transcriptionRepository.updateResult(
         input.transcriptionId,
         transcriptionText,
         summaryText,
+        title,
       );
       await this.transcriptionRepository.updateStatus(
         input.transcriptionId,

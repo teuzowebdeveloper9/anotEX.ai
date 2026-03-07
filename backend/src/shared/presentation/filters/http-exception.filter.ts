@@ -34,12 +34,17 @@ export class HttpExceptionFilter implements ExceptionFilter {
       );
     }
 
-    response.status(status).json({
+    const body: Record<string, unknown> = {
       statusCode: status,
       message,
       error: HttpStatus[status],
       timestamp: new Date().toISOString(),
-      path: request.url,
-    });
+    };
+
+    if (process.env.NODE_ENV !== 'production') {
+      body['path'] = request.url;
+    }
+
+    response.status(status).json(body);
   }
 }

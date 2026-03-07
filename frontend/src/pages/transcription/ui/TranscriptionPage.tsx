@@ -1,6 +1,7 @@
 import { useParams, Link } from 'react-router-dom'
 import { ArrowLeft, AlertCircle } from 'lucide-react'
 import { Navbar } from '@/widgets/navbar/ui/Navbar'
+import { Sidebar } from '@/widgets/sidebar/ui/Sidebar'
 import { Card } from '@/shared/ui/Card/Card'
 import { Badge } from '@/shared/ui/Badge/Badge'
 import { Skeleton } from '@/shared/ui/Skeleton/Skeleton'
@@ -16,7 +17,9 @@ export function TranscriptionPage() {
   return (
     <div className="min-h-screen bg-[var(--bg-base)]">
       <Navbar />
-      <main className="max-w-3xl mx-auto px-4 pt-24 pb-12">
+      <Sidebar />
+      <main className="pl-56 pt-14">
+      <div className="max-w-3xl mx-auto px-8 pt-10 pb-12">
         <Link
           to="/dashboard"
           className="inline-flex items-center gap-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors mb-6"
@@ -34,9 +37,16 @@ export function TranscriptionPage() {
         ) : (
           <div className="flex flex-col gap-6">
             <div className="flex items-center gap-3">
-              <h1 className="text-xl font-semibold text-[var(--text-primary)] truncate flex-1">
-                {data?.audio.fileName ?? 'Gravação'}
-              </h1>
+              <div className="flex-1 min-w-0">
+                <h1 className="text-xl font-semibold text-[var(--text-primary)] truncate">
+                  {transcription?.title ?? data?.audio.fileName ?? 'Gravação'}
+                </h1>
+                {transcription?.title && (
+                  <p className="text-sm text-[var(--text-secondary)] truncate mt-0.5">
+                    {data?.audio.fileName}
+                  </p>
+                )}
+              </div>
               {data?.audio.status && <Badge status={data.audio.status} />}
             </div>
 
@@ -93,6 +103,7 @@ export function TranscriptionPage() {
             )}
           </div>
         )}
+      </div>
       </main>
     </div>
   )

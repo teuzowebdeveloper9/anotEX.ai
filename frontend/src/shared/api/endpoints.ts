@@ -6,6 +6,7 @@ export const ENDPOINTS = {
     delete: (id: string) => `/audio/${id}`,
   },
   transcription: {
+    list: '/transcription',
     getByAudioId: (audioId: string) => `/transcription/${audioId}`,
   },
 } as const

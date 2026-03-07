@@ -82,11 +82,13 @@ export class TranscriptionRepositoryImpl implements ITranscriptionRepository {
     id: string,
     transcriptionText: string,
     summaryText: string,
+    title: string,
   ): Promise<void> {
     const { error } = await this.supabaseService
       .getClient()
       .from('transcriptions')
       .update({
+        title,
         transcription_text: transcriptionText,
         summary_text: summaryText,
         updated_at: new Date().toISOString(),
@@ -96,11 +98,22 @@ export class TranscriptionRepositoryImpl implements ITranscriptionRepository {
     if (error) throw new Error(`Failed to update transcription result: ${error.message}`);
   }
 
+  async deleteByAudioId(audioId: string): Promise<void> {
+    const { error } = await this.supabaseService
+      .getClient()
+      .from('transcriptions')
+      .delete()
+      .eq('audio_id', audioId);
+
+    if (error) throw new Error(`Failed to delete transcription: ${error.message}`);
+  }
+
   private toEntity(raw: Record<string, unknown>): TranscriptionEntity {
     return {
       id: raw.id as string,
       audioId: raw.audio_id as string,
       userId: raw.user_id as string,
+      title: (raw.title as string | null) ?? null,
       transcriptionText: raw.transcription_text as string | null,
       summaryText: raw.summary_text as string | null,
       language: raw.language as string,

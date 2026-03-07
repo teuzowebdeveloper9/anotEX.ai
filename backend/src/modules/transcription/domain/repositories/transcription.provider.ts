@@ -4,6 +4,7 @@ export interface ITranscriptionProvider {
 
 export interface ISummaryProvider {
   summarize(transcriptionText: string): Promise<string>;
+  generateTitle(transcriptionText: string): Promise<string>;
 }
 
 export const TRANSCRIPTION_PROVIDER = Symbol('ITranscriptionProvider');

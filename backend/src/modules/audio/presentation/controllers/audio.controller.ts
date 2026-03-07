@@ -14,16 +14,20 @@ import {
   Body,
   BadRequestException,
   Inject,
+  Logger,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { InjectQueue } from '@nestjs/bull';
+import { Throttle } from '@nestjs/throttler';
 import type { Queue } from 'bull';
-import { SupabaseAuthGuard } from '../guards/auth.guard.js';
 import type { AuthenticatedRequest } from '../guards/auth.guard.js';
+import { UserUploadThrottlerGuard } from '../guards/user-upload-throttler.guard.js';
 import { UploadAudioUseCase } from '../../domain/use-cases/upload-audio.use-case.js';
 import { GetAudioStatusUseCase } from '../../domain/use-cases/get-audio-status.use-case.js';
 import type { IAudioRepository } from '../../domain/repositories/audio.repository.js';
 import { AUDIO_REPOSITORY } from '../../domain/repositories/audio.repository.js';
+import type { IStorageRepository } from '../../domain/repositories/storage.repository.js';
+import { STORAGE_REPOSITORY } from '../../domain/repositories/storage.repository.js';
 import type { ITranscriptionRepository } from '../../../transcription/domain/repositories/transcription.repository.js';
 import { TRANSCRIPTION_REPOSITORY } from '../../../transcription/domain/repositories/transcription.repository.js';
 import { UploadAudioDto } from '../../application/dto/upload-audio.dto.js';
@@ -34,16 +38,21 @@ import {
 import type { TranscriptionJobData } from '../../../transcription/application/services/transcription-queue.processor.js';
 
 @Controller('audio')
-@UseGuards(SupabaseAuthGuard)
 export class AudioController {
+  private readonly logger = new Logger(AudioController.name);
+
   constructor(
     private readonly uploadAudioUseCase: UploadAudioUseCase,
     private readonly getAudioStatusUseCase: GetAudioStatusUseCase,
     @Inject(AUDIO_REPOSITORY) private readonly audioRepository: IAudioRepository,
+    @Inject(STORAGE_REPOSITORY) private readonly storageRepository: IStorageRepository,
     @Inject(TRANSCRIPTION_REPOSITORY) private readonly transcriptionRepository: ITranscriptionRepository,
     @InjectQueue(TRANSCRIPTION_QUEUE) private readonly transcriptionQueue: Queue<TranscriptionJobData>,
   ) {}
 
+  // 10 uploads por hora por usuário autenticado
+  @UseGuards(UserUploadThrottlerGuard)
+  @Throttle({ default: { limit: 10, ttl: 3600000 } })
   @Post('upload')
   @HttpCode(HttpStatus.CREATED)
   @UseInterceptors(FileInterceptor('audio'))
@@ -110,6 +119,7 @@ export class AudioController {
         ? {
             id: transcription.id,
             status: transcription.status,
+            title: transcription.title,
             transcriptionText: transcription.transcriptionText,
             summaryText: transcription.summaryText,
             errorMessage: transcription.errorMessage,
@@ -143,6 +153,21 @@ export class AudioController {
 
     if (!result.success) throw result.error;
 
+    const { storageKey } = result.data;
+
+    // Deleta transcrição e áudio do banco primeiro
+    await this.transcriptionRepository.deleteByAudioId(id);
     await this.audioRepository.delete(id);
+
+    // Deleta do R2 por último — se falhar, o registro já foi removido
+    // e o arquivo fica órfão (privado, inacessível sem signed URL)
+    try {
+      await this.storageRepository.delete(storageKey);
+    } catch (err) {
+      this.logger.error(
+        `Falha ao deletar arquivo do R2 | key=${storageKey}`,
+        err instanceof Error ? err.stack : String(err),
+      );
+    }
   }
 }

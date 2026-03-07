@@ -7,6 +7,7 @@ import { AuthCallbackPage } from '@/pages/auth-callback/ui/AuthCallbackPage'
 import { DashboardPage } from '@/pages/dashboard/ui/DashboardPage'
 import { RecordPage } from '@/pages/record/ui/RecordPage'
 import { TranscriptionPage } from '@/pages/transcription/ui/TranscriptionPage'
+import { TranscriptionsPage } from '@/pages/transcriptions/ui/TranscriptionsPage'
 import { ProtectedRoute } from '@/shared/ui/ProtectedRoute/ProtectedRoute'
 
 export function App() {
@@ -30,6 +31,14 @@ export function App() {
             element={
               <ProtectedRoute>
                 <RecordPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/transcriptions"
+            element={
+              <ProtectedRoute>
+                <TranscriptionsPage />
               </ProtectedRoute>
             }
           />

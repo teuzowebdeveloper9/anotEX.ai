@@ -9,6 +9,7 @@ export interface TranscriptionEntity {
   readonly id: string;
   readonly audioId: string;
   readonly userId: string;
+  readonly title: string | null;
   readonly transcriptionText: string | null;
   readonly summaryText: string | null;
   readonly language: string;

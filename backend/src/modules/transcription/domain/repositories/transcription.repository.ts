@@ -18,7 +18,9 @@ export interface ITranscriptionRepository {
     id: string,
     transcriptionText: string,
     summaryText: string,
+    title: string,
   ): Promise<void>;
+  deleteByAudioId(audioId: string): Promise<void>;
 }
 
 export const TRANSCRIPTION_REPOSITORY = Symbol('ITranscriptionRepository');
