@@ -8,55 +8,66 @@ interface NavItem {
 }
 
 const mainItems: NavItem[] = [
-  { icon: <Mic size={16} />, label: 'Gravações', to: '/dashboard' },
-  { icon: <FileText size={16} />, label: 'Transcrições', to: '/transcriptions' },
+  { icon: <Mic size={15} />, label: 'Gravações', to: '/dashboard' },
+  { icon: <FileText size={15} />, label: 'Transcrições', to: '/transcriptions' },
 ]
 
 const studyItems: NavItem[] = [
-  { icon: <Sparkles size={16} />, label: 'Resumos', to: '/summaries' },
-  { icon: <Map size={16} />, label: 'Mapas Mentais', to: '/mindmaps' },
-  { icon: <BookOpen size={16} />, label: 'Flashcards', to: '/flashcards' },
+  { icon: <Sparkles size={15} />, label: 'Resumos', to: '/summaries' },
+  { icon: <Map size={15} />, label: 'Mapas Mentais', to: '/mindmaps' },
+  { icon: <BookOpen size={15} />, label: 'Flashcards', to: '/flashcards' },
 ]
+
+function SideNavItem({ item }: { item: NavItem }) {
+  return (
+    <NavLink
+      to={item.to}
+      end
+      className={({ isActive }) =>
+        `flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150 ${
+          isActive
+            ? 'bg-[var(--accent-bg)] text-[var(--accent)] font-medium'
+            : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)]'
+        }`
+      }
+    >
+      {item.icon}
+      {item.label}
+    </NavLink>
+  )
+}
 
 export function Sidebar() {
   return (
-    <aside className="fixed top-14 left-0 bottom-0 w-56 border-r border-[var(--border)] bg-[var(--bg-base)] flex flex-col py-4 px-3 z-40">
-      <nav className="flex flex-col gap-1">
+    <aside className="fixed top-14 left-0 bottom-0 w-52 border-r border-[var(--border)] bg-[var(--bg-base)] flex flex-col py-4 px-2.5 z-40">
+      <div className="flex flex-col gap-0.5">
         {mainItems.map((item) => (
-          <NavLink
-            key={item.label}
-            to={item.to}
-            end
-            className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
-                isActive
-                  ? 'bg-[var(--accent)]/15 text-[var(--accent)] font-medium'
-                  : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)]'
-              }`
-            }
-          >
-            {item.icon}
-            {item.label}
-          </NavLink>
+          <SideNavItem key={item.label} item={item} />
         ))}
-      </nav>
+      </div>
 
       <div className="mt-6">
-        <p className="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest text-[var(--text-secondary)]/50">
-          Material de Estudo
+        <p className="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-[var(--text-tertiary)]">
+          Estudo
         </p>
-        <nav className="flex flex-col gap-1">
+        <div className="flex flex-col gap-0.5">
           {studyItems.map((item) => (
             <NavLink
               key={item.label}
               to={item.to}
-              className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] transition-colors"
+              className={({ isActive }) =>
+                `flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150 ${
+                  isActive
+                    ? 'bg-[var(--accent-bg)] text-[var(--accent)] font-medium'
+                    : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)]'
+                }`
+              }
             >
               {item.icon}
               {item.label}
             </NavLink>
           ))}
-        </nav>
+        </div>
       </div>
     </aside>
   )

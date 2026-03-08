@@ -1,11 +1,13 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { Mic, LayoutDashboard } from 'lucide-react'
+import { Mic, LayoutDashboard, Sun, Moon, LogOut } from 'lucide-react'
 import { Button } from '@/shared/ui/Button/Button'
 import { supabase } from '@/shared/auth/supabase'
+import { useTheme } from '@/shared/hooks/useTheme'
 import logoFavicon from '@/shared/assets/logo-favicon.png'
 
 export function Navbar() {
   const navigate = useNavigate()
+  const { theme, toggle } = useTheme()
 
   const handleLogout = async (): Promise<void> => {
     await supabase.auth.signOut()
@@ -13,33 +15,51 @@ export function Navbar() {
   }
 
   return (
-    <nav className="fixed top-0 inset-x-0 z-50 h-14 border-b border-[var(--border)] bg-[var(--bg-base)]/80 backdrop-blur-md">
+    <nav className="fixed top-0 inset-x-0 z-50 h-14 border-b border-[var(--border)] bg-[var(--bg-base)]/80 backdrop-blur-xl">
       <div className="max-w-6xl mx-auto px-4 h-full flex items-center justify-between">
-        <Link to="/dashboard" className="flex items-center">
+        <Link to="/dashboard" className="flex items-center gap-2 group">
           <img
             src={logoFavicon}
             alt="anotEX.ai"
-            className="h-7 w-auto"
-            style={{ filter: 'brightness(0) invert(1)' }}
+            className="h-6 w-auto transition-opacity group-hover:opacity-80"
+            style={{ filter: 'brightness(0) invert(1) sepia(1) saturate(3) hue-rotate(230deg) brightness(1.2)' }}
           />
+          <span className="text-sm font-semibold text-[var(--text-primary)] tracking-tight">
+            anotEX<span className="text-[var(--accent)]">.ai</span>
+          </span>
         </Link>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
           <Link to="/dashboard">
             <Button variant="ghost" size="sm">
-              <LayoutDashboard size={15} />
+              <LayoutDashboard size={14} />
               Dashboard
             </Button>
           </Link>
           <Link to="/record">
             <Button variant="primary" size="sm">
-              <Mic size={15} />
+              <Mic size={14} />
               Gravar
             </Button>
           </Link>
-          <Button variant="ghost" size="sm" onClick={handleLogout}>
-            Sair
-          </Button>
+
+          <div className="w-px h-4 bg-[var(--border)] mx-1" />
+
+          <button
+            onClick={toggle}
+            aria-label={theme === 'dark' ? 'Ativar modo claro' : 'Ativar modo escuro'}
+            className="h-8 w-8 flex items-center justify-center rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] transition-all duration-200"
+          >
+            {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
+          </button>
+
+          <button
+            onClick={handleLogout}
+            aria-label="Sair"
+            className="h-8 w-8 flex items-center justify-center rounded-lg text-[var(--text-secondary)] hover:text-[var(--danger)] hover:bg-[var(--danger-bg)] transition-all duration-200"
+          >
+            <LogOut size={15} />
+          </button>
         </div>
       </div>
     </nav>

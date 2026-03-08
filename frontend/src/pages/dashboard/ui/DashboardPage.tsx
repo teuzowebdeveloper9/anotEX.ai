@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Mic, Inbox } from 'lucide-react'
+import { Mic, Inbox, CheckCircle, Clock, Layers } from 'lucide-react'
 import { Navbar } from '@/widgets/navbar/ui/Navbar'
 import { Sidebar } from '@/widgets/sidebar/ui/Sidebar'
 import { AudioCard } from '@/entities/audio/ui/AudioCard'
@@ -7,58 +7,110 @@ import { Button } from '@/shared/ui/Button/Button'
 import { Skeleton } from '@/shared/ui/Skeleton/Skeleton'
 import { useAudioList } from '@/entities/audio/model/useAudioList'
 
+function StatCard({ icon: Icon, label, value, color }: {
+  icon: React.ElementType
+  label: string
+  value: number
+  color: string
+}) {
+  return (
+    <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] shadow-[var(--shadow-card)]">
+      <div className={`h-8 w-8 rounded-lg flex items-center justify-center ${color}`}>
+        <Icon size={15} />
+      </div>
+      <div>
+        <p className="text-lg font-semibold text-[var(--text-primary)] leading-none">{value}</p>
+        <p className="text-xs text-[var(--text-secondary)] mt-0.5">{label}</p>
+      </div>
+    </div>
+  )
+}
+
 export function DashboardPage() {
   const { data: audios, isLoading } = useAudioList()
+
+  const visible = audios?.filter((a) => a.status !== 'FAILED') ?? []
+  const completed  = visible.filter((a) => a.status === 'COMPLETED').length
+  const processing = visible.filter((a) => a.status === 'PENDING' || a.status === 'PROCESSING').length
 
   return (
     <div className="min-h-screen bg-[var(--bg-base)]">
       <Navbar />
       <Sidebar />
-      <main className="pl-56 pt-14">
-      <div className="max-w-3xl mx-auto px-8 pt-10 pb-12">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-2xl font-semibold text-[var(--text-primary)]">Suas gravações</h1>
-            <p className="text-sm text-[var(--text-secondary)] mt-1">
-              {audios?.length ?? 0} gravação{audios?.length !== 1 ? 'ões' : ''}
-            </p>
-          </div>
-          <Link to="/record">
-            <Button>
-              <Mic size={15} />
-              Nova gravação
-            </Button>
-          </Link>
-        </div>
+      <main className="pl-52 pt-14">
+        <div className="max-w-3xl mx-auto px-8 pt-10 pb-16">
 
-        <div className="flex flex-col gap-3">
-          {isLoading ? (
-            Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="h-[72px] w-full" />
-            ))
-          ) : audios?.length === 0 ? (
-            <div className="flex flex-col items-center gap-4 py-20 text-center">
-              <Inbox size={40} className="text-[var(--text-secondary)]" />
-              <div>
-                <p className="text-[var(--text-primary)] font-medium">Nenhuma gravação ainda</p>
-                <p className="text-sm text-[var(--text-secondary)] mt-1">
-                  Grave sua primeira aula para começar
-                </p>
-              </div>
-              <Link to="/record">
-                <Button>
-                  <Mic size={15} />
-                  Gravar agora
-                </Button>
-              </Link>
+          {/* Header */}
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h1 className="text-xl font-semibold text-[var(--text-primary)]">Gravações</h1>
+              <p className="text-sm text-[var(--text-secondary)] mt-0.5">
+                Suas aulas gravadas e processadas pela IA
+              </p>
             </div>
-          ) : (
-            audios
-              ?.filter((a) => a.status !== 'FAILED')
-              .map((audio) => <AudioCard key={audio.id} audio={audio} />)
+            <Link to="/record">
+              <Button>
+                <Mic size={14} />
+                Nova gravação
+              </Button>
+            </Link>
+          </div>
+
+          {/* Stats */}
+          {!isLoading && visible.length > 0 && (
+            <div className="grid grid-cols-3 gap-3 mb-8">
+              <StatCard
+                icon={Layers}
+                label="Total"
+                value={visible.length}
+                color="bg-[var(--accent-bg)] text-[var(--accent)]"
+              />
+              <StatCard
+                icon={CheckCircle}
+                label="Concluídas"
+                value={completed}
+                color="bg-[var(--success-bg)] text-[var(--success)]"
+              />
+              <StatCard
+                icon={Clock}
+                label="Processando"
+                value={processing}
+                color="bg-[var(--warning-bg)] text-[var(--warning)]"
+              />
+            </div>
           )}
+
+          {/* List */}
+          <div className="flex flex-col gap-2">
+            {isLoading ? (
+              Array.from({ length: 4 }).map((_, i) => (
+                <Skeleton key={i} className="h-[72px] w-full rounded-xl" />
+              ))
+            ) : visible.length === 0 ? (
+              <div className="flex flex-col items-center gap-5 py-24 text-center">
+                <div className="h-16 w-16 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border)] flex items-center justify-center">
+                  <Inbox size={28} className="text-[var(--text-tertiary)]" />
+                </div>
+                <div>
+                  <p className="text-base font-medium text-[var(--text-primary)]">
+                    Nenhuma gravação ainda
+                  </p>
+                  <p className="text-sm text-[var(--text-secondary)] mt-1 max-w-xs">
+                    Grave sua primeira aula e a IA vai gerar transcrição, resumo, mapas mentais e flashcards automaticamente.
+                  </p>
+                </div>
+                <Link to="/record">
+                  <Button>
+                    <Mic size={14} />
+                    Gravar agora
+                  </Button>
+                </Link>
+              </div>
+            ) : (
+              visible.map((audio) => <AudioCard key={audio.id} audio={audio} />)
+            )}
+          </div>
         </div>
-      </div>
       </main>
     </div>
   )

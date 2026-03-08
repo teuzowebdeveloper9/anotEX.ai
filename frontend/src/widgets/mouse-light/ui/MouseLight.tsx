@@ -4,10 +4,10 @@ export function MouseLight() {
   useMousePosition()
   return (
     <div
-      className="pointer-events-none fixed inset-0 z-0"
+      className="pointer-events-none fixed inset-0 z-0 transition-opacity duration-500"
       style={{
         background:
-          'radial-gradient(600px circle at var(--mouse-x) var(--mouse-y), rgba(99,102,241,0.08), transparent 70%)',
+          'radial-gradient(650px circle at var(--mouse-x) var(--mouse-y), var(--accent-glow), transparent 70%)',
       }}
     />
   )

@@ -2,19 +2,25 @@ import { Link } from 'react-router-dom'
 import {
   Mic, FileText, Sparkles, ArrowRight, CheckCircle,
   ClipboardCheck, BookOpen, Map, MessageSquare,
-  GraduationCap, XCircle, Play,
+  GraduationCap, XCircle, Play, Star, Zap,
 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { MouseLight } from '@/widgets/mouse-light/ui/MouseLight'
 import { Button } from '@/shared/ui/Button/Button'
-import { Card } from '@/shared/ui/Card/Card'
 import logoHero from '@/shared/assets/logo-hero.png'
+
+const fadeUp = (delay = 0) => ({
+  initial: { opacity: 0, y: 20 },
+  whileInView: { opacity: 1, y: 0 },
+  transition: { duration: 0.5, delay },
+  viewport: { once: true },
+})
 
 const problems = [
   'Tenta prestar atenção na aula',
   'Tenta anotar ao mesmo tempo',
   'Perde partes importantes da explicação',
-  'Depois não lembra exatamente o que o professor disse',
+  'Depois não lembra o que o professor disse',
 ]
 
 const steps = [
@@ -23,7 +29,7 @@ const steps = [
     icon: Mic,
     title: 'Grave a aula',
     description:
-      'Grave diretamente pelo app ou envie um arquivo de áudio. Funciona com gravações de aula, arquivos de áudio e materiais de estudo.',
+      'Grave diretamente pelo navegador ou envie um arquivo de áudio. Funciona com qualquer formato: MP3, MP4, WAV, WebM.',
   },
   {
     number: '02',
@@ -35,21 +41,52 @@ const steps = [
   {
     number: '03',
     icon: Sparkles,
-    title: 'Material de estudo completo',
+    title: 'Material de estudo pronto',
     description:
-      'A IA gera automaticamente resumo, mapa mental interativo e flashcards da aula. Revise em minutos com revisão ativa.',
+      'Resumo inteligente, mapa mental interativo e flashcards gerados automaticamente. Revise em minutos.',
   },
 ]
 
 const benefits = [
   'Revisar exatamente o que o professor explicou',
-  'Encontrar partes específicas da aula em segundos',
-  'Transformar horas de aula em material de estudo organizado',
-  'Fixar conteúdo com flashcards e mapas mentais gerados pela IA',
+  'Encontrar trechos específicos em segundos',
+  'Transformar horas de aula em material organizado',
+  'Fixar conteúdo com flashcards gerados pela IA',
 ]
 
 const audiences = ['Faculdade', 'Escola', 'Cursos técnicos', 'Cursos online']
 
+const testimonials = [
+  {
+    name: 'Ana Luiza',
+    role: 'Medicina · USP',
+    text: 'Transformou minha forma de estudar. Consigo revisar 4 horas de aula em 20 minutos com o resumo e os flashcards.',
+    rating: 5,
+  },
+  {
+    name: 'Pedro Alves',
+    role: 'Direito · PUC',
+    text: 'Os mapas mentais gerados automaticamente são incríveis. Antes eu gastava horas criando esses mapas à mão.',
+    rating: 5,
+  },
+  {
+    name: 'Mariana Silva',
+    role: 'Engenharia · UNICAMP',
+    text: 'Uso em todas as aulas agora. A transcrição é precisa e o resumo capta os pontos mais importantes.',
+    rating: 5,
+  },
+]
+
+const features = [
+  { icon: Mic,            label: 'Gravação ao vivo',       description: 'Grave direto pelo navegador.',             available: true  },
+  { icon: FileText,       label: 'Transcrição automática', description: 'Groq Whisper Large v3.',                   available: true  },
+  { icon: Sparkles,       label: 'Resumo com IA',          description: 'Llama 3.3 70B, pontos-chave da aula.',     available: true  },
+  { icon: BookOpen,       label: 'Upload de arquivos',     description: 'MP3, MP4, WAV, OGG, WebM.',                available: true  },
+  { icon: Map,            label: 'Mapas mentais',          description: 'Gerados automaticamente da aula.',         available: true  },
+  { icon: BookOpen,       label: 'Flashcards',             description: 'Revisão ativa com cards gerados pela IA.', available: true  },
+  { icon: ClipboardCheck, label: 'Quiz automático',        description: 'Verifique se você realmente entendeu.',    available: true  },
+  { icon: MessageSquare,  label: 'Chat com a aula',        description: 'Tire dúvidas sobre o conteúdo.',           available: false },
+] as const
 
 export function LandingPage() {
   return (
@@ -58,9 +95,9 @@ export function LandingPage() {
 
       {/* Dot grid */}
       <div
-        className="pointer-events-none fixed inset-0 z-0 opacity-[0.12]"
+        className="pointer-events-none fixed inset-0 z-0 opacity-[0.1]"
         style={{
-          backgroundImage: 'radial-gradient(circle, #7c3aed 1px, transparent 1px)',
+          backgroundImage: 'radial-gradient(circle, var(--accent) 1px, transparent 1px)',
           backgroundSize: '32px 32px',
         }}
       />
@@ -71,43 +108,43 @@ export function LandingPage() {
           <img
             src={logoHero}
             alt="anotEX.ai"
-            className="h-8 w-auto"
-            style={{ filter: 'brightness(0) invert(1)' }}
+            className="h-7 w-auto"
+            style={{ filter: 'brightness(0) invert(1) sepia(1) saturate(3) hue-rotate(230deg) brightness(1.2)' }}
           />
-          <span className="text-lg font-semibold text-[var(--text-primary)] tracking-tight">
+          <span className="text-base font-semibold text-[var(--text-primary)] tracking-tight">
             anotEX<span className="text-[var(--accent)]">.ai</span>
           </span>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <Link to="/login">
             <Button variant="ghost" size="sm">Entrar</Button>
           </Link>
           <Link to="/login">
             <Button size="sm">
               Começar grátis
-              <ArrowRight size={14} />
+              <ArrowRight size={13} />
             </Button>
           </Link>
         </div>
       </nav>
 
-      {/* Hero */}
+      {/* ── Hero ─────────────────────────────────────── */}
       <section className="relative z-10 max-w-4xl mx-auto px-6 pt-20 pb-28 text-center">
         <motion.div
-          initial={{ opacity: 0, y: 24 }}
+          initial={{ opacity: 0, y: 28 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: 0.6, ease: 'easeOut' }}
         >
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-[var(--accent)]/30 bg-[var(--accent)]/5 text-xs text-[var(--accent)] mb-8">
-            <Sparkles size={12} />
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-[var(--accent)]/30 bg-[var(--accent-bg)] text-xs font-medium text-[var(--accent)] mb-10">
+            <Zap size={11} />
             Transcrição · Resumo · Mapa Mental · Flashcards com IA
           </div>
 
-          <h1 className="text-5xl sm:text-6xl font-bold leading-tight mb-6">
+          <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold leading-[1.08] tracking-tight mb-7">
             <span
               className="bg-clip-text text-transparent"
               style={{
-                backgroundImage: 'linear-gradient(135deg, #e8eaf0 0%, #7c3aed 50%, #a78bfa 100%)',
+                backgroundImage: 'linear-gradient(135deg, var(--text-primary) 0%, var(--accent) 55%, var(--accent-2) 100%)',
               }}
             >
               Nunca mais saia de uma aula
@@ -118,13 +155,13 @@ export function LandingPage() {
 
           <p className="text-lg text-[var(--text-secondary)] max-w-2xl mx-auto mb-3 leading-relaxed">
             O anotEX.ai transforma aulas em transcrição completa, resumo inteligente e materiais de
-            estudo automáticos — tudo salvo no seu aplicativo.
+            estudo — tudo gerado automaticamente pela IA.
           </p>
-          <p className="text-base text-[var(--text-secondary)]/60 max-w-xl mx-auto mb-10 leading-relaxed">
-            Grave sua aula, envie um áudio ou arquivo e deixe a IA transformar o conteúdo em conhecimento organizado.
+          <p className="text-sm text-[var(--text-tertiary)] max-w-xl mx-auto mb-12 leading-relaxed">
+            Grave sua aula, envie um áudio e deixa a IA transformar o conteúdo em conhecimento organizado.
           </p>
 
-          <div className="flex items-center justify-center gap-4 flex-wrap">
+          <div className="flex items-center justify-center gap-3 flex-wrap">
             <Link to="/login">
               <Button size="lg">
                 <Mic size={16} />
@@ -132,46 +169,34 @@ export function LandingPage() {
               </Button>
             </Link>
             <Link to="/login">
-              <Button variant="ghost" size="lg">
-                <Play size={16} />
+              <Button variant="outline" size="lg">
+                <Play size={15} />
                 Ver como funciona
-                <ArrowRight size={16} />
               </Button>
             </Link>
           </div>
         </motion.div>
       </section>
 
-      {/* O Problema */}
+      {/* ── Problema ─────────────────────────────────── */}
       <section className="relative z-10 max-w-4xl mx-auto px-6 pb-28">
-        <motion.div
-          initial={{ opacity: 0, y: 32 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          viewport={{ once: true }}
-        >
+        <motion.div {...fadeUp()}>
           <div className="text-center mb-12">
             <p className="text-xs font-semibold uppercase tracking-widest text-[var(--accent)] mb-3">
               O Problema
             </p>
-            <h2 className="text-3xl font-bold text-[var(--text-primary)] mb-3">
+            <h2 className="text-3xl md:text-4xl font-bold text-[var(--text-primary)]">
               A maioria dos estudantes passa pela mesma situação
             </h2>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-10">
             {problems.map((p, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, x: -16 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.4, delay: i * 0.08 }}
-                viewport={{ once: true }}
-              >
-                <Card className="p-4 flex items-center gap-3 border-red-500/10 bg-red-500/[0.04]">
-                  <XCircle size={15} className="text-red-400/60 shrink-0" />
+              <motion.div key={i} {...fadeUp(i * 0.08)}>
+                <div className="flex items-center gap-3 p-4 rounded-xl border border-[var(--danger)]/15 bg-[var(--danger-bg)] shadow-[var(--shadow-card)]">
+                  <XCircle size={15} className="text-[var(--danger)]/60 shrink-0" />
                   <p className="text-sm text-[var(--text-secondary)]">{p}</p>
-                </Card>
+                </div>
               </motion.div>
             ))}
           </div>
@@ -185,33 +210,27 @@ export function LandingPage() {
         </motion.div>
       </section>
 
-      {/* Como Funciona */}
+      {/* ── Como Funciona ─────────────────────────────── */}
       <section className="relative z-10 max-w-5xl mx-auto px-6 pb-28">
         <div className="text-center mb-12">
           <p className="text-xs font-semibold uppercase tracking-widest text-[var(--accent)] mb-3">
             Como Funciona
           </p>
-          <h2 className="text-3xl font-bold text-[var(--text-primary)]">
+          <h2 className="text-3xl md:text-4xl font-bold text-[var(--text-primary)]">
             Três passos. Resultado imediato.
           </h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {steps.map((step, i) => (
-            <motion.div
-              key={step.number}
-              initial={{ opacity: 0, y: 32 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: i * 0.1 }}
-              viewport={{ once: true }}
-            >
-              <Card className="p-6 h-full hover:border-[var(--accent)]/30 transition-colors duration-300">
+            <motion.div key={step.number} {...fadeUp(i * 0.1)}>
+              <div className="p-6 h-full rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] hover:border-[var(--accent)]/35 hover:-translate-y-0.5 transition-all duration-200 shadow-[var(--shadow-card)]">
                 <div className="flex items-start gap-3 mb-5">
-                  <span className="text-4xl font-bold text-[var(--accent)]/15 font-mono leading-none select-none">
+                  <span className="text-4xl font-bold text-[var(--text-tertiary)]/40 font-mono leading-none select-none">
                     {step.number}
                   </span>
-                  <div className="h-10 w-10 rounded-lg bg-[var(--accent)]/10 flex items-center justify-center shrink-0 mt-0.5">
-                    <step.icon size={18} className="text-[var(--accent)]" />
+                  <div className="h-10 w-10 rounded-lg bg-[var(--accent-bg)] border border-[var(--accent)]/20 flex items-center justify-center shrink-0 mt-0.5">
+                    <step.icon size={17} className="text-[var(--accent)]" />
                   </div>
                 </div>
                 <h3 className="text-base font-semibold text-[var(--text-primary)] mb-2">
@@ -220,25 +239,19 @@ export function LandingPage() {
                 <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
                   {step.description}
                 </p>
-              </Card>
+              </div>
             </motion.div>
           ))}
         </div>
       </section>
 
-      {/* Vantagem real */}
+      {/* ── Benefícios ───────────────────────────────── */}
       <section className="relative z-10 max-w-5xl mx-auto px-6 pb-28">
-        <motion.div
-          initial={{ opacity: 0, y: 32 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          viewport={{ once: true }}
-        >
-          <Card
-            className="p-10"
+        <motion.div {...fadeUp()}>
+          <div
+            className="p-10 rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] shadow-[var(--shadow-card)]"
             style={{
-              background:
-                'radial-gradient(ellipse at 0% 50%, rgba(124,58,237,0.08), transparent 60%)',
+              background: 'radial-gradient(ellipse at 0% 50%, var(--accent-bg), transparent 60%)',
             }}
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
@@ -249,10 +262,10 @@ export function LandingPage() {
                 <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-6">
                   Com o anotEX.ai você pode
                 </h2>
-                <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-3.5">
                   {benefits.map((b, i) => (
                     <div key={i} className="flex items-start gap-3">
-                      <CheckCircle size={16} className="text-[var(--accent)] shrink-0 mt-0.5" />
+                      <CheckCircle size={15} className="text-[var(--success)] shrink-0 mt-0.5" />
                       <p className="text-sm text-[var(--text-secondary)]">{b}</p>
                     </div>
                   ))}
@@ -279,97 +292,122 @@ export function LandingPage() {
                 </p>
               </div>
             </div>
-          </Card>
+          </div>
         </motion.div>
       </section>
 
-      {/* Features */}
+      {/* ── Features Grid ─────────────────────────────── */}
       <section className="relative z-10 max-w-5xl mx-auto px-6 pb-28">
         <div className="text-center mb-12">
           <p className="text-xs font-semibold uppercase tracking-widest text-[var(--accent)] mb-3">
             O que você tem
           </p>
-          <h2 className="text-3xl font-bold text-[var(--text-primary)] mb-3">
+          <h2 className="text-3xl md:text-4xl font-bold text-[var(--text-primary)] mb-3">
             Você não apenas escuta a aula
           </h2>
-          <p className="text-[var(--text-secondary)] max-w-xl mx-auto">
+          <p className="text-[var(--text-secondary)] max-w-md mx-auto text-sm">
             Você transforma a aula em um sistema de estudo completo.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-          {([
-            { icon: Mic,            label: 'Gravação ao vivo',          description: 'Grave direto pelo navegador.',              available: true  },
-            { icon: FileText,       label: 'Transcrição automática',    description: 'Groq Whisper Large v3.',                    available: true  },
-            { icon: Sparkles,       label: 'Resumo com IA',             description: 'Llama 3.3 70B, pontos-chave da aula.',      available: true  },
-            { icon: BookOpen,       label: 'Upload de arquivos',        description: 'MP3, MP4, WAV, OGG, WebM.',                 available: true  },
-            { icon: Map,            label: 'Mapas mentais',             description: 'Gerados automaticamente da aula.',          available: true  },
-            { icon: BookOpen,       label: 'Flashcards',                description: 'Revisão ativa com cards gerados pela IA.',  available: true  },
-            { icon: ClipboardCheck, label: 'Quiz automático',           description: 'Verifique se você realmente entendeu.',     available: true  },
-            { icon: MessageSquare,  label: 'Chat com a aula',           description: 'Tire dúvidas sobre o conteúdo.',            available: false },
-          ] as const).map((item, i) => (
-            <motion.div
-              key={item.label}
-              initial={{ opacity: 0, y: 24 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: i * 0.06 }}
-              viewport={{ once: true }}
-            >
-              <Card className={`p-5 flex flex-col gap-3 transition-colors duration-300 ${item.available ? 'hover:border-emerald-500/20' : 'opacity-50'}`}>
-                <div className={`h-9 w-9 rounded-lg flex items-center justify-center ${item.available ? 'bg-emerald-500/10' : 'bg-[var(--accent)]/10'}`}>
-                  <item.icon size={16} className={item.available ? 'text-emerald-400' : 'text-[var(--accent)]'} />
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+          {features.map((item, i) => (
+            <motion.div key={item.label} {...fadeUp(i * 0.05)}>
+              <div
+                className={`p-5 h-full flex flex-col gap-3 rounded-xl border bg-[var(--bg-surface)] transition-all duration-200 shadow-[var(--shadow-card)] ${
+                  item.available
+                    ? 'border-[var(--border)] hover:border-[var(--success)]/30 hover:-translate-y-px'
+                    : 'border-[var(--border)] opacity-50'
+                }`}
+              >
+                <div className={`h-9 w-9 rounded-lg flex items-center justify-center ${
+                  item.available ? 'bg-[var(--success-bg)]' : 'bg-[var(--accent-bg)]'
+                }`}>
+                  <item.icon size={15} className={item.available ? 'text-[var(--success)]' : 'text-[var(--accent)]'} />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-[var(--text-primary)] mb-1">{item.label}</p>
+                  <p className="text-sm font-semibold text-[var(--text-primary)] mb-0.5">{item.label}</p>
                   <p className="text-xs text-[var(--text-secondary)] leading-relaxed">{item.description}</p>
                 </div>
                 {item.available ? (
-                  <span className="text-[10px] font-semibold uppercase tracking-wider text-emerald-400/80 border border-emerald-500/20 rounded px-2 py-0.5 w-fit">
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--success)] border border-[var(--success)]/25 bg-[var(--success-bg)] rounded-md px-2 py-0.5 w-fit mt-auto">
                     Disponível
                   </span>
                 ) : (
-                  <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--accent)]/60 border border-[var(--accent)]/20 rounded px-2 py-0.5 w-fit">
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--accent)]/70 border border-[var(--accent)]/20 bg-[var(--accent-bg)] rounded-md px-2 py-0.5 w-fit mt-auto">
                     Em breve
                   </span>
                 )}
-              </Card>
+              </div>
             </motion.div>
           ))}
         </div>
       </section>
 
-      {/* CTA Final */}
+      {/* ── Social Proof ─────────────────────────────── */}
+      <section className="relative z-10 max-w-5xl mx-auto px-6 pb-28">
+        <div className="text-center mb-12">
+          <p className="text-xs font-semibold uppercase tracking-widest text-[var(--accent)] mb-3">
+            Depoimentos
+          </p>
+          <h2 className="text-3xl md:text-4xl font-bold text-[var(--text-primary)]">
+            O que os estudantes dizem
+          </h2>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          {testimonials.map((t, i) => (
+            <motion.div key={t.name} {...fadeUp(i * 0.1)}>
+              <div className="p-6 h-full rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] hover:-translate-y-px transition-all duration-200 shadow-[var(--shadow-card)]">
+                <div className="flex gap-0.5 mb-4">
+                  {Array.from({ length: t.rating }).map((_, j) => (
+                    <Star key={j} size={13} className="text-[var(--warning)] fill-[var(--warning)]" />
+                  ))}
+                </div>
+                <p className="text-sm text-[var(--text-secondary)] leading-relaxed mb-5">
+                  "{t.text}"
+                </p>
+                <div className="flex items-center gap-3">
+                  <div className="h-8 w-8 rounded-full bg-[var(--accent-bg)] border border-[var(--accent)]/20 flex items-center justify-center text-xs font-semibold text-[var(--accent)]">
+                    {t.name[0]}
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-[var(--text-primary)]">{t.name}</p>
+                    <p className="text-xs text-[var(--text-tertiary)]">{t.role}</p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── CTA Final ────────────────────────────────── */}
       <section className="relative z-10 max-w-2xl mx-auto px-6 pb-28 text-center">
-        <motion.div
-          initial={{ opacity: 0, y: 32 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          viewport={{ once: true }}
-        >
-          <Card
-            className="p-12 border-[var(--accent)]/20"
+        <motion.div {...fadeUp()}>
+          <div
+            className="p-14 rounded-2xl border border-[var(--accent)]/20 bg-[var(--bg-surface)] shadow-[var(--shadow-elevated)]"
             style={{
-              background:
-                'radial-gradient(ellipse at 50% 0%, rgba(124,58,237,0.12), transparent 70%)',
+              background: 'radial-gradient(ellipse at 50% 0%, var(--accent-bg), transparent 70%)',
             }}
           >
-            <GraduationCap size={36} className="text-[var(--accent)] mx-auto mb-5" />
+            <GraduationCap size={32} className="text-[var(--accent)] mx-auto mb-5" />
             <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-3">
               O futuro do estudo começa aqui
             </h2>
-            <p className="text-[var(--text-secondary)] mb-2">
+            <p className="text-[var(--text-secondary)] text-sm mb-1">
               Estudar não deveria significar perder informação.
             </p>
-            <p className="text-[var(--text-primary)] font-medium mb-8">
+            <p className="text-[var(--text-primary)] font-medium text-sm mb-8">
               Grave. Transcreva. Entenda. Aprenda melhor.
             </p>
             <Link to="/login">
               <Button size="lg">
                 Começar gratuitamente
-                <ArrowRight size={16} />
+                <ArrowRight size={15} />
               </Button>
             </Link>
-          </Card>
+          </div>
         </motion.div>
       </section>
     </div>
