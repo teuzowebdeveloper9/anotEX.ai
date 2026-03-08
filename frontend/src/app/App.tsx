@@ -12,8 +12,11 @@ import { SummariesPage } from '@/pages/summaries/ui/SummariesPage'
 import { MindMapsPage } from '@/pages/mindmaps/ui/MindMapsPage'
 import { FlashcardsPage } from '@/pages/flashcards/ui/FlashcardsPage'
 import { ProtectedRoute } from '@/shared/ui/ProtectedRoute/ProtectedRoute'
+import { useTheme } from '@/shared/hooks/useTheme'
 
 export function App() {
+  const { theme } = useTheme()
+
   return (
     <QueryProvider>
       <BrowserRouter>
@@ -81,7 +84,7 @@ export function App() {
       </BrowserRouter>
       <Toaster
         position="bottom-right"
-        theme="dark"
+        theme={theme}
         toastOptions={{
           style: {
             background: 'var(--bg-elevated)',

@@ -5,7 +5,7 @@ export function Skeleton({ className, ...props }: HTMLAttributes<HTMLDivElement>
   return (
     <div
       className={cn(
-        'rounded-md bg-[var(--bg-elevated)] animate-pulse',
+        'rounded-lg bg-[var(--bg-elevated)] animate-pulse',
         className
       )}
       {...props}
