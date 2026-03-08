@@ -23,6 +23,7 @@ const makeTranscription = (overrides = {}) => ({
   id: 'transcription-1',
   audioId: 'audio-1',
   userId: 'user-1',
+  title: null,
   transcriptionText: null,
   summaryText: null,
   language: 'pt',
@@ -49,6 +50,7 @@ describe('ProcessTranscriptionUseCase', () => {
       findByUserId: jest.fn(),
       updateStatus: jest.fn(),
       updateResult: jest.fn(),
+      deleteByAudioId: jest.fn(),
     } as jest.Mocked<ITranscriptionRepository>;
 
     audioRepository = {
@@ -66,7 +68,7 @@ describe('ProcessTranscriptionUseCase', () => {
     } as jest.Mocked<IStorageRepository>;
 
     transcriptionProvider = { transcribe: jest.fn() } as jest.Mocked<ITranscriptionProvider>;
-    summaryProvider = { summarize: jest.fn() } as jest.Mocked<ISummaryProvider>;
+    summaryProvider = { summarize: jest.fn(), generateTitle: jest.fn() } as jest.Mocked<ISummaryProvider>;
 
     useCase = new ProcessTranscriptionUseCase(
       transcriptionRepository,
@@ -83,7 +85,7 @@ describe('ProcessTranscriptionUseCase', () => {
 
       await expect(
         useCase.execute({ transcriptionId: 'transcription-1', audioId: 'audio-1' }),
-      ).resolves.toBeUndefined();
+      ).resolves.toBe(false);
     });
 
     it('deve marcar como FAILED se o áudio não for encontrado', async () => {
@@ -108,6 +110,7 @@ describe('ProcessTranscriptionUseCase', () => {
       } as unknown as Response);
       transcriptionProvider.transcribe.mockResolvedValue('Texto transcrito da aula');
       summaryProvider.summarize.mockResolvedValue('Resumo da aula');
+      summaryProvider.generateTitle.mockResolvedValue('Título da aula');
 
       await useCase.execute({ transcriptionId: 'transcription-1', audioId: 'audio-1' });
 
@@ -115,6 +118,7 @@ describe('ProcessTranscriptionUseCase', () => {
         'transcription-1',
         'Texto transcrito da aula',
         'Resumo da aula',
+        'Título da aula',
       );
       expect(transcriptionRepository.updateStatus).toHaveBeenCalledWith(
         'transcription-1',

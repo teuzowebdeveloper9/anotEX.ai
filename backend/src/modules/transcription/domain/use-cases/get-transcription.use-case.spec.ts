@@ -7,6 +7,7 @@ const makeTranscription = (overrides = {}) => ({
   id: 'transcription-1',
   audioId: 'audio-1',
   userId: 'user-1',
+  title: null,
   transcriptionText: null,
   summaryText: null,
   language: 'pt',
@@ -29,6 +30,7 @@ describe('GetTranscriptionUseCase', () => {
       findByUserId: jest.fn(),
       updateStatus: jest.fn(),
       updateResult: jest.fn(),
+      deleteByAudioId: jest.fn(),
     } as jest.Mocked<ITranscriptionRepository>;
 
     useCase = new GetTranscriptionUseCase(transcriptionRepository);

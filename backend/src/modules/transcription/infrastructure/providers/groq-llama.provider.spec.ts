@@ -27,7 +27,7 @@ describe('GroqLlamaProviderImpl', () => {
 
       expect(mockCreate).toHaveBeenCalledWith(
         expect.objectContaining({
-          model: 'llama3-70b-8192',
+          model: 'llama-3.3-70b-versatile',
           temperature: 0.3,
           max_tokens: 1024,
         }),
