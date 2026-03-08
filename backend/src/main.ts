@@ -6,13 +6,20 @@ import { AppModule } from './app.module.js';
 import { HttpExceptionFilter } from './shared/presentation/filters/http-exception.filter.js';
 import { LoggingInterceptor } from './shared/presentation/interceptors/logging.interceptor.js';
 
-async function bootstrap() {
+async function bootstrapWorker() {
+  const app = await NestFactory.createApplicationContext(AppModule, {
+    logger: ['error', 'warn', 'log'],
+  });
+  await app.init();
+}
+
+async function bootstrapApi() {
   const app = await NestFactory.create(AppModule, {
     logger: ['error', 'warn', 'log'],
   });
 
   const configService = app.get(ConfigService);
-  const port = configService.get<number>('PORT', 3000);
+  const port = 3000;
   const allowedOrigins = configService.get<string>('ALLOWED_ORIGINS', '').split(',');
 
   app.use(helmet());
@@ -36,7 +43,17 @@ async function bootstrap() {
 
   app.setGlobalPrefix('api/v1');
 
-  await app.listen(port);
+  await app.listen(port, '0.0.0.0');
 }
 
-bootstrap();
+if (process.env.WORKER_ONLY === 'true') {
+  bootstrapWorker().catch((err) => {
+    console.error('[Worker] Fatal error during bootstrap:', err);
+    process.exit(1);
+  });
+} else {
+  bootstrapApi().catch((err) => {
+    console.error('[API] Fatal error during bootstrap:', err);
+    process.exit(1);
+  });
+}
