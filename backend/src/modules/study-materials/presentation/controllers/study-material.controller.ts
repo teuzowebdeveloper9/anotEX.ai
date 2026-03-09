@@ -63,7 +63,7 @@ export class StudyMaterialController {
     if (!result.success) throw result.error;
 
     const materials = Array.isArray(result.data) ? result.data : [result.data];
-    return materials.map(toResponse);
+    return materials.filter((m): m is StudyMaterialEntity => m !== null).map(toResponse);
   }
 
   @Get(':transcriptionId/:type')
