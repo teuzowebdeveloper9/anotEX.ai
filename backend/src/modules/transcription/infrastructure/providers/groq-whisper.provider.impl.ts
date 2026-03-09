@@ -5,7 +5,11 @@ import { join } from 'path';
 import { writeFile, readFile, unlink } from 'fs/promises';
 import { randomUUID } from 'crypto';
 import ffmpeg from 'fluent-ffmpeg';
+import ffmpegStatic from 'ffmpeg-static';
 import Groq from 'groq-sdk';
+
+// Usa o binário estático incluso no pacote (funciona em qualquer ambiente, incluindo Railway)
+if (ffmpegStatic) ffmpeg.setFfmpegPath(ffmpegStatic);
 import { ITranscriptionProvider } from '../../domain/repositories/transcription.provider.js';
 import { toFile } from 'openai';
 
