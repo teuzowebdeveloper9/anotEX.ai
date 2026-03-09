@@ -23,7 +23,7 @@ export class GetStudyMaterialsUseCase {
 
   async execute(
     input: GetStudyMaterialInput,
-  ): Promise<Result<StudyMaterialEntity | StudyMaterialEntity[]>> {
+  ): Promise<Result<StudyMaterialEntity | StudyMaterialEntity[] | null>> {
     const transcription = await this.transcriptionRepository.findById(input.transcriptionId);
 
     if (!transcription) {
@@ -40,11 +40,8 @@ export class GetStudyMaterialsUseCase {
         input.type,
       );
 
-      if (!material) {
-        return fail(new NotFoundException(`Study material of type '${input.type}' not found`));
-      }
-
-      return ok(material);
+      // Retorna null se ainda não foi gerado (ainda em fila) — não lança 404
+      return ok(material ?? null);
     }
 
     const materials = await this.studyMaterialRepository.findByTranscriptionId(
