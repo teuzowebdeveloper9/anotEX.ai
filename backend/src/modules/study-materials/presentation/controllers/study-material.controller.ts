@@ -84,6 +84,9 @@ export class StudyMaterialController {
 
     if (!result.success) throw result.error;
 
+    // null = ainda não gerado (em fila), frontend faz polling
+    if (result.data === null) return null;
+
     return toResponse(result.data as StudyMaterialEntity);
   }
 }
