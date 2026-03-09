@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom'
 import { Mic, FileText, Map, BookOpen, Sparkles } from 'lucide-react'
+import { GradientOrb } from '@/shared/ui/decorative/GradientOrb'
 
 interface NavItem {
   icon: React.ReactNode
@@ -24,30 +25,66 @@ function SideNavItem({ item }: { item: NavItem }) {
       to={item.to}
       end
       className={({ isActive }) =>
-        `flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150 ${
+        `relative flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150 ${
           isActive
             ? 'bg-[var(--accent-bg)] text-[var(--accent)] font-medium'
             : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)]'
         }`
       }
     >
-      {item.icon}
-      {item.label}
+      {({ isActive }) => (
+        <>
+          {isActive && (
+            <span
+              className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-r-full"
+              style={{ background: 'var(--gradient-primary)' }}
+            />
+          )}
+          <span
+            style={
+              isActive
+                ? {
+                    background: 'var(--gradient-primary)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                  }
+                : undefined
+            }
+          >
+            {item.icon}
+          </span>
+          {item.label}
+        </>
+      )}
     </NavLink>
   )
 }
 
 export function Sidebar() {
   return (
-    <aside className="fixed top-14 left-0 bottom-0 w-52 border-r border-[var(--border)] bg-[var(--bg-base)] flex flex-col py-4 px-2.5 z-40">
-      <div className="flex flex-col gap-0.5">
+    <aside className="fixed top-14 left-0 bottom-0 w-52 border-r border-[var(--border)] bg-[var(--bg-base)] flex flex-col py-4 px-2.5 z-40 overflow-hidden">
+      {/* Subtle decorative orb behind the header */}
+      <GradientOrb
+        size={200}
+        color="#7C3AED"
+        opacity={0.06}
+        className="top-0 left-0 z-0"
+        style={{ transform: 'translate(-40%, -40%)' }}
+      />
+
+      <div className="relative z-10 flex flex-col gap-0.5">
         {mainItems.map((item) => (
           <SideNavItem key={item.label} item={item} />
         ))}
       </div>
 
-      <div className="mt-6">
-        <p className="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-[var(--text-tertiary)]">
+      <div className="relative z-10 mt-6">
+        <p className="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest text-[var(--text-tertiary)] flex items-center gap-1.5">
+          <span
+            className="inline-block h-px w-3 rounded"
+            style={{ background: 'var(--gradient-primary)', opacity: 0.6 }}
+          />
           Estudo
         </p>
         <div className="flex flex-col gap-0.5">
@@ -56,15 +93,38 @@ export function Sidebar() {
               key={item.label}
               to={item.to}
               className={({ isActive }) =>
-                `flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150 ${
+                `relative flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150 ${
                   isActive
                     ? 'bg-[var(--accent-bg)] text-[var(--accent)] font-medium'
                     : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)]'
                 }`
               }
             >
-              {item.icon}
-              {item.label}
+              {({ isActive }) => (
+                <>
+                  {isActive && (
+                    <span
+                      className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-r-full"
+                      style={{ background: 'var(--gradient-primary)' }}
+                    />
+                  )}
+                  <span
+                    style={
+                      isActive
+                        ? {
+                            background: 'var(--gradient-primary)',
+                            WebkitBackgroundClip: 'text',
+                            WebkitTextFillColor: 'transparent',
+                            backgroundClip: 'text',
+                          }
+                        : undefined
+                    }
+                  >
+                    {item.icon}
+                  </span>
+                  {item.label}
+                </>
+              )}
             </NavLink>
           ))}
         </div>

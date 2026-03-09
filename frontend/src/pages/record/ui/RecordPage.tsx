@@ -6,6 +6,7 @@ import { Sidebar } from '@/widgets/sidebar/ui/Sidebar'
 import { Waveform } from '@/shared/ui/Waveform/Waveform'
 import { Button } from '@/shared/ui/Button/Button'
 import { Card } from '@/shared/ui/Card/Card'
+import { GradientOrb } from '@/shared/ui/decorative/GradientOrb'
 import { useRecorder } from '@/features/recording/start-recording/model/useRecorder'
 import { useUploadAudio } from '@/features/recording/upload-audio/model/useUploadAudio'
 import { useAudioLevel } from '@/shared/hooks/useAudioLevel'
@@ -52,13 +53,29 @@ export function RecordPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--bg-base)]">
+    <div className="relative min-h-screen bg-[var(--bg-base)] overflow-hidden">
+      {/* Background orbs */}
+      <GradientOrb
+        size={500}
+        color="#7C3AED"
+        opacity={0.1}
+        className="top-0 right-0 z-0"
+        style={{ transform: 'translate(30%, -30%)' }}
+      />
+      <GradientOrb
+        size={400}
+        color="#22D3EE"
+        opacity={0.06}
+        className="bottom-0 left-52 z-0"
+        style={{ transform: 'translate(-20%, 30%)' }}
+      />
+
       <Navbar />
       <Sidebar />
-      <main className="pl-56 pt-14">
+      <main className="relative z-10 pl-56 pt-14">
       <div className="max-w-xl mx-auto px-8 pt-10 pb-12">
         <div className="mb-8">
-          <h1 className="text-2xl font-semibold text-[var(--text-primary)]">Nova gravação</h1>
+          <h1 className="text-2xl font-semibold gradient-text">Nova gravação</h1>
           <p className="text-sm text-[var(--text-secondary)] mt-1">
             Grave ao vivo ou envie um arquivo de áudio do seu computador
           </p>
@@ -70,7 +87,18 @@ export function RecordPage() {
             {formatDuration(durationMs)}
           </div>
 
-          <div className="w-full">
+          {/* Waveform with glow when recording */}
+          <div
+            className="w-full rounded-lg transition-all duration-300"
+            style={
+              state === 'recording'
+                ? {
+                    boxShadow: '0 0 16px rgba(124,58,237,0.25), 0 0 32px rgba(34,211,238,0.10)',
+                    border: '1px solid rgba(124,58,237,0.25)',
+                  }
+                : { border: '1px solid transparent' }
+            }
+          >
             <Waveform levels={levels} active={state === 'recording'} />
           </div>
 

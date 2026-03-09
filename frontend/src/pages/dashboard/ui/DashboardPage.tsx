@@ -63,9 +63,16 @@ export function DashboardPage() {
       <GradientOrb
         size={600}
         color="#7C3AED"
-        opacity={0.05}
+        opacity={0.08}
         className="top-0 right-0 z-0"
         style={{ transform: 'translate(30%, -30%)' }}
+      />
+      <GradientOrb
+        size={400}
+        color="#22D3EE"
+        opacity={0.05}
+        className="bottom-0 left-52 z-0"
+        style={{ transform: 'translate(-20%, 30%)' }}
       />
       <Navbar />
       <Sidebar />
@@ -75,7 +82,7 @@ export function DashboardPage() {
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h1 className="text-xl font-semibold text-[var(--text-primary)]">Gravações</h1>
+              <h1 className="text-xl font-semibold gradient-text">Suas gravações</h1>
               <p className="text-sm text-[var(--text-secondary)] mt-0.5">
                 Suas aulas gravadas e processadas pela IA
               </p>
@@ -125,11 +132,18 @@ export function DashboardPage() {
                 <Skeleton key={i} className="h-[72px] w-full rounded-xl" />
               ))
             ) : visible.length === 0 ? (
-              <div className="flex flex-col items-center gap-5 py-24 text-center">
-                <div className="h-16 w-16 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border)] flex items-center justify-center">
+              <div className="relative flex flex-col items-center gap-5 py-24 text-center overflow-hidden">
+                <GradientOrb
+                  size={300}
+                  color="#7C3AED"
+                  opacity={0.07}
+                  className="top-1/2 left-1/2 z-0"
+                  style={{ transform: 'translate(-50%, -50%)' }}
+                />
+                <div className="relative z-10 h-16 w-16 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border)] flex items-center justify-center">
                   <Inbox size={28} className="text-[var(--text-tertiary)]" />
                 </div>
-                <div>
+                <div className="relative z-10">
                   <p className="text-base font-medium text-[var(--text-primary)]">
                     Nenhuma gravação ainda
                   </p>
@@ -137,12 +151,14 @@ export function DashboardPage() {
                     Grave sua primeira aula e a IA vai gerar transcrição, resumo, mapas mentais e flashcards automaticamente.
                   </p>
                 </div>
-                <Link to="/record">
-                  <Button>
-                    <Mic size={14} />
-                    Gravar agora
-                  </Button>
-                </Link>
+                <div className="relative z-10">
+                  <Link to="/record">
+                    <Button>
+                      <Mic size={14} />
+                      Gravar agora
+                    </Button>
+                  </Link>
+                </div>
               </div>
             ) : (
               visible.map((audio) => <AudioCard key={audio.id} audio={audio} />)
