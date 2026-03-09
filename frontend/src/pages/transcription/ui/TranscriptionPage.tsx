@@ -9,6 +9,7 @@ import { CopyButton } from '@/features/transcription/copy-text/ui/CopyButton'
 import { MarkdownRenderer } from '@/shared/ui/MarkdownRenderer/MarkdownRenderer'
 import { MindMapViewer } from '@/widgets/mindmap/ui/MindMapViewer'
 import { FlashcardDeck } from '@/widgets/flashcard-deck/ui/FlashcardDeck'
+import { GradientOrb } from '@/shared/ui/decorative/GradientOrb'
 import { useTranscriptionStatus } from '@/features/transcription/poll-status/model/useTranscriptionStatus'
 import { useStudyMaterial } from '@/entities/study-material/model/useStudyMaterial'
 import { cn } from '@/shared/lib/cn'
@@ -54,10 +55,26 @@ export function TranscriptionPage() {
   const { data: flashcardsData } = useStudyMaterial(transcriptionId, 'flashcards')
 
   return (
-    <div className="min-h-screen bg-[var(--bg-base)]">
+    <div className="relative min-h-screen bg-[var(--bg-base)] overflow-hidden">
+      {/* Background orbs */}
+      <GradientOrb
+        size={600}
+        color="#7C3AED"
+        opacity={0.06}
+        className="top-0 right-0 z-0"
+        style={{ transform: 'translate(30%, -30%)' }}
+      />
+      <GradientOrb
+        size={350}
+        color="#22D3EE"
+        opacity={0.04}
+        className="bottom-0 left-52 z-0"
+        style={{ transform: 'translate(-20%, 30%)' }}
+      />
+
       <Navbar />
       <Sidebar />
-      <main className="pl-52 pt-14">
+      <main className="relative z-10 pl-52 pt-14">
         <div className="max-w-3xl mx-auto px-8 pt-10 pb-16">
 
           <Link
@@ -81,7 +98,9 @@ export function TranscriptionPage() {
               {/* Header */}
               <div className="flex items-start gap-3">
                 <div className="flex-1 min-w-0">
-                  <h1 className="text-xl font-semibold text-[var(--text-primary)] leading-snug">
+                  <h1
+                    className="text-xl font-semibold leading-snug gradient-text"
+                  >
                     {transcription?.title ?? data?.audio.fileName ?? 'Gravação'}
                   </h1>
                   {transcription?.title && (
@@ -114,18 +133,32 @@ export function TranscriptionPage() {
                   <div className="flex gap-1 p-1 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border)]">
                     {TABS.map((tab) => {
                       const Icon = tab.icon
+                      const isActive = activeTab === tab.id
                       return (
                         <button
                           key={tab.id}
                           onClick={() => setActiveTab(tab.id)}
                           className={cn(
                             'flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg transition-all duration-200',
-                            activeTab === tab.id
+                            isActive
                               ? 'bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[var(--shadow-card)]'
                               : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                           )}
                         >
-                          <Icon size={12} />
+                          <span
+                            style={
+                              isActive
+                                ? {
+                                    background: 'var(--gradient-primary)',
+                                    WebkitBackgroundClip: 'text',
+                                    WebkitTextFillColor: 'transparent',
+                                    backgroundClip: 'text',
+                                  }
+                                : undefined
+                            }
+                          >
+                            <Icon size={12} />
+                          </span>
                           <span className="hidden sm:inline">{tab.label}</span>
                         </button>
                       )
@@ -136,21 +169,30 @@ export function TranscriptionPage() {
                   <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] shadow-[var(--shadow-card)] overflow-hidden">
                     {activeTab === 'resumo' && (
                       <div className="p-6">
-                        <div className="flex items-center justify-between mb-5">
-                          <div className="flex items-center gap-2">
-                            <Sparkles size={15} className="text-[var(--accent)]" />
-                            <h2 className="text-sm font-semibold text-[var(--text-primary)]">
-                              Resumo
-                            </h2>
+                        {/* Gradient left border accent */}
+                        <div className="flex gap-4">
+                          <div
+                            className="w-0.5 rounded-full shrink-0 self-stretch"
+                            style={{ background: 'var(--gradient-primary)' }}
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between mb-5">
+                              <div className="flex items-center gap-2">
+                                <Sparkles size={15} className="text-[var(--accent)]" />
+                                <h2 className="text-sm font-semibold text-[var(--text-primary)]">
+                                  Resumo
+                                </h2>
+                              </div>
+                              {transcription?.summaryText && (
+                                <CopyButton text={transcription.summaryText} />
+                              )}
+                            </div>
+                            {transcription?.summaryText
+                              ? <MarkdownRenderer content={transcription.summaryText} />
+                              : <p className="text-sm text-[var(--text-tertiary)]">Nenhum resumo disponível.</p>
+                            }
                           </div>
-                          {transcription?.summaryText && (
-                            <CopyButton text={transcription.summaryText} />
-                          )}
                         </div>
-                        {transcription?.summaryText
-                          ? <MarkdownRenderer content={transcription.summaryText} />
-                          : <p className="text-sm text-[var(--text-tertiary)]">Nenhum resumo disponível.</p>
-                        }
                       </div>
                     )}
 
@@ -181,11 +223,24 @@ export function TranscriptionPage() {
                             Mapa Mental
                           </h2>
                         </div>
-                        {!mindmapData || mindmapData.status === 'PENDING' || mindmapData.status === 'PROCESSING' || mindmapData.status === 'FAILED' ? (
-                          <ProcessingState message="Gerando mapa mental..." />
-                        ) : mindmapData.content ? (
-                          <MindMapViewer markdown={(mindmapData.content as MindmapContent).markdown} />
-                        ) : null}
+                        {/* Glow around mind map container */}
+                        <div
+                          className="rounded-xl overflow-hidden"
+                          style={
+                            mindmapData?.status === 'COMPLETED'
+                              ? {
+                                  boxShadow: '0 0 24px rgba(34,211,238,0.08), 0 0 1px rgba(34,211,238,0.2)',
+                                  border: '1px solid rgba(34,211,238,0.12)',
+                                }
+                              : undefined
+                          }
+                        >
+                          {!mindmapData || mindmapData.status === 'PENDING' || mindmapData.status === 'PROCESSING' || mindmapData.status === 'FAILED' ? (
+                            <ProcessingState message="Gerando mapa mental..." />
+                          ) : mindmapData.content ? (
+                            <MindMapViewer markdown={(mindmapData.content as MindmapContent).markdown} />
+                          ) : null}
+                        </div>
                       </div>
                     )}
 
