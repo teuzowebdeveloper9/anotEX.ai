@@ -4,7 +4,7 @@ import { Button } from '@/shared/ui/Button/Button'
 import { useMagicLink } from '../model/useMagicLink'
 
 export function MagicLinkForm() {
-  const { email, setEmail, loading, sent, submit } = useMagicLink()
+  const { email, setEmail, loading, sent, cooldownSeconds, submit } = useMagicLink()
 
   if (sent) {
     return (
@@ -43,9 +43,17 @@ export function MagicLinkForm() {
           required
         />
       </div>
-      <Button type="submit" loading={loading} size="lg" className="w-full">
+      <Button
+        type="submit"
+        loading={loading}
+        disabled={cooldownSeconds > 0}
+        size="lg"
+        className="w-full"
+      >
         <Send size={15} />
-        Entrar com Magic Link
+        {cooldownSeconds > 0
+          ? `Aguarde ${cooldownSeconds}s...`
+          : 'Entrar com Magic Link'}
       </Button>
     </form>
   )

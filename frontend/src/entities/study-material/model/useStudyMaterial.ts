@@ -34,7 +34,7 @@ export function useStudyMaterial(transcriptionId: string, type: StudyMaterialTyp
         .post(ENDPOINTS.studyMaterials.generate(transcriptionId))
         .catch(() => undefined)
     }
-  }, [query.isSuccess, query.data, query.isFetching, transcriptionId, queryClient])
+  }, [query.isSuccess, query.data, query.isFetching, transcriptionId])
 
   return query
 }

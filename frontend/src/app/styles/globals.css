@@ -3,37 +3,44 @@
 
 /* ─── Dark theme (default) ─────────────────────────────── */
 :root {
-  --bg-base:     #0B0F19;
-  --bg-surface:  #111827;
-  --bg-elevated: #1a2235;
-  --border:      #1F2937;
-  --border-hover: #374151;
+  --bg-base:     #080C14;
+  --bg-surface:  #0F1624;
+  --bg-elevated: #161E2E;
+  --border:      #1E2A3D;
+  --border-hover: #2D3F5C;
 
   --accent:      #7C3AED;
   --accent-2:    #22D3EE;
-  --accent-glow: #7C3AED28;
-  --accent-bg:   #7C3AED12;
+  --accent-3:    #3B82F6;
+  --accent-4:    #10B981;
+  --accent-5:    #EC4899;
+  --accent-glow: rgba(124,58,237,0.20);
+  --accent-bg:   rgba(124,58,237,0.08);
 
-  --text-primary:   #F9FAFB;
-  --text-secondary: #9CA3AF;
-  --text-tertiary:  #4B5563;
+  --gradient-primary:   linear-gradient(135deg, #7C3AED, #22D3EE);
+  --gradient-secondary: linear-gradient(135deg, #3B82F6, #10B981);
+  --gradient-warm:      linear-gradient(135deg, #EC4899, #7C3AED);
 
-  --danger:    #EF4444;
-  --danger-bg: #EF444412;
-  --success:   #10B981;
-  --success-bg: #10B98112;
-  --warning:   #F59E0B;
-  --warning-bg: #F59E0B12;
+  --text-primary:   #F0F4FF;
+  --text-secondary: #8B9CC4;
+  --text-tertiary:  #4A5568;
+
+  --success:    #10B981;
+  --warning:    #F59E0B;
+  --danger:     #EF4444;
+  --success-bg: rgba(16,185,129,0.08);
+  --warning-bg: rgba(245,158,11,0.08);
+  --danger-bg:  rgba(239,68,68,0.08);
 
   --shadow-card:     0 1px 3px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.03);
-  --shadow-elevated: 0 8px 32px rgba(0,0,0,0.5);
+  --shadow-elevated: 0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.04);
 
   --mouse-x: 50%;
   --mouse-y: 50%;
 }
 
 /* ─── Light theme ───────────────────────────────────────── */
-html[data-theme="light"] {
+[data-theme="light"] {
   --bg-base:     #FFFFFF;
   --bg-surface:  #F8FAFC;
   --bg-elevated: #F1F5F9;
@@ -41,23 +48,30 @@ html[data-theme="light"] {
   --border-hover: #CBD5E1;
 
   --accent:      #3B82F6;
-  --accent-2:    #60A5FA;
-  --accent-glow: #3B82F622;
-  --accent-bg:   #3B82F610;
+  --accent-2:    #06B6D4;
+  --accent-3:    #8B5CF6;
+  --accent-4:    #10B981;
+  --accent-5:    #EC4899;
+  --accent-glow: rgba(59,130,246,0.15);
+  --accent-bg:   rgba(59,130,246,0.06);
+
+  --gradient-primary:   linear-gradient(135deg, #3B82F6, #22D3EE);
+  --gradient-secondary: linear-gradient(135deg, #8B5CF6, #10B981);
+  --gradient-warm:      linear-gradient(135deg, #EC4899, #3B82F6);
 
   --text-primary:   #0F172A;
   --text-secondary: #475569;
   --text-tertiary:  #94A3B8;
 
-  --danger:    #EF4444;
-  --danger-bg: #FEF2F2;
-  --success:   #059669;
+  --success:    #059669;
+  --warning:    #D97706;
+  --danger:     #EF4444;
   --success-bg: #F0FDF4;
-  --warning:   #D97706;
   --warning-bg: #FFFBEB;
+  --danger-bg:  #FEF2F2;
 
   --shadow-card:     0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
-  --shadow-elevated: 0 8px 32px rgba(0,0,0,0.12);
+  --shadow-elevated: 0 4px 24px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.04);
 }
 
 /* ─── Base ──────────────────────────────────────────────── */
@@ -84,6 +98,31 @@ html[data-theme="light"] {
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 9px; }
   ::-webkit-scrollbar-thumb:hover { background: var(--text-tertiary); }
+}
+
+/* ─── Utility classes ───────────────────────────────────── */
+.gradient-text {
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-border {
+  border: 1px solid transparent;
+  background-clip: padding-box;
+  position: relative;
+}
+
+.glow-accent {
+  box-shadow: 0 0 20px var(--accent-glow), 0 0 40px var(--accent-glow);
+}
+
+.glass {
+  background: rgba(255,255,255,0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.08);
 }
 
 /* ─── Markdown ──────────────────────────────────────────── */
@@ -140,6 +179,18 @@ html[data-theme="light"] {
 .markdown-body hr { border: none; border-top: 1px solid var(--border); margin: 1.75em 0; }
 .markdown-body a { color: var(--accent); text-underline-offset: 3px; }
 
+/* ─── Flashcard flip (scaleX, sem backface-visibility) ───── */
+@keyframes card-shrink {
+  from { transform: scaleX(1); opacity: 1; }
+  to   { transform: scaleX(0); opacity: 0; }
+}
+@keyframes card-expand {
+  from { transform: scaleX(0); opacity: 0; }
+  to   { transform: scaleX(1); opacity: 1; }
+}
+.card-shrink { animation: card-shrink 180ms ease-in forwards; }
+.card-expand { animation: card-expand 180ms ease-out forwards; }
+
 /* ─── Animations ────────────────────────────────────────── */
 @keyframes fade-up {
   from { opacity: 0; transform: translateY(10px); }
@@ -152,4 +203,8 @@ html[data-theme="light"] {
 @keyframes pulse-dot {
   0%, 100% { opacity: 1; }
   50%       { opacity: 0.4; }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-8px); }
 }
