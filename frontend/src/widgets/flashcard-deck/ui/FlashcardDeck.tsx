@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { ChevronLeft, ChevronRight, RotateCcw, Keyboard } from 'lucide-react'
 import type { FlashcardItem } from '@/shared/types/api.types'
 import { cn } from '@/shared/lib/cn'
@@ -14,36 +14,56 @@ const difficultyConfig: Record<FlashcardItem['difficulty'], { label: string; cla
 }
 
 export function FlashcardDeck({ cards }: FlashcardDeckProps) {
-  const [index, setIndex]   = useState(0)
-  const [flipped, setFlipped] = useState(false)
+  const [index, setIndex] = useState(0)
+  const [showBack, setShowBack] = useState(false)
+  const [animClass, setAnimClass] = useState('')
+  const animating = useRef(false)
 
   const current = cards[index]
 
-  const prev = useCallback(() => {
-    setFlipped(false)
-    setTimeout(() => setIndex((i) => Math.max(i - 1, 0)), 100)
+  // Flip: contrai → troca lado → expande (sem backface-visibility)
+  const doFlip = useCallback(() => {
+    if (animating.current) return
+    animating.current = true
+    setAnimClass('card-shrink')
+    setTimeout(() => {
+      setShowBack((prev) => !prev)
+      setAnimClass('card-expand')
+      setTimeout(() => {
+        setAnimClass('')
+        animating.current = false
+      }, 180)
+    }, 180)
   }, [])
 
-  const next = useCallback(() => {
-    setFlipped(false)
-    setTimeout(() => setIndex((i) => Math.min(i + 1, cards.length - 1)), 100)
-  }, [cards.length])
-
-  const reset = useCallback(() => {
-    setFlipped(false)
-    setTimeout(() => setIndex(0), 100)
+  const navigate = useCallback((newIndex: number) => {
+    if (animating.current) return
+    animating.current = true
+    setAnimClass('card-shrink')
+    setTimeout(() => {
+      setShowBack(false)
+      setIndex(newIndex)
+      setAnimClass('card-expand')
+      setTimeout(() => {
+        setAnimClass('')
+        animating.current = false
+      }, 180)
+    }, 180)
   }, [])
 
-  // Keyboard navigation
+  const prev  = useCallback(() => { if (index > 0) navigate(index - 1) }, [index, navigate])
+  const next  = useCallback(() => { if (index < cards.length - 1) navigate(index + 1) }, [index, cards.length, navigate])
+  const reset = useCallback(() => navigate(0), [navigate])
+
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowLeft')  { e.preventDefault(); if (index > 0) prev() }
-      if (e.key === 'ArrowRight') { e.preventDefault(); if (index < cards.length - 1) next() }
-      if (e.key === ' ')          { e.preventDefault(); setFlipped((f) => !f) }
+      if (e.key === 'ArrowLeft')  { e.preventDefault(); prev() }
+      if (e.key === 'ArrowRight') { e.preventDefault(); next() }
+      if (e.key === ' ')          { e.preventDefault(); doFlip() }
     }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
-  }, [index, cards.length, prev, next])
+  }, [prev, next, doFlip])
 
   if (!current) return null
 
@@ -72,7 +92,7 @@ export function FlashcardDeck({ cards }: FlashcardDeckProps) {
           {cards.map((_, i) => (
             <button
               key={i}
-              onClick={() => { setFlipped(false); setIndex(i) }}
+              onClick={() => navigate(i)}
               className={cn(
                 'h-1.5 rounded-full transition-all duration-200',
                 i === index
@@ -84,25 +104,35 @@ export function FlashcardDeck({ cards }: FlashcardDeckProps) {
         </div>
       )}
 
-      {/* Card flip */}
+      {/* Card — único elemento, conteúdo troca durante animação */}
       <div
-        className="w-full cursor-pointer"
-        style={{ perspective: '1200px' }}
-        onClick={() => setFlipped((f) => !f)}
+        className={cn(
+          'w-full cursor-pointer rounded-xl border flex flex-col justify-between p-7',
+          animClass,
+          showBack
+            ? 'border-[var(--accent)]/25 bg-[var(--accent-bg)]'
+            : 'border-[var(--border)] bg-[var(--bg-elevated)]'
+        )}
+        style={{ minHeight: '240px' }}
+        onClick={doFlip}
       >
-        <div
-          className="relative w-full transition-transform duration-500 ease-in-out"
-          style={{
-            transformStyle: 'preserve-3d',
-            transform: flipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
-            minHeight: '240px',
-          }}
-        >
-          {/* Front */}
-          <div
-            className="absolute inset-0 flex flex-col justify-between p-7 rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)]"
-            style={{ backfaceVisibility: 'hidden' }}
-          >
+        {showBack ? (
+          <>
+            <div className="flex items-center gap-1.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent)]" />
+              <span className="text-xs font-semibold text-[var(--accent)] uppercase tracking-wider">
+                Resposta
+              </span>
+            </div>
+            <p className="text-sm text-[var(--text-primary)] leading-relaxed text-center px-4">
+              {current.back}
+            </p>
+            <p className="text-xs text-[var(--text-tertiary)] text-center">
+              Clique para virar
+            </p>
+          </>
+        ) : (
+          <>
             <div className="flex items-start justify-between gap-3">
               <span className="text-xs text-[var(--text-tertiary)] font-medium">{current.topic}</span>
               <span className={cn(
@@ -120,27 +150,8 @@ export function FlashcardDeck({ cards }: FlashcardDeckProps) {
               <kbd className="px-1.5 py-0.5 rounded border border-[var(--border)] bg-[var(--bg-surface)] text-[10px] font-mono">espaço</kbd>
               <span>para revelar</span>
             </p>
-          </div>
-
-          {/* Back */}
-          <div
-            className="absolute inset-0 flex flex-col justify-between p-7 rounded-xl border border-[var(--accent)]/25 bg-[var(--accent-bg)]"
-            style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
-          >
-            <div className="flex items-center gap-1.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent)]" />
-              <span className="text-xs font-semibold text-[var(--accent)] uppercase tracking-wider">
-                Resposta
-              </span>
-            </div>
-            <p className="text-sm text-[var(--text-primary)] leading-relaxed text-center px-4">
-              {current.back}
-            </p>
-            <p className="text-xs text-[var(--text-tertiary)] text-center">
-              Clique para virar
-            </p>
-          </div>
-        </div>
+          </>
+        )}
       </div>
 
       {/* Navigation */}

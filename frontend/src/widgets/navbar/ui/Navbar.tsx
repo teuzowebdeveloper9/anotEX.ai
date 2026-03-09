@@ -15,7 +15,7 @@ export function Navbar() {
   }
 
   return (
-    <nav className="fixed top-0 inset-x-0 z-50 h-14 border-b border-[var(--border)] bg-[var(--bg-base)]/80 backdrop-blur-xl">
+    <nav className="fixed top-0 inset-x-0 z-50 h-14 border-b border-[var(--border)] backdrop-blur-xl" style={{ background: 'rgba(8,12,20,0.75)' }}>
       <div className="max-w-6xl mx-auto px-4 h-full flex items-center justify-between">
         <Link to="/dashboard" className="flex items-center gap-2 group">
           <img
@@ -24,8 +24,17 @@ export function Navbar() {
             className="h-6 w-auto transition-opacity group-hover:opacity-80"
             style={{ filter: 'brightness(0) invert(1) sepia(1) saturate(3) hue-rotate(230deg) brightness(1.2)' }}
           />
-          <span className="text-sm font-semibold text-[var(--text-primary)] tracking-tight">
-            anotEX<span className="text-[var(--accent)]">.ai</span>
+          <span className="text-sm font-semibold tracking-tight">
+            <span className="text-[var(--text-primary)]">anotEX</span>
+            <span
+              className="font-bold"
+              style={{
+                background: 'linear-gradient(135deg, var(--accent), var(--accent-2))',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+              }}
+            >.ai</span>
           </span>
         </Link>
 

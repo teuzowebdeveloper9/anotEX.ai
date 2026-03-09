@@ -9,7 +9,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
     const variants = {
       primary:
-        'bg-[var(--accent)] text-white hover:opacity-90 active:scale-[0.98] shadow-[0_0_24px_var(--accent-glow)]',
+        'text-white active:scale-[0.98] hover:opacity-90 hover:shadow-[0_0_32px_var(--accent-glow)]',
       ghost:
         'bg-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)]',
       outline:
@@ -28,6 +28,11 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       <button
         ref={ref}
         className={cn(base, variants[variant], sizes[size], className)}
+        style={
+          variant === 'primary'
+            ? { background: 'linear-gradient(135deg, var(--accent), var(--accent-2))', transition: 'opacity 0.2s, box-shadow 0.2s, transform 0.1s' }
+            : undefined
+        }
         disabled={disabled ?? loading}
         {...props}
       >

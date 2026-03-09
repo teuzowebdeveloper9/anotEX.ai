@@ -5,21 +5,45 @@ import { Sidebar } from '@/widgets/sidebar/ui/Sidebar'
 import { AudioCard } from '@/entities/audio/ui/AudioCard'
 import { Button } from '@/shared/ui/Button/Button'
 import { Skeleton } from '@/shared/ui/Skeleton/Skeleton'
+import { GradientOrb } from '@/shared/ui/decorative/GradientOrb'
 import { useAudioList } from '@/entities/audio/model/useAudioList'
 
-function StatCard({ icon: Icon, label, value, color }: {
+function StatCard({ icon: Icon, label, value, color, gradientFrom, gradientTo }: {
   icon: React.ElementType
   label: string
   value: number
   color: string
+  gradientFrom?: string
+  gradientTo?: string
 }) {
   return (
-    <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] shadow-[var(--shadow-card)]">
-      <div className={`h-8 w-8 rounded-lg flex items-center justify-center ${color}`}>
+    <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] shadow-[var(--shadow-card)] hover:-translate-y-0.5 transition-all duration-200">
+      <div
+        className={`h-8 w-8 rounded-lg flex items-center justify-center shrink-0 ${color}`}
+        style={
+          gradientFrom && gradientTo
+            ? { background: `linear-gradient(135deg, ${gradientFrom}, ${gradientTo})` }
+            : undefined
+        }
+      >
         <Icon size={15} />
       </div>
       <div>
-        <p className="text-lg font-semibold text-[var(--text-primary)] leading-none">{value}</p>
+        <p
+          className="text-lg font-semibold leading-none"
+          style={
+            gradientFrom && gradientTo
+              ? {
+                  background: `linear-gradient(135deg, ${gradientFrom}, ${gradientTo})`,
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                }
+              : { color: 'var(--text-primary)' }
+          }
+        >
+          {value}
+        </p>
         <p className="text-xs text-[var(--text-secondary)] mt-0.5">{label}</p>
       </div>
     </div>
@@ -34,10 +58,18 @@ export function DashboardPage() {
   const processing = visible.filter((a) => a.status === 'PENDING' || a.status === 'PROCESSING').length
 
   return (
-    <div className="min-h-screen bg-[var(--bg-base)]">
+    <div className="relative min-h-screen bg-[var(--bg-base)] overflow-hidden">
+      {/* Subtle background orb */}
+      <GradientOrb
+        size={600}
+        color="#7C3AED"
+        opacity={0.05}
+        className="top-0 right-0 z-0"
+        style={{ transform: 'translate(30%, -30%)' }}
+      />
       <Navbar />
       <Sidebar />
-      <main className="pl-52 pt-14">
+      <main className="relative z-10 pl-52 pt-14">
         <div className="max-w-3xl mx-auto px-8 pt-10 pb-16">
 
           {/* Header */}
@@ -63,19 +95,25 @@ export function DashboardPage() {
                 icon={Layers}
                 label="Total"
                 value={visible.length}
-                color="bg-[var(--accent-bg)] text-[var(--accent)]"
+                color="text-white"
+                gradientFrom="#7C3AED"
+                gradientTo="#22D3EE"
               />
               <StatCard
                 icon={CheckCircle}
                 label="Concluídas"
                 value={completed}
-                color="bg-[var(--success-bg)] text-[var(--success)]"
+                color="text-white"
+                gradientFrom="#10B981"
+                gradientTo="#22D3EE"
               />
               <StatCard
                 icon={Clock}
                 label="Processando"
                 value={processing}
-                color="bg-[var(--warning-bg)] text-[var(--warning)]"
+                color="text-white"
+                gradientFrom="#F59E0B"
+                gradientTo="#EC4899"
               />
             </div>
           )}

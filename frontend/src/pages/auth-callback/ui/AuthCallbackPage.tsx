@@ -6,8 +6,6 @@ export function AuthCallbackPage() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    // Supabase v2: exchangeCodeForSession processa o token da URL automaticamente
-    // quando getSession() é chamado. O listener pega o evento resultante.
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session) {
         navigate('/dashboard', { replace: true })
@@ -17,7 +15,7 @@ export function AuthCallbackPage() {
       }
     })
 
-    // Força a troca do código/token que vem na URL do magic link
+    // Fallback: session may already be set before listener fires
     supabase.auth.getSession().then(({ data }) => {
       if (data.session) {
         navigate('/dashboard', { replace: true })
