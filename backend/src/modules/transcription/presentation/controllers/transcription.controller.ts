@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Param,
+  Query,
   Req,
   ParseUUIDPipe,
   Inject,
@@ -20,8 +21,14 @@ export class TranscriptionController {
   ) {}
 
   @Get()
-  async listMyTranscriptions(@Req() req: AuthenticatedRequest) {
-    const transcriptions = await this.transcriptionRepository.findByUserId(req.user.id);
+  async listMyTranscriptions(
+    @Req() req: AuthenticatedRequest,
+    @Query('q') search?: string,
+  ) {
+    const transcriptions = await this.transcriptionRepository.findByUserId(
+      req.user.id,
+      search?.trim() || undefined,
+    );
     return transcriptions.map((t) => ({
       id: t.id,
       audioId: t.audioId,

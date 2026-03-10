@@ -1,5 +1,6 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Map, Inbox, ChevronRight, Loader2, AlertCircle } from 'lucide-react'
+import { Map, Inbox, ChevronRight, Loader2, AlertCircle, Search } from 'lucide-react'
 import { useQueries } from '@tanstack/react-query'
 import { Navbar } from '@/widgets/navbar/ui/Navbar'
 import { Sidebar } from '@/widgets/sidebar/ui/Sidebar'
@@ -11,7 +12,8 @@ import { ENDPOINTS } from '@/shared/api/endpoints'
 import type { StudyMaterialEntity } from '@/shared/types/api.types'
 
 export function MindMapsPage() {
-  const { data: transcriptions, isLoading } = useTranscriptionList()
+  const [search, setSearch] = useState('')
+  const { data: transcriptions, isLoading } = useTranscriptionList(search)
 
   const completed = transcriptions?.filter((t) => t.status === 'COMPLETED') ?? []
 
@@ -60,6 +62,17 @@ export function MindMapsPage() {
             <p className="text-sm text-[var(--text-secondary)] mt-1">
               Mapas gerados automaticamente das suas aulas
             </p>
+          </div>
+
+          <div className="relative mb-6">
+            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" />
+            <input
+              type="text"
+              placeholder="Buscar por título ou conteúdo..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-9 pr-4 py-2.5 rounded-lg bg-[var(--bg-surface)] border border-[var(--border)] text-sm text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent-2)]/60 transition-colors"
+            />
           </div>
 
           <div className="flex flex-col gap-3">

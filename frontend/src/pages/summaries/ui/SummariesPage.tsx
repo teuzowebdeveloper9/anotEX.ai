@@ -1,5 +1,6 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Sparkles, Inbox, ChevronRight } from 'lucide-react'
+import { Sparkles, Inbox, ChevronRight, Search } from 'lucide-react'
 import { Navbar } from '@/widgets/navbar/ui/Navbar'
 import { Sidebar } from '@/widgets/sidebar/ui/Sidebar'
 import { Badge } from '@/shared/ui/Badge/Badge'
@@ -8,7 +9,8 @@ import { GradientOrb } from '@/shared/ui/decorative/GradientOrb'
 import { useTranscriptionList } from '@/entities/transcription/model/useTranscriptionList'
 
 export function SummariesPage() {
-  const { data: transcriptions, isLoading } = useTranscriptionList()
+  const [search, setSearch] = useState('')
+  const { data: transcriptions, isLoading } = useTranscriptionList(search)
 
   const completed = transcriptions?.filter(
     (t) => t.status === 'COMPLETED' && t.summaryText,
@@ -46,6 +48,17 @@ export function SummariesPage() {
             <p className="text-sm text-[var(--text-secondary)] mt-1">
               {completed?.length ?? 0} resumo{completed?.length !== 1 ? 's' : ''} gerado{completed?.length !== 1 ? 's' : ''} pela IA
             </p>
+          </div>
+
+          <div className="relative mb-6">
+            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" />
+            <input
+              type="text"
+              placeholder="Buscar por título ou conteúdo..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-9 pr-4 py-2.5 rounded-lg bg-[var(--bg-surface)] border border-[var(--border)] text-sm text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent)]/60 transition-colors"
+            />
           </div>
 
           <div className="flex flex-col gap-3">

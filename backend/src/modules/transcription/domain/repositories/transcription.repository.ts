@@ -8,7 +8,7 @@ export interface ITranscriptionRepository {
   create(props: CreateTranscriptionProps): Promise<TranscriptionEntity>;
   findById(id: string): Promise<TranscriptionEntity | null>;
   findByAudioId(audioId: string): Promise<TranscriptionEntity | null>;
-  findByUserId(userId: string): Promise<TranscriptionEntity[]>;
+  findByUserId(userId: string, search?: string): Promise<TranscriptionEntity[]>;
   updateStatus(
     id: string,
     status: TranscriptionStatus,

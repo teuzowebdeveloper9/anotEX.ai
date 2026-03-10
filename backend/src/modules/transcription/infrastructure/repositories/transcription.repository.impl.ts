@@ -52,13 +52,18 @@ export class TranscriptionRepositoryImpl implements ITranscriptionRepository {
     return this.toEntity(data);
   }
 
-  async findByUserId(userId: string): Promise<TranscriptionEntity[]> {
-    const { data, error } = await this.supabaseService
+  async findByUserId(userId: string, search?: string): Promise<TranscriptionEntity[]> {
+    let query = this.supabaseService
       .getClient()
       .from('transcriptions')
       .select()
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false });
+      .eq('user_id', userId);
+
+    if (search) {
+      query = query.or(`title.ilike.%${search}%,transcription_text.ilike.%${search}%`);
+    }
+
+    const { data, error } = await query.order('created_at', { ascending: false });
 
     if (error) throw new Error(`Failed to fetch transcriptions: ${error.message}`);
     return (data ?? []).map(this.toEntity);
