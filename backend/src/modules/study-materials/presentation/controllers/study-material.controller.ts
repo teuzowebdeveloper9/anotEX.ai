@@ -8,9 +8,10 @@ import {
 } from '@nestjs/common';
 import type { AuthenticatedRequest } from '../../../audio/presentation/guards/auth.guard.js';
 import { GetStudyMaterialsUseCase } from '../../domain/use-cases/get-study-materials.use-case.js';
-import type { StudyMaterialEntity, StudyMaterialType } from '../../domain/entities/study-material.entity.js';
+import { StudyMaterialType } from '../../domain/entities/study-material.entity.js';
+import type { StudyMaterialEntity } from '../../domain/entities/study-material.entity.js';
 
-const VALID_TYPES: StudyMaterialType[] = ['flashcards', 'mindmap', 'quiz'];
+const VALID_TYPES: StudyMaterialType[] = [StudyMaterialType.FLASHCARDS, StudyMaterialType.MINDMAP, StudyMaterialType.QUIZ];
 
 function toResponse(m: StudyMaterialEntity) {
   return {
@@ -41,7 +42,7 @@ export class StudyMaterialController {
     if (!result.success) throw result.error;
 
     const materials = Array.isArray(result.data) ? result.data : [result.data];
-    return materials.map(toResponse);
+    return materials.filter((m): m is StudyMaterialEntity => m !== null).map(toResponse);
   }
 
   @Get(':transcriptionId/:type')

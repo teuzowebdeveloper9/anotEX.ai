@@ -1,113 +1,119 @@
-# Perguntas — IA para Frontend e Skills do Claude Code
+# anotEX.ai — Ideias de Features e Melhorias de Frontend
 
-## 1. Tem IA que ajuda a melhorar o front e pensar em novas features?
+## Melhorias de UI (o que já existe mas pode melhorar)
 
-Sim — várias. Aqui estão as mais relevantes para o teu contexto (React + Tailwind, custo zero/baixo):
+### 1. DashboardPage — lista de gravações é plana e sem contexto
+- **Hoje:** `AudioCard` em lista simples
+- **Melhoria:** agrupar por data ("Hoje", "Esta semana", "Mês passado"), mostrar preview do título da transcrição diretamente no card quando status COMPLETED, barra de progresso inline enquanto processa
 
-### Para gerar/melhorar UI visualmente
+### 2. TranscriptionPage — atalhos de teclado invisíveis
+- O `FlashcardDeck` já tem atalhos (setas + espaço) mas o usuário não descobre
+- Mostrar hint de teclado visível nas tabs (`1` `2` `3` `4`)
+- Botão de "voltar" mais evidente (hoje só tem o Sidebar)
 
-| Ferramenta | O que faz | Custo |
-|---|---|---|
-| **v0.dev** (Vercel) | Gera componentes React + Tailwind a partir de prompt ou screenshot | Gratuito (limite mensal) |
-| **Lovable.dev** | Gera app inteiro a partir de prompt, edita via chat | Gratuito com limite |
-| **Bolt.new** (StackBlitz) | Full-stack app generation, edita em tempo real | Gratuito com limite |
-| **Cursor** | IDE com IA integrada, contexto do codebase inteiro | $20/mês (vale muito) |
-| **GitHub Copilot** | Autocomplete inteligente no VSCode | $10/mês |
+### 3. RecordPage — sem feedback de tamanho do arquivo
+- Mostrar barra de progresso de tamanho do arquivo enquanto grava (em direção ao limite de 100MB)
+- Feedback visual mais claro do estado de upload após gravação
 
-**Recomendação prática:** usa **v0.dev** para gerar componentes novos (ex: "crie um flashcard deck animado dark theme indigo") e cola no projeto. É o fluxo mais rápido para iterar na UI sem sair do teu stack.
-
----
-
-### Para ideação de features baratas
-
-A melhor abordagem é usar o próprio Claude (ou GPT-4o) com contexto do projeto. Algumas features interessantes que cabem no teu tier gratuito atual:
-
-#### Features de alto impacto, custo zero (só Groq free tier)
-
-1. **Busca semântica nas transcrições** — embeddings locais (transformers.js no frontend, roda no browser, zero custo de API)
-2. **Export para PDF/Notion** — resumo + flashcards formatados para exportar
-3. **Timer de estudo (Pomodoro)** — com sessão vinculada a uma anotação específica
-4. **Tags e categorias** — organizar gravações por disciplina/matéria
-5. **Highlights de trecho** — usuário seleciona trecho da transcrição e pede explicação (1 chamada Groq)
-6. **Modo de revisão de flashcards com spaced repetition** — algoritmo SM-2 implementado no frontend, zero backend extra
-7. **Share público de resumo** — link público de leitura apenas (1 coluna no Supabase + policy pública)
-
-#### Features que custam um pouco mas valem
-
-| Feature | Custo estimado |
-|---|---|
-| Text-to-speech do resumo (ElevenLabs) | ~$0.03/1k chars |
-| Tradução automática (DeepL) | Gratuito até 500k chars/mês |
-| OCR de slides/PDFs (pdf-parse local) | Zero |
+### 4. Páginas de lista sem busca (Transcriptions, Summaries, Mindmaps, Flashcards)
+- Um `<input>` de busca local que filtra o array em memória
+- Zero backend, ~30 linhas de código, impacto imediato na UX
 
 ---
 
-## 2. Dá para dar skills (habilidades) ao Claude Code?
+## Novas Features (ordenadas por impacto vs esforço)
 
-**Sim!** O Claude Code tem um sistema de **Custom Slash Commands** — são prompts reutilizáveis que você cria e chama com `/nome-do-comando`.
+### Prioridade Alta — fácil de implementar
 
-### Como criar uma skill
+#### 1. Quiz page — `/quiz`
+- O backend **já gera o quiz automaticamente**, só falta a UI
+- Página com perguntas de múltipla escolha, pontuação no final, feedback por questão
+- Dados já existem em `study_materials` com `type = 'quiz'`
 
-**Opção A — Skill pessoal (disponível em todos os projetos):**
+#### 2. Busca global com `Ctrl+K`
+- Modal de busca que filtra títulos e previews de todas as transcrições já carregadas
+- Frontend-only, zero backend extra, zero custo
+
+#### 3. Player de áudio inline
+- Botão de play nos `AudioCard` do Dashboard que toca o áudio direto ali
+- Usa URL assinada do R2 (backend já suporta) + `<audio>` nativo do browser
+- Hoje não tem como reouvir o áudio após upload — gap de UX
+
+### Prioridade Média — vale muito
+
+#### 4. Spaced repetition nos flashcards
+- Implementar algoritmo SM-2 no frontend (puro JS, zero API)
+- Usuário marca "Fácil / Difícil / Não sabia" em cada card
+- Sistema agenda próxima revisão automaticamente
+- Progresso salvo no `localStorage` ou coluna extra no Supabase
+
+#### 5. Export do resumo como PDF
+- Botão "Exportar" na TranscriptionPage
+- Lib `html2pdf.js` ou `jspdf` roda no browser, sem backend extra
+- Zero custo, feature que usuário vai usar toda hora
+
+#### 6. Tags nas gravações
+- Campo de tags no RecordPage (ex: "Cálculo", "Direito Penal", "Bioquímica")
+- Filtro por tag no Dashboard
+- Uma coluna `tags text[]` no Supabase + componente de multi-select
+
+### Prioridade Baixa — interessante mas mais trabalho
+
+#### 7. Highlight de trecho + pedir explicação
+- Usuário seleciona trecho da transcrição e clica "Explicar"
+- 1 chamada Groq com o trecho selecionado como contexto
+- Custa ~1 req Groq por clique — dentro do free tier
+
+#### 8. Contador de estudo na sidebar
+- "X flashcards revisados hoje", "Y horas transcritas"
+- Dados já estão no Supabase, só precisa de query + exibição
+
+#### 9. Share público de resumo
+- Link público de leitura apenas (sem auth)
+- 1 coluna `is_public boolean` no Supabase + policy pública de SELECT
+- URL: `/share/:transcriptionId`
+
+---
+
+## Sobre Skills no Claude Code
+
+O Claude Code tem **Custom Slash Commands** — prompts reutilizáveis criados por você.
+
+### Como criar
+
 ```bash
-mkdir -p ~/.claude/commands
-# cria um arquivo .md com o prompt
-nano ~/.claude/commands/minha-skill.md
-```
-
-**Opção B — Skill do projeto (commitada no repo, compartilhada com o time):**
-```bash
+# Skill do projeto (vai para o repo, time todo usa)
 mkdir -p .claude/commands
-nano .claude/commands/minha-skill.md
+nano .claude/commands/nome.md
+
+# Skill pessoal (disponível em todos os projetos)
+mkdir -p ~/.claude/commands
+nano ~/.claude/commands/nome.md
 ```
 
-### Exemplo: criar uma skill `/new-feature`
+O arquivo `.md` vira o prompt base. Use `$ARGUMENTS` para o que você passar ao chamar.
+
+### Exemplo de skill útil para este projeto
 
 ```markdown
 # .claude/commands/new-feature.md
 
-Você é um especialista em React + FSD + Tailwind.
-Analise o codebase do anotEX.ai e implemente a feature: $ARGUMENTS
+Implemente a seguinte feature no anotEX.ai: $ARGUMENTS
 
-Siga:
+Regras:
 - Arquitetura FSD (app → pages → widgets → features → entities → shared)
-- Dark theme (bg-base #080a0f, accent indigo #6366f1)
-- Zero emojis, ícones via Lucide React
+- Dark theme: bg-base #080a0f, accent indigo #6366f1
+- Zero emojis — ícones via Lucide React
 - TypeScript strict, sem `any`
-- Nomeie arquivos em kebab-case
+- Arquivos em kebab-case
 ```
 
-Uso: `/new-feature adicionar busca por transcrições`
+Uso: `/new-feature adicionar busca global com Ctrl+K`
 
-### Exemplo: skill `/review-frontend`
+### Skills built-in
 
-```markdown
-# .claude/commands/review-frontend.md
-
-Revise o frontend do anotEX.ai com foco em:
-1. Quebras na regra de importação FSD
-2. Uso de `any` no TypeScript
-3. Emojis na UI (não permitido — usar Lucide React)
-4. Componentes sem acessibilidade básica (aria-label, role)
-5. Performance: lazy loading em páginas pesadas
-
-Reporte cada problema com: arquivo, linha, problema, sugestão.
-```
-
-### Skills built-in disponíveis agora
-
-O Claude Code já vem com skills prontas que você pode usar:
-
-| Skill | Como chamar | O que faz |
-|---|---|---|
-| `/commit` | `/commit` | Cria commit com Conventional Commits |
-| `/review-pr` | `/review-pr 123` | Revisa um PR do GitHub |
-| `/simplify` | `/simplify` | Refatora código alterado para simplicidade |
-
----
-
-## Resumo
-
-- **Para melhorar UI:** v0.dev (gera componentes) + Cursor (IDE com IA no contexto)
-- **Para novas features:** spaced repetition, busca semântica, export PDF, tags — todas viáveis no free tier
-- **Para dar skills ao Claude:** cria arquivos `.md` em `.claude/commands/` no projeto ou `~/.claude/commands/` globalmente
+| Skill | O que faz |
+|---|---|
+| `/commit` | Commit com Conventional Commits |
+| `/review-pr 123` | Revisa PR do GitHub |
+| `/simplify` | Refatora código alterado para ser mais simples |
