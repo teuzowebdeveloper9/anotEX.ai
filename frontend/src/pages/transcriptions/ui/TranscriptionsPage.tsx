@@ -1,5 +1,6 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { FileText, Inbox, ChevronRight } from 'lucide-react'
+import { FileText, Inbox, ChevronRight, Search } from 'lucide-react'
 import { Navbar } from '@/widgets/navbar/ui/Navbar'
 import { Sidebar } from '@/widgets/sidebar/ui/Sidebar'
 import { Card } from '@/shared/ui/Card/Card'
@@ -9,7 +10,8 @@ import { GradientOrb } from '@/shared/ui/decorative/GradientOrb'
 import { useTranscriptionList } from '@/entities/transcription/model/useTranscriptionList'
 
 export function TranscriptionsPage() {
-  const { data: transcriptions, isLoading } = useTranscriptionList()
+  const [search, setSearch] = useState('')
+  const { data: transcriptions, isLoading } = useTranscriptionList(search)
 
   return (
     <div className="relative min-h-screen bg-[var(--bg-base)] overflow-hidden">
@@ -38,6 +40,17 @@ export function TranscriptionsPage() {
             <p className="text-sm text-[var(--text-secondary)] mt-1">
               {transcriptions?.length ?? 0} transcrição{transcriptions?.length !== 1 ? 'ões' : ''}
             </p>
+          </div>
+
+          <div className="relative mb-6">
+            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" />
+            <input
+              type="text"
+              placeholder="Buscar por título ou conteúdo..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-9 pr-4 py-2.5 rounded-lg bg-[var(--bg-surface)] border border-[var(--border)] text-sm text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent)]/60 transition-colors"
+            />
           </div>
 
           <div className="flex flex-col gap-3">
