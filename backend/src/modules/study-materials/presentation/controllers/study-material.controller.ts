@@ -1,21 +1,16 @@
 import {
   Controller,
   Get,
-  Post,
   Param,
   Req,
   ParseUUIDPipe,
   BadRequestException,
-  HttpCode,
-  HttpStatus,
 } from '@nestjs/common';
 import type { AuthenticatedRequest } from '../../../audio/presentation/guards/auth.guard.js';
 import { GetStudyMaterialsUseCase } from '../../domain/use-cases/get-study-materials.use-case.js';
-import { GenerateStudyMaterialsUseCase } from '../../domain/use-cases/generate-study-materials.use-case.js';
-import type { StudyMaterialEntity } from '../../domain/entities/study-material.entity.js';
-import { StudyMaterialType } from '../../domain/entities/study-material.entity.js';
+import type { StudyMaterialEntity, StudyMaterialType } from '../../domain/entities/study-material.entity.js';
 
-const VALID_TYPES: string[] = Object.values(StudyMaterialType);
+const VALID_TYPES: StudyMaterialType[] = ['flashcards', 'mindmap', 'quiz'];
 
 function toResponse(m: StudyMaterialEntity) {
   return {
@@ -31,24 +26,7 @@ function toResponse(m: StudyMaterialEntity) {
 
 @Controller('study-materials')
 export class StudyMaterialController {
-  constructor(
-    private readonly getStudyMaterialsUseCase: GetStudyMaterialsUseCase,
-    private readonly generateStudyMaterialsUseCase: GenerateStudyMaterialsUseCase,
-  ) {}
-
-  @Post(':transcriptionId/generate')
-  @HttpCode(HttpStatus.ACCEPTED)
-  async generate(
-    @Param('transcriptionId', ParseUUIDPipe) transcriptionId: string,
-    @Req() req: AuthenticatedRequest,
-  ) {
-    // Fire and forget — geração ocorre em background
-    void this.generateStudyMaterialsUseCase.execute({
-      transcriptionId,
-      userId: req.user.id,
-    });
-    return { transcriptionId, status: 'generating' };
-  }
+  constructor(private readonly getStudyMaterialsUseCase: GetStudyMaterialsUseCase) {}
 
   @Get(':transcriptionId')
   async listByTranscription(
@@ -63,7 +41,7 @@ export class StudyMaterialController {
     if (!result.success) throw result.error;
 
     const materials = Array.isArray(result.data) ? result.data : [result.data];
-    return materials.filter((m): m is StudyMaterialEntity => m !== null).map(toResponse);
+    return materials.map(toResponse);
   }
 
   @Get(':transcriptionId/:type')
@@ -82,10 +60,14 @@ export class StudyMaterialController {
       type: type as StudyMaterialType,
     });
 
-    if (!result.success) throw result.error;
 
-    // null = ainda não gerado (em fila), frontend faz polling
-    if (result.data === null) return null;
+
+
+
+
+    
+
+    if (!result.success) throw result.error;
 
     return toResponse(result.data as StudyMaterialEntity);
   }
