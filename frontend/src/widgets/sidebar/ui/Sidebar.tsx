@@ -1,6 +1,8 @@
-import { NavLink } from 'react-router-dom'
+import { NavLink, useLocation } from 'react-router-dom'
 import { Mic, FileText, Map, BookOpen, Sparkles } from 'lucide-react'
+import { useEffect } from 'react'
 import { GradientOrb } from '@/shared/ui/decorative/GradientOrb'
+import { useSidebarStore } from '@/shared/hooks/useSidebarStore'
 
 interface NavItem {
   icon: React.ReactNode
@@ -19,11 +21,12 @@ const studyItems: NavItem[] = [
   { icon: <BookOpen size={15} />, label: 'Flashcards', to: '/flashcards' },
 ]
 
-function SideNavItem({ item }: { item: NavItem }) {
+function SideNavItem({ item, onClick }: { item: NavItem; onClick?: () => void }) {
   return (
     <NavLink
       to={item.to}
       end
+      onClick={onClick}
       className={({ isActive }) =>
         `relative flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150 ${
           isActive
@@ -62,9 +65,25 @@ function SideNavItem({ item }: { item: NavItem }) {
 }
 
 export function Sidebar() {
-  return (
-    <aside className="fixed top-14 left-0 bottom-0 w-52 border-r border-[var(--border)] bg-[var(--bg-base)] flex flex-col py-4 px-2.5 z-40 overflow-hidden">
-      {/* Subtle decorative orb behind the header */}
+  const { isOpen, close } = useSidebarStore()
+  const location = useLocation()
+
+  // Fecha o sidebar ao navegar no mobile
+  useEffect(() => {
+    close()
+  }, [location.pathname, close])
+
+  const sidebarContent = (
+    <aside
+      className={[
+        'fixed top-14 left-0 bottom-0 w-52 border-r border-[var(--border)] bg-[var(--bg-base)]',
+        'flex flex-col py-4 px-2.5 z-40 overflow-hidden',
+        'transition-transform duration-300 ease-in-out',
+        // Mobile: slide in/out; Desktop: always visible
+        'md:translate-x-0',
+        isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0',
+      ].join(' ')}
+    >
       <GradientOrb
         size={200}
         color="#7C3AED"
@@ -75,7 +94,7 @@ export function Sidebar() {
 
       <div className="relative z-10 flex flex-col gap-0.5">
         {mainItems.map((item) => (
-          <SideNavItem key={item.label} item={item} />
+          <SideNavItem key={item.label} item={item} onClick={close} />
         ))}
       </div>
 
@@ -89,46 +108,23 @@ export function Sidebar() {
         </p>
         <div className="flex flex-col gap-0.5">
           {studyItems.map((item) => (
-            <NavLink
-              key={item.label}
-              to={item.to}
-              className={({ isActive }) =>
-                `relative flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150 ${
-                  isActive
-                    ? 'bg-[var(--accent-bg)] text-[var(--accent)] font-medium'
-                    : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)]'
-                }`
-              }
-            >
-              {({ isActive }) => (
-                <>
-                  {isActive && (
-                    <span
-                      className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-r-full"
-                      style={{ background: 'var(--gradient-primary)' }}
-                    />
-                  )}
-                  <span
-                    style={
-                      isActive
-                        ? {
-                            background: 'var(--gradient-primary)',
-                            WebkitBackgroundClip: 'text',
-                            WebkitTextFillColor: 'transparent',
-                            backgroundClip: 'text',
-                          }
-                        : undefined
-                    }
-                  >
-                    {item.icon}
-                  </span>
-                  {item.label}
-                </>
-              )}
-            </NavLink>
+            <SideNavItem key={item.label} item={item} onClick={close} />
           ))}
         </div>
       </div>
     </aside>
+  )
+
+  return (
+    <>
+      {/* Backdrop para mobile */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 z-30 bg-black/50 md:hidden"
+          onClick={close}
+        />
+      )}
+      {sidebarContent}
+    </>
   )
 }
