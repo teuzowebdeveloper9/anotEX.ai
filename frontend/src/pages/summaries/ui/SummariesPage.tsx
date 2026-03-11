@@ -36,7 +36,7 @@ export function SummariesPage() {
 
       <Navbar />
       <Sidebar />
-      <main className="relative z-10 pl-56 pt-14">
+      <main className="relative z-10 pt-14 md:pl-56">
         <div className="max-w-3xl mx-auto px-8 pt-10 pb-12">
           <div className="mb-8">
             <div className="flex items-center gap-3 mb-1">

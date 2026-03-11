@@ -76,7 +76,7 @@ export function DashboardPage() {
       />
       <Navbar />
       <Sidebar />
-      <main className="relative z-10 pl-52 pt-14">
+      <main className="relative z-10 pt-14 md:pl-52">
         <div className="max-w-3xl mx-auto px-8 pt-10 pb-16">
 
           {/* Header */}
