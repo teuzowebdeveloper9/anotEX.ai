@@ -33,7 +33,7 @@ export function TranscriptionsPage() {
 
       <Navbar />
       <Sidebar />
-      <main className="relative z-10 pl-56 pt-14">
+      <main className="relative z-10 pt-14 md:pl-56">
         <div className="max-w-3xl mx-auto px-8 pt-10 pb-12">
           <div className="mb-8">
             <h1 className="text-2xl font-semibold gradient-text">Transcrições</h1>
