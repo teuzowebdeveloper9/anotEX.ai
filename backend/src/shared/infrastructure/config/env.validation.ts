@@ -22,4 +22,6 @@ export const envValidationSchema = Joi.object({
 
   MAX_AUDIO_SIZE_MB: Joi.number().default(500),
   SIGNED_URL_EXPIRES_IN_SECONDS: Joi.number().default(900),
+
+  YOUTUBE_API_KEY: Joi.string().required(),
 });

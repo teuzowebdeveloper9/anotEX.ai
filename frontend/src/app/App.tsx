@@ -11,6 +11,8 @@ import { TranscriptionsPage } from '@/pages/transcriptions/ui/TranscriptionsPage
 import { SummariesPage } from '@/pages/summaries/ui/SummariesPage'
 import { MindMapsPage } from '@/pages/mindmaps/ui/MindMapsPage'
 import { FlashcardsPage } from '@/pages/flashcards/ui/FlashcardsPage'
+import { StudyFoldersPage } from '@/pages/study-folders/ui/StudyFoldersPage'
+import { StudyFolderPage } from '@/pages/study-folder/ui/StudyFolderPage'
 import { ProtectedRoute } from '@/shared/ui/ProtectedRoute/ProtectedRoute'
 import { useTheme } from '@/shared/hooks/useTheme'
 
@@ -77,6 +79,22 @@ export function App() {
             element={
               <ProtectedRoute>
                 <FlashcardsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/study-folders"
+            element={
+              <ProtectedRoute>
+                <StudyFoldersPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/study-folders/:id"
+            element={
+              <ProtectedRoute>
+                <StudyFolderPage />
               </ProtectedRoute>
             }
           />

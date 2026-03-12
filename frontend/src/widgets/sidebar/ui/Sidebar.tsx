@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from 'react-router-dom'
-import { Mic, FileText, Map, BookOpen, Sparkles } from 'lucide-react'
+import { Mic, FileText, Map, BookOpen, Sparkles, FolderOpen } from 'lucide-react'
 import { useEffect } from 'react'
 import { GradientOrb } from '@/shared/ui/decorative/GradientOrb'
 import { useSidebarStore } from '@/shared/hooks/useSidebarStore'
@@ -19,6 +19,7 @@ const studyItems: NavItem[] = [
   { icon: <Sparkles size={15} />, label: 'Resumos', to: '/summaries' },
   { icon: <Map size={15} />, label: 'Mapas Mentais', to: '/mindmaps' },
   { icon: <BookOpen size={15} />, label: 'Flashcards', to: '/flashcards' },
+  { icon: <FolderOpen size={15} />, label: 'Pastas de Estudo', to: '/study-folders' },
 ]
 
 function SideNavItem({ item, onClick }: { item: NavItem; onClick?: () => void }) {
