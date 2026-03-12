@@ -114,6 +114,9 @@ O usuário não precisa mais sair da plataforma para buscar complementos sobre u
 - Interface para remover um material da pasta sem deletá-lo da conta
 - Seção de Vídeos Recomendados, visível apenas quando a pasta tem 5 ou mais itens
 - Card de cada vídeo recomendado com título, thumbnail, canal e botão para processar na plataforma
+- **Player embedded do YouTube** — ao clicar no card do vídeo, exibe um iframe com o player oficial do YouTube (`https://www.youtube.com/embed/{videoId}`) diretamente na tela, sem redirecionar o usuário para fora da plataforma
+- O player abre em um modal ou painel expandido sobre a tela da pasta, com controles nativos do YouTube (play, pause, fullscreen, qualidade)
+- Botão para fechar o player e voltar à listagem de vídeos recomendados
 - Feedback visual indicando quantos itens faltam para desbloquear as recomendações
 
 ---
@@ -127,6 +130,63 @@ O usuário não precisa mais sair da plataforma para buscar complementos sobre u
 - Busca de vídeos no YouTube relevantes ao tema identificado
 - Retorno dos vídeos recomendados para o frontend
 - Integração com o fluxo existente de processamento de áudio para permitir que vídeos recomendados gerem novos materiais
+
+---
+
+## Detalhes Técnicos de Implementação
+
+### Download de áudio dos vídeos recomendados
+
+Quando o usuário clica em "Processar" em um vídeo recomendado, o backend precisa baixar o áudio do YouTube antes de jogar no fluxo existente de transcrição.
+
+A solução adotada é o pacote **`yt-dlp-wrap`**, um wrapper Node.js/TypeScript para o binário `yt-dlp`. Ele permite baixar áudio diretamente de URLs do YouTube sem sair do ecossistema NestJS — sem precisar de um microserviço Python separado.
+
+O fluxo técnico do download é:
+
+```
+1. Frontend envia: POST /study-folders/:id/process-video { videoId }
+2. Backend usa yt-dlp-wrap para baixar o áudio do vídeo em formato webm/mp3
+3. O arquivo é enviado para o Cloudflare R2 (mesmo bucket que os uploads normais)
+4. Um registro é criado na tabela audios com status PENDING
+5. O job é enfileirado no BullMQ
+6. O worker de transcrição processa normalmente (Groq Whisper → Groq Llama)
+7. Os materiais gerados ficam disponíveis para serem adicionados à pasta
+```
+
+A vantagem é que **o vídeo do YouTube entra no mesmo pipeline** de qualquer gravação ou upload manual — zero código duplicado.
+
+### Metadados dos vídeos recomendados (thumbnail, título, canal)
+
+Para exibir os cards de vídeos recomendados no frontend com thumbnail, título, nome do canal e duração, o backend utiliza a **YouTube Data API v3**.
+
+O fluxo funciona assim:
+
+```
+1. Groq Llama analisa o conteúdo da pasta e gera uma query de busca temática
+2. Backend chama YouTube Data API v3 → endpoint search.list com a query
+3. API retorna lista de vídeos com: videoId, title, channelTitle, thumbnails, publishedAt
+4. Backend retorna para o frontend um array com os 5 vídeos e seus metadados
+5. Frontend renderiza os cards com thumbnail (via URL da API) + título + canal
+```
+
+Os metadados retornados para o frontend por vídeo são:
+
+| Campo | Descrição |
+|---|---|
+| `videoId` | ID do vídeo no YouTube |
+| `title` | Título do vídeo |
+| `channelTitle` | Nome do canal |
+| `thumbnail` | URL da thumbnail (qualidade `high`) |
+| `publishedAt` | Data de publicação |
+| `description` | Trecho da descrição (para contexto) |
+
+A YouTube Data API v3 tem cota gratuita de **10.000 unidades/dia**. Uma busca consome 100 unidades — o que equivale a 100 buscas diárias no tier gratuito, suficiente para o volume inicial da plataforma.
+
+### Variável de ambiente necessária
+
+```
+YOUTUBE_API_KEY=   # Google Cloud Console → YouTube Data API v3
+```
 
 ---
 
