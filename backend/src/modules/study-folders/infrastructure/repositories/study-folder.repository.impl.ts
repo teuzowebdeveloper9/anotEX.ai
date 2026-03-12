@@ -93,6 +93,7 @@ export class StudyFolderRepositoryImpl implements IStudyFolderRepository {
         folder_id: props.folderId,
         user_id: props.userId,
         transcription_id: props.transcriptionId,
+        audio_id: props.audioId,
         item_type: props.itemType,
         title: props.title,
       })
@@ -207,6 +208,7 @@ export class StudyFolderRepositoryImpl implements IStudyFolderRepository {
       folderId: raw.folder_id as string,
       userId: raw.user_id as string,
       transcriptionId: raw.transcription_id as string,
+      audioId: raw.audio_id as string,
       itemType: raw.item_type as FolderItemType,
       title: raw.title as string,
       createdAt: new Date(raw.created_at as string),

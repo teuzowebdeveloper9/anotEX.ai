@@ -23,6 +23,7 @@ export interface StudyFolderItemEntity {
   readonly folderId: string;
   readonly userId: string;
   readonly transcriptionId: string;
+  readonly audioId: string;
   readonly itemType: FolderItemType;
   readonly title: string;
   readonly createdAt: Date;
@@ -53,6 +54,7 @@ export interface AddItemProps {
   readonly folderId: string;
   readonly userId: string;
   readonly transcriptionId: string;
+  readonly audioId: string;
   readonly itemType: FolderItemType;
   readonly title: string;
 }

@@ -30,6 +30,7 @@ export interface StudyFolderItem {
   folderId: string
   userId: string
   transcriptionId: string
+  audioId: string
   itemType: FolderItemType
   title: string
   createdAt: string

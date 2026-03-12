@@ -6,6 +6,7 @@ import { Sidebar } from '@/widgets/sidebar/ui/Sidebar'
 import { Badge } from '@/shared/ui/Badge/Badge'
 import { Skeleton } from '@/shared/ui/Skeleton/Skeleton'
 import { CopyButton } from '@/features/transcription/copy-text/ui/CopyButton'
+import { SaveToFolderButton } from '@/features/study-folders/save-to-folder/ui/SaveToFolderButton'
 import { MarkdownRenderer } from '@/shared/ui/MarkdownRenderer/MarkdownRenderer'
 import { MindMapViewer } from '@/widgets/mindmap/ui/MindMapViewer'
 import { FlashcardDeck } from '@/widgets/flashcard-deck/ui/FlashcardDeck'
@@ -183,9 +184,12 @@ export function TranscriptionPage() {
                                   Resumo
                                 </h2>
                               </div>
-                              {transcription?.summaryText && (
-                                <CopyButton text={transcription.summaryText} />
-                              )}
+                              <div className="flex items-center gap-2">
+                                {transcription?.summaryText && (
+                                  <CopyButton text={transcription.summaryText} />
+                                )}
+                                <SaveToFolderButton transcriptionId={transcriptionId} itemType="SUMMARY" />
+                              </div>
                             </div>
                             {transcription?.summaryText
                               ? <MarkdownRenderer content={transcription.summaryText} />
@@ -205,9 +209,12 @@ export function TranscriptionPage() {
                               Transcrição completa
                             </h2>
                           </div>
-                          {transcription?.transcriptionText && (
-                            <CopyButton text={transcription.transcriptionText} />
-                          )}
+                          <div className="flex items-center gap-2">
+                            {transcription?.transcriptionText && (
+                              <CopyButton text={transcription.transcriptionText} />
+                            )}
+                            <SaveToFolderButton transcriptionId={transcriptionId} itemType="TRANSCRIPTION" />
+                          </div>
                         </div>
                         <div className="text-sm text-[var(--text-secondary)] leading-relaxed font-mono whitespace-pre-wrap max-h-[520px] overflow-y-auto pr-2">
                           {transcription?.transcriptionText ?? '—'}
@@ -217,11 +224,14 @@ export function TranscriptionPage() {
 
                     {activeTab === 'mindmap' && (
                       <div className="p-6">
-                        <div className="flex items-center gap-2 mb-5">
-                          <Map size={15} className="text-[var(--text-secondary)]" />
-                          <h2 className="text-sm font-semibold text-[var(--text-primary)]">
-                            Mapa Mental
-                          </h2>
+                        <div className="flex items-center justify-between mb-5">
+                          <div className="flex items-center gap-2">
+                            <Map size={15} className="text-[var(--text-secondary)]" />
+                            <h2 className="text-sm font-semibold text-[var(--text-primary)]">
+                              Mapa Mental
+                            </h2>
+                          </div>
+                          <SaveToFolderButton transcriptionId={transcriptionId} itemType="MINDMAP" />
                         </div>
                         {/* Glow around mind map container */}
                         <div
@@ -246,11 +256,14 @@ export function TranscriptionPage() {
 
                     {activeTab === 'flashcards' && (
                       <div className="p-6">
-                        <div className="flex items-center gap-2 mb-6">
-                          <BookOpen size={15} className="text-[var(--text-secondary)]" />
-                          <h2 className="text-sm font-semibold text-[var(--text-primary)]">
-                            Flashcards
-                          </h2>
+                        <div className="flex items-center justify-between mb-6">
+                          <div className="flex items-center gap-2">
+                            <BookOpen size={15} className="text-[var(--text-secondary)]" />
+                            <h2 className="text-sm font-semibold text-[var(--text-primary)]">
+                              Flashcards
+                            </h2>
+                          </div>
+                          <SaveToFolderButton transcriptionId={transcriptionId} itemType="FLASHCARDS" />
                         </div>
                         {!flashcardsData || flashcardsData.status === 'PENDING' || flashcardsData.status === 'PROCESSING' || flashcardsData.status === 'FAILED' ? (
                           <ProcessingState message="Gerando flashcards..." />
