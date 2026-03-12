@@ -46,6 +46,7 @@ export class AddItemToFolderUseCase {
       folderId: input.folderId,
       userId: input.userId,
       transcriptionId: input.transcriptionId,
+      audioId: transcription.audioId,
       itemType: input.itemType,
       title: transcription.title ?? 'Transcrição sem título',
     });

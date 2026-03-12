@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { BookOpen, Inbox, ChevronRight, Loader2, AlertCircle, Search } from 'lucide-react'
+import { SaveToFolderButton } from '@/features/study-folders/save-to-folder/ui/SaveToFolderButton'
 import { useQueries } from '@tanstack/react-query'
 import { Navbar } from '@/widgets/navbar/ui/Navbar'
 import { Sidebar } from '@/widgets/sidebar/ui/Sidebar'
@@ -143,6 +144,7 @@ export function FlashcardsPage() {
                           ) : material ? (
                             <Loader2 size={14} className="text-[var(--accent)] animate-spin" />
                           ) : null}
+                          <SaveToFolderButton transcriptionId={t.id} itemType="FLASHCARDS" />
                           <ChevronRight size={16} className="text-[var(--text-secondary)] group-hover:text-[var(--accent)] transition-colors" />
                         </div>
                       </div>

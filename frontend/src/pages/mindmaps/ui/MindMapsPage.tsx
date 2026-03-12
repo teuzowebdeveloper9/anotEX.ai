@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Map, Inbox, ChevronRight, Loader2, AlertCircle, Search } from 'lucide-react'
+import { SaveToFolderButton } from '@/features/study-folders/save-to-folder/ui/SaveToFolderButton'
 import { useQueries } from '@tanstack/react-query'
 import { Navbar } from '@/widgets/navbar/ui/Navbar'
 import { Sidebar } from '@/widgets/sidebar/ui/Sidebar'
@@ -137,6 +138,7 @@ export function MindMapsPage() {
                           ) : material ? (
                             <Loader2 size={14} className="text-[var(--accent-2)] animate-spin" />
                           ) : null}
+                          <SaveToFolderButton transcriptionId={t.id} itemType="MINDMAP" />
                           <ChevronRight size={16} className="text-[var(--text-secondary)] group-hover:text-[var(--accent-2)] transition-colors" />
                         </div>
                       </div>

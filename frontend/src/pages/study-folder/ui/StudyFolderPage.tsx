@@ -10,6 +10,9 @@ import {
   Youtube,
   ArrowLeft,
   Loader2,
+  FileText,
+  BookOpen,
+  Map,
 } from 'lucide-react'
 import { Navbar } from '@/widgets/navbar/ui/Navbar'
 import { Sidebar } from '@/widgets/sidebar/ui/Sidebar'
@@ -17,44 +20,39 @@ import { Button } from '@/shared/ui/Button/Button'
 import { Skeleton } from '@/shared/ui/Skeleton/Skeleton'
 import { GradientOrb } from '@/shared/ui/decorative/GradientOrb'
 import { useFolder } from '@/entities/study-folder/model/useFolder'
-import { useAddItem } from '@/features/study-folders/add-item/model/useAddItem'
 import { useRemoveItem } from '@/features/study-folders/remove-item/model/useRemoveItem'
 import { useDeleteFolder } from '@/features/study-folders/delete-folder/model/useDeleteFolder'
 import { AddItemModal } from '@/features/study-folders/add-item/ui/AddItemModal'
 import { api } from '@/shared/api/axios'
 import { ENDPOINTS } from '@/shared/api/endpoints'
-import type { YouTubeVideo } from '@/entities/study-folder/model/study-folder.types'
-import type { StudyFolderItem } from '@/entities/study-folder/model/study-folder.types'
+import type { FolderItemType, YouTubeVideo, StudyFolderItem } from '@/entities/study-folder/model/study-folder.types'
 import { FOLDER_ITEM_TYPE_LABELS, FOLDER_ITEM_TYPE_TAB } from '@/entities/study-folder/model/study-folder.types'
 
 const RECOMMENDATIONS_THRESHOLD = 5
 
-const ITEM_TYPE_COLORS: Record<string, string> = {
-  SUMMARY: 'text-purple-400 bg-purple-400/10',
-  TRANSCRIPTION: 'text-blue-400 bg-blue-400/10',
-  FLASHCARDS: 'text-pink-400 bg-pink-400/10',
-  MINDMAP: 'text-cyan-400 bg-cyan-400/10',
+const TYPE_CONFIG: Record<FolderItemType, { icon: React.ElementType; color: string; gradient: string }> = {
+  SUMMARY:       { icon: Sparkles, color: 'text-purple-400', gradient: 'from-purple-500/20 to-transparent' },
+  TRANSCRIPTION: { icon: FileText, color: 'text-blue-400',   gradient: 'from-blue-500/20 to-transparent'   },
+  FLASHCARDS:    { icon: BookOpen, color: 'text-pink-400',   gradient: 'from-pink-500/20 to-transparent'   },
+  MINDMAP:       { icon: Map,      color: 'text-cyan-400',   gradient: 'from-cyan-500/20 to-transparent'   },
 }
+
+const TYPE_ORDER: FolderItemType[] = ['SUMMARY', 'TRANSCRIPTION', 'FLASHCARDS', 'MINDMAP']
 
 function FolderItemRow({ item, onRemove }: { item: StudyFolderItem; onRemove: () => void }) {
   const tab = FOLDER_ITEM_TYPE_TAB[item.itemType]
 
   return (
     <div className="flex items-center gap-3 px-4 py-3 rounded-lg border border-[var(--border)] bg-[var(--bg-surface)] group hover:border-[var(--accent)]/30 transition-all">
-      <span
-        className={`text-[10px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded-full shrink-0 ${ITEM_TYPE_COLORS[item.itemType] ?? 'text-[var(--accent)] bg-[var(--accent)]/10'}`}
-      >
-        {FOLDER_ITEM_TYPE_LABELS[item.itemType]}
-      </span>
       <Link
-        to={`/transcription/${item.transcriptionId}?tab=${tab}`}
+        to={`/transcription/${item.audioId}?tab=${tab}`}
         className="flex-1 text-sm text-[var(--text-primary)] truncate hover:text-[var(--accent)] transition-colors"
       >
         {item.title}
       </Link>
       <button
         onClick={onRemove}
-        className="text-[var(--text-secondary)] hover:text-[var(--danger)] transition-colors opacity-0 group-hover:opacity-100"
+        className="text-[var(--text-secondary)] hover:text-[var(--danger)] transition-colors opacity-0 group-hover:opacity-100 shrink-0"
       >
         <Trash2 size={14} />
       </button>
@@ -62,13 +60,37 @@ function FolderItemRow({ item, onRemove }: { item: StudyFolderItem; onRemove: ()
   )
 }
 
-function VideoCard({
-  video,
-  onPlay,
+function ItemsSection({
+  type,
+  items,
+  onRemove,
 }: {
-  video: YouTubeVideo
-  onPlay: (video: YouTubeVideo) => void
+  type: FolderItemType
+  items: StudyFolderItem[]
+  onRemove: (id: string) => void
 }) {
+  if (items.length === 0) return null
+  const { icon: Icon, color } = TYPE_CONFIG[type]
+
+  return (
+    <div>
+      <div className="flex items-center gap-2 mb-2">
+        <Icon size={13} className={color} />
+        <span className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-widest">
+          {FOLDER_ITEM_TYPE_LABELS[type]}
+        </span>
+        <span className="text-[10px] text-[var(--text-secondary)]/50">({items.length})</span>
+      </div>
+      <div className="flex flex-col gap-1.5">
+        {items.map((item) => (
+          <FolderItemRow key={item.id} item={item} onRemove={() => onRemove(item.id)} />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function VideoCard({ video, onPlay }: { video: YouTubeVideo; onPlay: (v: YouTubeVideo) => void }) {
   return (
     <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] overflow-hidden group hover:border-[var(--accent)]/40 transition-all duration-200">
       <div
@@ -102,13 +124,7 @@ function VideoCard({
   )
 }
 
-function VideoPlayerModal({
-  video,
-  onClose,
-}: {
-  video: YouTubeVideo
-  onClose: () => void
-}) {
+function VideoPlayerModal({ video, onClose }: { video: YouTubeVideo; onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
       <div className="w-full max-w-4xl rounded-2xl border border-[var(--border)] bg-[var(--bg-elevated)] overflow-hidden shadow-2xl">
@@ -163,6 +179,15 @@ export function StudyFolderPage() {
   const folder = data?.folder
   const items = data?.items ?? []
 
+  // Group items by type
+  const itemsByType = TYPE_ORDER.reduce<Record<FolderItemType, StudyFolderItem[]>>(
+    (acc, type) => {
+      acc[type] = items.filter((i) => i.itemType === type)
+      return acc
+    },
+    { SUMMARY: [], TRANSCRIPTION: [], FLASHCARDS: [], MINDMAP: [] },
+  )
+
   const itemsLeft = RECOMMENDATIONS_THRESHOLD - (folder?.itemCount ?? 0)
   const progressPercent = Math.min(((folder?.itemCount ?? 0) / RECOMMENDATIONS_THRESHOLD) * 100, 100)
 
@@ -174,7 +199,7 @@ export function StudyFolderPage() {
       )
       setRecommendations(videos)
     } catch {
-      // handled silently — toast shown by interceptor if needed
+      // silently handled
     } finally {
       setLoadingRecs(false)
     }
@@ -197,9 +222,7 @@ export function StudyFolderPage() {
             <Skeleton className="h-8 w-64 mb-3" />
             <Skeleton className="h-4 w-96 mb-8" />
             <div className="flex flex-col gap-3">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <Skeleton key={i} className="h-12 w-full" />
-              ))}
+              {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
             </div>
           </div>
         </main>
@@ -236,6 +259,7 @@ export function StudyFolderPage() {
 
       <main className="relative z-10 pt-14 md:pl-56">
         <div className="max-w-3xl mx-auto px-8 pt-8 pb-12">
+
           {/* Breadcrumb */}
           <Link
             to="/study-folders"
@@ -286,10 +310,7 @@ export function StudyFolderPage() {
               <div className="h-1.5 rounded-full bg-[var(--border)] overflow-hidden">
                 <div
                   className="h-full rounded-full transition-all duration-500"
-                  style={{
-                    width: `${progressPercent}%`,
-                    background: 'var(--gradient-primary)',
-                  }}
+                  style={{ width: `${progressPercent}%`, background: 'var(--gradient-primary)' }}
                 />
               </div>
             </div>
@@ -297,7 +318,7 @@ export function StudyFolderPage() {
 
           {/* Materials section */}
           <div className="mt-6">
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center justify-between mb-4">
               <h2 className="text-sm font-semibold text-[var(--text-primary)]">
                 Materiais ({items.length})
               </h2>
@@ -317,12 +338,13 @@ export function StudyFolderPage() {
                 </Button>
               </div>
             ) : (
-              <div className="flex flex-col gap-2">
-                {items.map((item) => (
-                  <FolderItemRow
-                    key={item.id}
-                    item={item}
-                    onRemove={() => removeItem(item.id)}
+              <div className="flex flex-col gap-5">
+                {TYPE_ORDER.map((type) => (
+                  <ItemsSection
+                    key={type}
+                    type={type}
+                    items={itemsByType[type]}
+                    onRemove={(itemId) => removeItem(itemId)}
                   />
                 ))}
               </div>
@@ -346,12 +368,7 @@ export function StudyFolderPage() {
                   </Button>
                 )}
                 {recommendations && (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={handleLoadRecommendations}
-                    loading={loadingRecs}
-                  >
+                  <Button size="sm" variant="ghost" onClick={handleLoadRecommendations} loading={loadingRecs}>
                     Atualizar
                   </Button>
                 )}
@@ -394,7 +411,7 @@ export function StudyFolderPage() {
       </main>
 
       {showAddModal && (
-        <AddItemModal folderId={id!} onClose={() => setShowAddModal(false)} />
+        <AddItemModal folderId={id!} existingItems={items} onClose={() => setShowAddModal(false)} />
       )}
 
       {selectedVideo && (

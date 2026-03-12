@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Sparkles, Inbox, ChevronRight, Search } from 'lucide-react'
+import { SaveToFolderButton } from '@/features/study-folders/save-to-folder/ui/SaveToFolderButton'
 import { Navbar } from '@/widgets/navbar/ui/Navbar'
 import { Sidebar } from '@/widgets/sidebar/ui/Sidebar'
 import { Badge } from '@/shared/ui/Badge/Badge'
@@ -113,6 +114,7 @@ export function SummariesPage() {
 
                         <div className="flex items-center gap-3 shrink-0 mt-1">
                           <Badge status={t.status} />
+                          <SaveToFolderButton transcriptionId={t.id} itemType="SUMMARY" />
                           <ChevronRight size={16} className="text-[var(--text-secondary)] group-hover:text-[var(--accent)] transition-colors" />
                         </div>
                       </div>
