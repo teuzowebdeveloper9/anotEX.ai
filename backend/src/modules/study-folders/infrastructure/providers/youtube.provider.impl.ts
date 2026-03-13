@@ -77,6 +77,8 @@ export class YouTubeProviderImpl implements IYouTubeProvider {
 
     const response = await fetch(url.toString());
     if (!response.ok) {
+      const body = await response.text().catch(() => '');
+      this.logger.error(`YouTube API ${response.status}: ${body}`);
       throw new Error(`YouTube API error: ${response.status} ${response.statusText}`);
     }
 
