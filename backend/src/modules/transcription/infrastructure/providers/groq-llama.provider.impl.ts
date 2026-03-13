@@ -31,12 +31,15 @@ export class GroqLlamaProviderImpl implements ISummaryProvider {
   async summarize(transcriptionText: string): Promise<string> {
     this.logger.log('Summarizing with Groq Llama 3 70B...');
 
+    // ~30k chars ≈ 7500 tokens — stays under Groq free tier TPM limit of 12k
+    const truncated = transcriptionText.slice(0, 30_000);
+
     const completion = await this.groq.chat.completions.create({
       model: 'llama-3.3-70b-versatile',
       messages: [
         {
           role: 'user',
-          content: `${SUMMARY_PROMPT}\n\n${transcriptionText}`,
+          content: `${SUMMARY_PROMPT}\n\n${truncated}`,
         },
       ],
       temperature: 0.3,
