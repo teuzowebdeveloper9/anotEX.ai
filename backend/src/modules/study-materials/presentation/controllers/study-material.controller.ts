@@ -5,6 +5,7 @@ import {
   Req,
   ParseUUIDPipe,
   BadRequestException,
+  NotFoundException,
 } from '@nestjs/common';
 import type { AuthenticatedRequest } from '../../../audio/presentation/guards/auth.guard.js';
 import { GetStudyMaterialsUseCase } from '../../domain/use-cases/get-study-materials.use-case.js';
@@ -69,6 +70,8 @@ export class StudyMaterialController {
     
 
     if (!result.success) throw result.error;
+
+    if (!result.data) throw new NotFoundException(`Study material of type '${type}' not found`);
 
     return toResponse(result.data as StudyMaterialEntity);
   }

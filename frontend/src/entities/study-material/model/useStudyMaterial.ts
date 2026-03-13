@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { useEffect, useRef } from 'react'
+import axios from 'axios'
 import { api } from '@/shared/api/axios'
 import { ENDPOINTS } from '@/shared/api/endpoints'
 import type { StudyMaterialEntity, StudyMaterialType } from '@/shared/types/api.types'
@@ -10,10 +11,15 @@ export function useStudyMaterial(transcriptionId: string, type: StudyMaterialTyp
   const query = useQuery<StudyMaterialEntity | null>({
     queryKey: ['study-material', transcriptionId, type],
     queryFn: async () => {
-      const { data } = await api.get<StudyMaterialEntity | null>(
-        ENDPOINTS.studyMaterials.getByType(transcriptionId, type),
-      )
-      return data ?? null
+      try {
+        const { data } = await api.get<StudyMaterialEntity | null>(
+          ENDPOINTS.studyMaterials.getByType(transcriptionId, type),
+        )
+        return data ?? null
+      } catch (err) {
+        if (axios.isAxiosError(err) && err.response?.status === 404) return null
+        throw err
+      }
     },
     refetchInterval: (q) => {
       // null = ainda em fila, continua polling
