@@ -9,11 +9,12 @@ import {
 } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bull';
 import { ConfigService } from '@nestjs/config';
-import { execSync } from 'child_process';
+import * as https from 'https';
+import { createWriteStream } from 'fs';
 import { randomUUID } from 'crypto';
 import { tmpdir } from 'os';
 import { join } from 'path';
-import { readFile, unlink } from 'fs/promises';
+import { readFile, unlink, chmod } from 'fs/promises';
 import type { Queue } from 'bull';
 import YTDlpWrap from 'yt-dlp-wrap';
 import type { IStudyFolderRepository } from '../repositories/study-folder.repository.js';
@@ -48,6 +49,29 @@ export class ProcessVideoUseCase implements OnModuleInit {
   private readonly logger = new Logger(ProcessVideoUseCase.name);
   private ytDlp!: YTDlpWrap;
 
+  private downloadFile(url: string, dest: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const follow = (redirectUrl: string) => {
+        https
+          .get(redirectUrl, (res) => {
+            if (
+              (res.statusCode === 301 || res.statusCode === 302) &&
+              res.headers.location
+            ) {
+              follow(res.headers.location);
+              return;
+            }
+            const file = createWriteStream(dest);
+            res.pipe(file);
+            file.on('finish', () => file.close(() => resolve()));
+            file.on('error', reject);
+          })
+          .on('error', reject);
+      };
+      follow(url);
+    });
+  }
+
   async onModuleInit(): Promise<void> {
     const binaryPath = join(process.cwd(), 'yt-dlp-binary');
     try {
@@ -56,12 +80,12 @@ export class ProcessVideoUseCase implements OnModuleInit {
       this.ytDlp = ytDlp;
       this.logger.log('yt-dlp standalone já presente e funcional');
     } catch {
-      // downloadFromGithub baixa o zipapp Python — precisamos do yt-dlp_linux (compilado, sem Python)
       this.logger.log(`Baixando yt-dlp_linux standalone para ${binaryPath}`);
-      execSync(
-        `curl -fsSL https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux -o ${binaryPath} && chmod +x ${binaryPath}`,
-        { stdio: 'pipe' },
+      await this.downloadFile(
+        'https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux',
+        binaryPath,
       );
+      await chmod(binaryPath, 0o755);
       this.ytDlp = new YTDlpWrap(binaryPath);
       this.logger.log('yt-dlp_linux standalone pronto');
     }
