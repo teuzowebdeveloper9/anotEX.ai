@@ -48,17 +48,19 @@ export class ProcessVideoUseCase implements OnModuleInit {
   private ytDlp!: YTDlpWrap;
 
   async onModuleInit(): Promise<void> {
+    const binaryPath = join(process.cwd(), 'yt-dlp-binary');
     try {
-      const ytDlp = new YTDlpWrap();
+      // Tenta usar o binário standalone já baixado anteriormente
+      const ytDlp = new YTDlpWrap(binaryPath);
       await ytDlp.execPromise(['--version']);
       this.ytDlp = ytDlp;
-      this.logger.log('yt-dlp encontrado no PATH do sistema');
+      this.logger.log('yt-dlp standalone já presente e funcional');
     } catch {
-      const binaryPath = join(process.cwd(), 'yt-dlp-binary');
-      this.logger.log(`yt-dlp não encontrado no PATH — baixando binário para ${binaryPath}`);
+      // Baixa o binário standalone compilado (sem dependência de Python)
+      this.logger.log(`Baixando yt-dlp standalone para ${binaryPath}`);
       await YTDlpWrap.downloadFromGithub(binaryPath);
       this.ytDlp = new YTDlpWrap(binaryPath);
-      this.logger.log('yt-dlp baixado com sucesso');
+      this.logger.log('yt-dlp standalone pronto');
     }
   }
 
