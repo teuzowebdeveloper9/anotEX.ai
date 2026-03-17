@@ -13,6 +13,7 @@ import {
   FileText,
   BookOpen,
   Map,
+  Wand2,
 } from 'lucide-react'
 import { Navbar } from '@/widgets/navbar/ui/Navbar'
 import { Sidebar } from '@/widgets/sidebar/ui/Sidebar'
@@ -22,6 +23,7 @@ import { GradientOrb } from '@/shared/ui/decorative/GradientOrb'
 import { useFolder } from '@/entities/study-folder/model/useFolder'
 import { useRemoveItem } from '@/features/study-folders/remove-item/model/useRemoveItem'
 import { useDeleteFolder } from '@/features/study-folders/delete-folder/model/useDeleteFolder'
+import { useProcessVideo } from '@/features/study-folders/process-video/model/useProcessVideo'
 import { AddItemModal } from '@/features/study-folders/add-item/ui/AddItemModal'
 import { api } from '@/shared/api/axios'
 import { ENDPOINTS } from '@/shared/api/endpoints'
@@ -90,7 +92,17 @@ function ItemsSection({
   )
 }
 
-function VideoCard({ video, onPlay }: { video: YouTubeVideo; onPlay: (v: YouTubeVideo) => void }) {
+function VideoCard({
+  video,
+  onPlay,
+  onProcess,
+  isProcessing,
+}: {
+  video: YouTubeVideo
+  onPlay: (v: YouTubeVideo) => void
+  onProcess: (videoId: string, videoTitle: string) => void
+  isProcessing: boolean
+}) {
   return (
     <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] overflow-hidden group hover:border-[var(--accent)]/40 transition-all duration-200">
       <div
@@ -119,6 +131,21 @@ function VideoCard({ video, onPlay }: { video: YouTubeVideo; onPlay: (v: YouTube
           {video.title}
         </p>
         <p className="text-xs text-[var(--text-secondary)] mt-1 truncate">{video.channelTitle}</p>
+        <button
+          onClick={() => onProcess(video.videoId, video.title)}
+          disabled={isProcessing}
+          className="mt-3 w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all
+            bg-[var(--accent)]/10 text-[var(--accent)] border border-[var(--accent)]/20
+            hover:bg-[var(--accent)]/20 hover:border-[var(--accent)]/40
+            disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isProcessing ? (
+            <Loader2 size={12} className="animate-spin" />
+          ) : (
+            <Wand2 size={12} />
+          )}
+          {isProcessing ? 'Processando...' : 'Gerar materiais de estudo'}
+        </button>
       </div>
     </div>
   )
@@ -175,6 +202,7 @@ export function StudyFolderPage() {
   const { data, isLoading } = useFolder(id!)
   const { mutate: removeItem } = useRemoveItem(id!)
   const { mutate: deleteFolder, isPending: deletingFolder } = useDeleteFolder()
+  const { processVideo, processingVideoId } = useProcessVideo(id!)
 
   const folder = data?.folder
   const items = data?.items ?? []
@@ -392,7 +420,13 @@ export function StudyFolderPage() {
               {!loadingRecs && recommendations && recommendations.length > 0 && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {recommendations.map((video) => (
-                    <VideoCard key={video.videoId} video={video} onPlay={setSelectedVideo} />
+                    <VideoCard
+                      key={video.videoId}
+                      video={video}
+                      onPlay={setSelectedVideo}
+                      onProcess={processVideo}
+                      isProcessing={processingVideoId === video.videoId}
+                    />
                   ))}
                 </div>
               )}

@@ -24,5 +24,6 @@ export const ENDPOINTS = {
     addItem: (folderId: string) => `/study-folders/${folderId}/items`,
     removeItem: (folderId: string, itemId: string) => `/study-folders/${folderId}/items/${itemId}`,
     recommendations: (id: string) => `/study-folders/${id}/recommendations`,
+    processVideo: (id: string) => `/study-folders/${id}/process-video`,
   },
 } as const
