@@ -8,7 +8,6 @@ import {
   OnModuleInit,
 } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bull';
-import { ConfigService } from '@nestjs/config';
 import * as https from 'https';
 import { createWriteStream } from 'fs';
 import { randomUUID } from 'crypto';
@@ -32,6 +31,8 @@ import {
 import type { TranscriptionJobData } from '../../../transcription/application/services/transcription-queue.processor.js';
 import { ok, fail, Result } from '../../../../shared/domain/result.js';
 
+const MAX_DOWNLOAD_REDIRECTS = 5;
+
 export interface ProcessVideoInput {
   readonly folderId: string;
   readonly userId: string;
@@ -51,16 +52,32 @@ export class ProcessVideoUseCase implements OnModuleInit {
 
   private downloadFile(url: string, dest: string): Promise<void> {
     return new Promise((resolve, reject) => {
-      const follow = (redirectUrl: string) => {
+      const follow = (redirectUrl: string, redirectCount = 0) => {
+        if (redirectCount > MAX_DOWNLOAD_REDIRECTS) {
+          reject(new Error('Too many redirects while downloading yt-dlp binary'));
+          return;
+        }
+
         https
           .get(redirectUrl, (res) => {
             if (
-              (res.statusCode === 301 || res.statusCode === 302) &&
+              (res.statusCode === 301 ||
+                res.statusCode === 302 ||
+                res.statusCode === 303 ||
+                res.statusCode === 307 ||
+                res.statusCode === 308) &&
               res.headers.location
             ) {
-              follow(res.headers.location);
+              const nextUrl = new URL(res.headers.location, redirectUrl).toString();
+              follow(nextUrl, redirectCount + 1);
               return;
             }
+
+            if (res.statusCode !== 200) {
+              reject(new Error(`Failed to download yt-dlp binary: HTTP ${res.statusCode ?? 'unknown'}`));
+              return;
+            }
+
             const file = createWriteStream(dest);
             res.pipe(file);
             file.on('finish', () => file.close(() => resolve()));
@@ -99,7 +116,6 @@ export class ProcessVideoUseCase implements OnModuleInit {
     private readonly transcriptionRepository: ITranscriptionRepository,
     @InjectQueue(TRANSCRIPTION_QUEUE)
     private readonly transcriptionQueue: Queue<TranscriptionJobData>,
-    private readonly configService: ConfigService,
   ) {}
 
   async execute(input: ProcessVideoInput): Promise<Result<ProcessVideoOutput>> {

@@ -11,6 +11,7 @@ import type { AuthenticatedRequest } from '../../../audio/presentation/guards/au
 import { GetTranscriptionUseCase } from '../../domain/use-cases/get-transcription.use-case.js';
 import type { ITranscriptionRepository } from '../../domain/repositories/transcription.repository.js';
 import { TRANSCRIPTION_REPOSITORY } from '../../domain/repositories/transcription.repository.js';
+import { ListTranscriptionsQueryDto } from '../../application/dto/list-transcriptions-query.dto.js';
 
 @Controller('transcription')
 export class TranscriptionController {
@@ -23,11 +24,11 @@ export class TranscriptionController {
   @Get()
   async listMyTranscriptions(
     @Req() req: AuthenticatedRequest,
-    @Query('q') search?: string,
+    @Query() query: ListTranscriptionsQueryDto,
   ) {
     const transcriptions = await this.transcriptionRepository.findByUserId(
       req.user.id,
-      search?.trim() || undefined,
+      query.q?.trim() || undefined,
     );
     return transcriptions.map((t) => ({
       id: t.id,
