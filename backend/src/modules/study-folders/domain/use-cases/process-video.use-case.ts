@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bull';
 import { ConfigService } from '@nestjs/config';
+import { execSync } from 'child_process';
 import { randomUUID } from 'crypto';
 import { tmpdir } from 'os';
 import { join } from 'path';
@@ -50,17 +51,19 @@ export class ProcessVideoUseCase implements OnModuleInit {
   async onModuleInit(): Promise<void> {
     const binaryPath = join(process.cwd(), 'yt-dlp-binary');
     try {
-      // Tenta usar o binário standalone já baixado anteriormente
       const ytDlp = new YTDlpWrap(binaryPath);
       await ytDlp.execPromise(['--version']);
       this.ytDlp = ytDlp;
       this.logger.log('yt-dlp standalone já presente e funcional');
     } catch {
-      // Baixa o binário standalone compilado (sem dependência de Python)
-      this.logger.log(`Baixando yt-dlp standalone para ${binaryPath}`);
-      await YTDlpWrap.downloadFromGithub(binaryPath);
+      // downloadFromGithub baixa o zipapp Python — precisamos do yt-dlp_linux (compilado, sem Python)
+      this.logger.log(`Baixando yt-dlp_linux standalone para ${binaryPath}`);
+      execSync(
+        `curl -fsSL https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux -o ${binaryPath} && chmod +x ${binaryPath}`,
+        { stdio: 'pipe' },
+      );
       this.ytDlp = new YTDlpWrap(binaryPath);
-      this.logger.log('yt-dlp standalone pronto');
+      this.logger.log('yt-dlp_linux standalone pronto');
     }
   }
 
