@@ -5,13 +5,18 @@ import type { IAudioRepository } from '../repositories/audio.repository.js';
 import type { IStorageRepository } from '../repositories/storage.repository.js';
 import { AudioStatus } from '../entities/audio.entity.js';
 
+const WEBM_BUFFER = Buffer.concat([
+  Buffer.from([0x1a, 0x45, 0xdf, 0xa3]),
+  Buffer.from('webm-audio'),
+]);
+
 const makeFile = (overrides: Partial<Express.Multer.File> = {}): Express.Multer.File => ({
   fieldname: 'audio',
   originalname: 'aula.webm',
   encoding: '7bit',
   mimetype: 'audio/webm',
   size: 1024,
-  buffer: Buffer.from('audio'),
+  buffer: WEBM_BUFFER,
   destination: '',
   filename: '',
   path: '',
@@ -49,10 +54,13 @@ describe('UploadAudioUseCase', () => {
   });
 
   describe('execute', () => {
-    it('deve retornar erro se o MIME type não for permitido', async () => {
+    it('deve retornar erro se o conteúdo do arquivo não for um áudio suportado', async () => {
       const result = await useCase.execute({
         userId: 'user-1',
-        file: makeFile({ mimetype: 'video/mp4' }),
+        file: makeFile({
+          mimetype: 'audio/webm',
+          buffer: Buffer.from('not-audio'),
+        }),
       });
 
       expect(result.success).toBe(false);
@@ -126,6 +134,11 @@ describe('UploadAudioUseCase', () => {
       expect(result.success).toBe(true);
       expect(storageRepository.upload).toHaveBeenCalledTimes(1);
       expect(audioRepository.create).toHaveBeenCalledTimes(1);
+      expect(storageRepository.upload).toHaveBeenCalledWith(
+        expect.any(String),
+        WEBM_BUFFER,
+        'audio/webm',
+      );
       if (result.success) {
         expect(result.data.id).toBe('audio-1');
       }

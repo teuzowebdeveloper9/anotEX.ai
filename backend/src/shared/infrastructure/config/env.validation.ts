@@ -20,7 +20,7 @@ export const envValidationSchema = Joi.object({
   UPSTASH_REDIS_URL: Joi.string().required(),
   UPSTASH_REDIS_TOKEN: Joi.string().required(),
 
-  MAX_AUDIO_SIZE_MB: Joi.number().default(500),
+  MAX_AUDIO_SIZE_MB: Joi.number().default(100),
   SIGNED_URL_EXPIRES_IN_SECONDS: Joi.number().default(900),
 
   YOUTUBE_API_KEY: Joi.string().required(),
