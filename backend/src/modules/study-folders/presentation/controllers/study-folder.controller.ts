@@ -20,9 +20,11 @@ import { DeleteFolderUseCase } from '../../domain/use-cases/delete-folder.use-ca
 import { AddItemToFolderUseCase } from '../../domain/use-cases/add-item-to-folder.use-case.js';
 import { RemoveItemFromFolderUseCase } from '../../domain/use-cases/remove-item-from-folder.use-case.js';
 import { GetFolderRecommendationsUseCase } from '../../domain/use-cases/get-folder-recommendations.use-case.js';
+import { ProcessVideoUseCase } from '../../domain/use-cases/process-video.use-case.js';
 import { CreateFolderDto } from '../../application/dto/create-folder.dto.js';
 import { UpdateFolderDto } from '../../application/dto/update-folder.dto.js';
 import { AddItemDto } from '../../application/dto/add-item.dto.js';
+import { ProcessVideoDto } from '../../application/dto/process-video.dto.js';
 
 @Controller('study-folders')
 export class StudyFolderController {
@@ -35,6 +37,7 @@ export class StudyFolderController {
     private readonly addItemUseCase: AddItemToFolderUseCase,
     private readonly removeItemUseCase: RemoveItemFromFolderUseCase,
     private readonly getRecommendationsUseCase: GetFolderRecommendationsUseCase,
+    private readonly processVideoUseCase: ProcessVideoUseCase,
   ) {}
 
   @Get()
@@ -125,6 +128,22 @@ export class StudyFolderController {
     const result = await this.getRecommendationsUseCase.execute({
       folderId: id,
       userId: req.user.id,
+    });
+    if (!result.success) throw result.error;
+    return result.data;
+  }
+
+  @Post(':id/process-video')
+  async processVideo(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: ProcessVideoDto,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    const result = await this.processVideoUseCase.execute({
+      folderId: id,
+      userId: req.user.id,
+      videoId: dto.videoId,
+      videoTitle: dto.videoTitle,
     });
     if (!result.success) throw result.error;
     return result.data;
