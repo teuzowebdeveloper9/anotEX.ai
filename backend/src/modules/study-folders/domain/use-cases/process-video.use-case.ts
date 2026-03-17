@@ -5,6 +5,7 @@ import {
   NotFoundException,
   ForbiddenException,
   Logger,
+  OnModuleInit,
 } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bull';
 import { ConfigService } from '@nestjs/config';
@@ -42,9 +43,24 @@ export interface ProcessVideoOutput {
 }
 
 @Injectable()
-export class ProcessVideoUseCase {
+export class ProcessVideoUseCase implements OnModuleInit {
   private readonly logger = new Logger(ProcessVideoUseCase.name);
-  private readonly ytDlp = new YTDlpWrap();
+  private ytDlp!: YTDlpWrap;
+
+  async onModuleInit(): Promise<void> {
+    try {
+      const ytDlp = new YTDlpWrap();
+      await ytDlp.execPromise(['--version']);
+      this.ytDlp = ytDlp;
+      this.logger.log('yt-dlp encontrado no PATH do sistema');
+    } catch {
+      const binaryPath = join(process.cwd(), 'yt-dlp-binary');
+      this.logger.log(`yt-dlp não encontrado no PATH — baixando binário para ${binaryPath}`);
+      await YTDlpWrap.downloadFromGithub(binaryPath);
+      this.ytDlp = new YTDlpWrap(binaryPath);
+      this.logger.log('yt-dlp baixado com sucesso');
+    }
+  }
 
   constructor(
     @Inject(STUDY_FOLDER_REPOSITORY) private readonly folderRepository: IStudyFolderRepository,
