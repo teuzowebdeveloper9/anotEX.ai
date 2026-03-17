@@ -249,7 +249,6 @@ CREATE INDEX idx_transcriptions_user_id ON transcriptions(user_id);
 - Verificar que um usuário A não consegue acessar dados do usuário B
 
 ---
-
 ## Providers de IA — Padrão de Fallback
 
 ```typescript
