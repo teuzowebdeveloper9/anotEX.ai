@@ -1,332 +1,235 @@
-# anotEX.ai - Documentação de Pesquisa
+# Como trabalhar com o agente neste projeto
 
-## Captura de Áudio em Tempo Real - Backend
+Este diretório passa a ser a base dos workflows de IA do `anotEX.ai`.
 
-Documentação sobre ferramentas e abordagens para captura de áudio em tempo real para dois cenários principais:
+O arranjo recomendado é:
 
-1. **Áudio do sistema** (aula online - captura o que está tocando no PC)
-2. **Microfone** (aula presencial - captura voz ao vivo)
+- `AGENTS.md`: regras persistentes do repositório
+- `ai-docs/*.md`: playbooks, decisões, prompts e contexto complementar
+- scripts do projeto: automações repetíveis que o agente pode executar
 
----
+Se você quiser um fluxo parecido com "skills", pense assim:
 
-## Arquitetura Geral
-
-```
-┌─────────────────┐     Upload HTTP / WebSocket     ┌─────────────────┐
-│    Frontend     │ ──────────────────────────────► │     Backend     │
-│  (Captura áudio)│                                 │  (Processa/Salva)│
-└─────────────────┘                                 └─────────────────┘
-        │                                                    │
-        ▼                                                    ▼
-   MediaRecorder API                               Transcrição/Storage
-   (Browser grava localmente)                      (Whisper, R2, etc)
-```
-
-**Decisão de arquitetura para MVP:** O frontend grava o áudio localmente no browser e faz upload do arquivo completo via HTTP quando o usuário para a gravação. WebSocket com streaming em tempo real adiciona complexidade significativa sem benefício real para a maioria dos usuários — fica para fase 2.
+1. Regra permanente vai para `AGENTS.md`
+2. Processo recorrente vai para `ai-docs/`
+3. Tarefa executável vira script ou comando documentado
 
 ---
 
-## Frontend (Captura no Browser)
+## Como me acionar melhor
 
-A captura **sempre começa no frontend** — o backend recebe o arquivo.
+Peça sempre com:
 
-```javascript
-// Captura MICROFONE (aula presencial)
-const micStream = await navigator.mediaDevices.getUserMedia({
-  audio: true
-});
+- objetivo claro
+- escopo
+- arquivos ou área do sistema
+- tipo de trabalho esperado
+- nível de autonomia
 
-// Captura AUDIO DO SISTEMA (aula online)
-// ATENCAO: requer que o usuario clique em "compartilhar aba/janela com audio"
-// Nao funciona em todos os navegadores (Firefox nao suporta audio do sistema)
-const systemStream = await navigator.mediaDevices.getDisplayMedia({
-  audio: true,
-  video: true   // Obrigatorio pela API, mas pode ignorar o video
-});
+Exemplos bons:
 
-// Gravar em chunks locais e depois fazer upload
-const chunks = [];
-const mediaRecorder = new MediaRecorder(stream, {
-  mimeType: 'audio/webm;codecs=opus'
-});
-
-mediaRecorder.ondataavailable = (event) => {
-  chunks.push(event.data);
-};
-
-mediaRecorder.onstop = async () => {
-  const blob = new Blob(chunks, { type: 'audio/webm' });
-  // Upload do arquivo completo ao parar
-  const formData = new FormData();
-  formData.append('audio', blob, 'aula.webm');
-  const res = await fetch('/api/audio/upload', { method: 'POST', body: formData });
-  const { jobId } = await res.json();
-  // Polling para saber quando a transcricao ficou pronta
-  pollStatus(jobId);
-};
-
-mediaRecorder.start();
+```text
+Leia AGENTS.md, analise o módulo study-folders e implemente a correção no backend sem mexer no frontend.
 ```
 
-**Estimativa de tamanho de arquivo:**
-- `audio/webm;codecs=opus` a 32kbps (minimo): ~14MB/hora
-- `audio/webm;codecs=opus` a 64kbps (qualidade razoavel): ~28MB/hora
-- Considere isso ao dimensionar storage.
-
----
-
-## Node.js / NestJS
-
-> **MVP:** Use upload HTTP. WebSocket para streaming real-time e fase 2+.
-
-### Bibliotecas Recomendadas
-
-| Lib | Uso | Fase |
-|-----|-----|------|
-| **`@nestjs/platform-express`** + multer | Upload HTTP de arquivo | MVP |
-| **`fluent-ffmpeg`** | Processar/converter audio | MVP |
-| **`node-wav`** | Manipular arquivos WAV | MVP |
-| **`ws`** ou **`socket.io`** | WebSocket para streaming real-time | Fase 2+ |
-| **`@nestjs/websockets`** | WebSocket nativo do NestJS | Fase 2+ |
-
-### Exemplo NestJS - Upload HTTP (MVP)
-
-```typescript
-import { Controller, Post, Get, Param, UploadedFile, UseInterceptors } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
-
-@Controller('audio')
-export class AudioController {
-  constructor(private readonly transcriptionService: TranscriptionService) {}
-
-  @Post('upload')
-  @UseInterceptors(FileInterceptor('audio'))
-  async uploadAudio(@UploadedFile() file: Express.Multer.File) {
-    const jobId = await this.transcriptionService.enqueue(file.buffer);
-    return { jobId };
-  }
-
-  @Get('status/:jobId')
-  async getStatus(@Param('jobId') jobId: string) {
-    return this.transcriptionService.getStatus(jobId);
-  }
-}
+```text
+Quero revisão de código. Foque em bugs, regressões e testes faltando neste diff.
 ```
 
-### Exemplo NestJS - WebSocket Gateway (Fase 2+, real-time)
+```text
+Antes de alterar qualquer coisa, leia CLAUDE.md, AGENTS.md e os últimos 5 commits dessa feature. Depois faça um plano curto e implemente.
+```
 
-```typescript
-import {
-  WebSocketGateway,
-  WebSocketServer,
-  SubscribeMessage,
-  OnGatewayConnection
-} from '@nestjs/websockets';
-import { Server, Socket } from 'socket.io';
-import * as fs from 'fs';
-
-@WebSocketGateway({ cors: true })
-export class AudioGateway implements OnGatewayConnection {
-  @WebSocketServer()
-  server: Server;
-
-  private audioStreams: Map<string, fs.WriteStream> = new Map();
-
-  handleConnection(client: Socket) {
-    const filePath = `./uploads/audio-${client.id}-${Date.now()}.webm`;
-    const writeStream = fs.createWriteStream(filePath);
-    this.audioStreams.set(client.id, writeStream);
-  }
-
-  @SubscribeMessage('audio-chunk')
-  handleAudioChunk(client: Socket, chunk: Buffer) {
-    const stream = this.audioStreams.get(client.id);
-    if (stream) stream.write(chunk);
-  }
-
-  @SubscribeMessage('audio-stop')
-  handleAudioStop(client: Socket) {
-    const stream = this.audioStreams.get(client.id);
-    if (stream) {
-      stream.end();
-      this.audioStreams.delete(client.id);
-    }
-  }
-}
+```text
+Crie um workflow reutilizável para adicionar endpoints NestJS nesse projeto e documente em ai-docs/backend-endpoint-workflow.md.
 ```
 
 ---
 
-## Java / Spring Boot
+## Tipos de pedido que funcionam melhor
 
-### Bibliotecas Recomendadas
+### 1. Implementação direta
 
-| Lib | Uso |
-|-----|-----|
-| **Spring WebSocket** | Receber stream em tempo real |
-| **TarsosDSP** | Processamento de audio (DSP) |
-| **javax.sound.sampled** | API nativa Java para audio |
-| **JLayer** | Decodificar MP3 |
-| **FFmpeg wrapper (Jaffree)** | Processar audio com FFmpeg |
+Use quando você quer que eu resolva:
 
-### Exemplo Spring Boot - WebSocket Handler
+```text
+Implemente X no módulo Y, siga AGENTS.md e valide com os testes mínimos necessários.
+```
 
-```java
-import org.springframework.web.socket.*;
-import org.springframework.web.socket.handler.BinaryWebSocketHandler;
-import java.io.*;
+### 2. Análise antes da mudança
 
-@Component
-public class AudioWebSocketHandler extends BinaryWebSocketHandler {
+Use quando a mudança é arriscada:
 
-    private final Map<String, OutputStream> audioStreams = new ConcurrentHashMap<>();
+```text
+Entenda o estado atual, leia os arquivos relacionados, explique o problema e só depois faça a implementação.
+```
 
-    @Override
-    public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-        String filePath = "uploads/audio-" + session.getId() + "-" + System.currentTimeMillis() + ".webm";
-        OutputStream outputStream = new FileOutputStream(filePath);
-        audioStreams.put(session.getId(), outputStream);
-    }
+### 3. Review
 
-    @Override
-    protected void handleBinaryMessage(WebSocketSession session, BinaryMessage message) throws Exception {
-        OutputStream stream = audioStreams.get(session.getId());
-        if (stream != null) {
-            byte[] audioData = message.getPayload().array();
-            stream.write(audioData);
-            stream.flush();
-        }
-    }
+Use quando você já alterou algo:
 
-    @Override
-    public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
-        OutputStream stream = audioStreams.remove(session.getId());
-        if (stream != null) {
-            stream.close();
-        }
-    }
-}
+```text
+Faça review desse estado atual com foco em bugs, regressões, arquitetura e lacunas de teste.
+```
+
+### 4. Arquitetura
+
+Use quando quer decisão antes de codar:
+
+```text
+Me ajude a arquitetar essa feature no padrão atual do projeto. Quero opções, trade-offs e depois a implementação escolhida.
+```
+
+### 5. Workflow repetível
+
+Use quando quer transformar um processo em rotina:
+
+```text
+Documente um workflow reutilizável para adicionar providers, endpoints, migrations ou telas novas, alinhado ao projeto.
 ```
 
 ---
 
-## C# / ASP.NET Core
+## O equivalente a "skills" comigo
 
-### Bibliotecas Recomendadas
+Você pode montar um sistema bem próximo de skills com estas camadas:
 
-| Lib | Uso |
-|-----|-----|
-| **SignalR** | WebSocket simplificado |
-| **NAudio** | Captura e processamento de audio |
-| **FFMpegCore** | Wrapper FFmpeg para .NET |
+### Camada 1: `AGENTS.md`
 
-### Exemplo ASP.NET Core - SignalR Hub
+Coloque aqui o que eu devo sempre obedecer:
 
-```csharp
-using Microsoft.AspNetCore.SignalR;
+- arquitetura
+- convenções de naming
+- regras de teste
+- regras de segurança
+- preferências de revisão
+- comandos padrão de verificação
 
-public class AudioHub : Hub
-{
-    private static readonly Dictionary<string, FileStream> AudioStreams = new();
+### Camada 2: playbooks em `ai-docs/`
 
-    public override async Task OnConnectedAsync()
-    {
-        var filePath = $"uploads/audio-{Context.ConnectionId}-{DateTimeOffset.UtcNow.ToUnixTimeSeconds()}.webm";
-        var stream = new FileStream(filePath, FileMode.Create, FileAccess.Write);
-        AudioStreams[Context.ConnectionId] = stream;
-        await base.OnConnectedAsync();
-    }
+Crie documentos específicos como:
 
-    public async Task SendAudioChunk(byte[] chunk)
-    {
-        if (AudioStreams.TryGetValue(Context.ConnectionId, out var stream))
-        {
-            await stream.WriteAsync(chunk);
-            await stream.FlushAsync();
-        }
-    }
+- `ai-docs/backend-workflow.md`
+- `ai-docs/frontend-workflow.md`
+- `ai-docs/review-checklist.md`
+- `ai-docs/supabase-migration-workflow.md`
+- `ai-docs/release-checklist.md`
 
-    public override async Task OnDisconnectedAsync(Exception? exception)
-    {
-        if (AudioStreams.TryGetValue(Context.ConnectionId, out var stream))
-        {
-            await stream.DisposeAsync();
-            AudioStreams.Remove(Context.ConnectionId);
-        }
-        await base.OnDisconnectedAsync(exception);
-    }
-}
+Cada um pode descrever:
+
+- quando usar
+- sequência de passos
+- arquivos normalmente envolvidos
+- checklist de validação
+- prompts prontos
+
+### Camada 3: scripts
+
+Quando um processo for sempre igual, vale transformar em script. Exemplos:
+
+- rodar testes específicos
+- validar build backend/frontend
+- gerar arquivos base
+- checar convenções
+
+Depois você pode me pedir:
+
+```text
+Use o workflow de endpoint backend e execute o script de validação ao final.
 ```
 
 ---
 
-## Python / FastAPI
+## Quando atualizar o `AGENTS.md`
 
-### Bibliotecas Recomendadas
+Atualize o `AGENTS.md` quando mudar:
 
-| Lib | Uso |
-|-----|-----|
-| **FastAPI** + UploadFile | Upload HTTP de arquivo (MVP) |
-| **websockets** / FastAPI WebSocket | Streaming real-time (Fase 2+) |
-| **pydub** | Manipulacao de audio |
-| **faster-whisper** | Transcricao local |
+- stack
+- arquitetura
+- regras de camada
+- estratégia de testes
+- padrão de commits
+- estilo de colaboração comigo
 
-### Exemplo FastAPI - Upload HTTP (MVP)
+Prompt útil:
 
-```python
-from fastapi import FastAPI, UploadFile, File
-import asyncio
-
-app = FastAPI()
-
-@app.post("/audio/upload")
-async def upload_audio(audio: UploadFile = File(...)):
-    content = await audio.read()
-    job_id = await transcription_service.enqueue(content)
-    return {"jobId": job_id}
-
-@app.get("/audio/status/{job_id}")
-async def get_status(job_id: str):
-    return transcription_service.get_status(job_id)
+```text
+Atualize o AGENTS.md para refletir o estado atual do projeto e os novos padrões que decidimos nesta conversa.
 ```
 
 ---
 
-## Resumo - Comparativo de Tecnologias
+## Como me dar contexto sem repetir tudo sempre
 
-| Tecnologia | MVP (Upload HTTP) | Real-time (WebSocket) | Facilidade | Performance |
-|------------|-------------------|-----------------------|------------|-------------|
-| **NestJS** | Simples | socket.io + fluent-ffmpeg | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
-| **Spring Boot** | Simples | Spring WebSocket + Jaffree | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
-| **ASP.NET** | Simples | SignalR + NAudio | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
-| **Python** | Simples | FastAPI WebSocket | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ |
+Em vez de explicar tudo do zero a cada tarefa, use este padrão:
 
----
+```text
+Siga AGENTS.md e considere ai-docs/backend-workflow.md.
+Tarefa: ...
+Escopo: ...
+Arquivos principais: ...
+Restrições: ...
+Validação esperada: ...
+```
 
-## Recomendacao para o anotEx.ai
-
-Stack recomendada para **MVP** (zero custo):
-
-- **Frontend:** MediaRecorder API + upload HTTP ao parar gravacao
-- **Backend:** Supabase Edge Functions (sem servidor, sem cold start, timeout de 400s)
-- **IA:** Groq Whisper (transcricao) + Groq Llama 3 70B (resumo)
-- **DB/Auth/Storage:** Supabase
-
-Para **Fase 2** (real-time, feature premium):
-- **Backend:** NestJS + Socket.io WebSocket Gateway
-- Necessario servidor que nao dorme (Railway, DigitalOcean, Fly.io)
+Isso reduz retrabalho e me deixa mais consistente.
 
 ---
 
-## Proximos Passos
+## Templates de prompt
 
-- [ ] Implementar captura de audio no frontend (upload HTTP)
-- [ ] Configurar Supabase (DB + auth + storage)
-- [ ] Integrar Groq Whisper para transcricao
-- [ ] Integrar Groq Llama 3 70B para resumo
-- [ ] Implementar polling de status no frontend
-- [ ] Fase 2: WebSocket para transcricao em tempo real
+### Correção
+
+```text
+Leia AGENTS.md.
+Entenda o problema no estado atual do código.
+Corrija sem fazer refactor amplo.
+Se mexer em regra de negócio, adicione ou ajuste testes.
+Ao final, resuma o que mudou e o que foi validado.
+```
+
+### Nova feature
+
+```text
+Leia AGENTS.md e os arquivos já existentes da feature.
+Siga os padrões da codebase.
+Implemente a feature sem inventar uma arquitetura paralela.
+Atualize documentação se isso virar padrão recorrente.
+```
+
+### Review de branch ou diff
+
+```text
+Faça review com foco em bugs, regressões, segurança, violações de arquitetura e testes faltando.
+Quero findings objetivos, com severidade e arquivos afetados.
+```
+
+### Planejamento
+
+```text
+Leia o contexto atual do projeto.
+Me proponha um plano enxuto para implementar essa feature dentro dos padrões atuais.
+Só depois da minha confirmação você altera código.
+```
 
 ---
 
-*Documentacao criada em: Marco 2026*
+## Fluxo recomendado de trabalho
+
+1. Mantenha `AGENTS.md` sempre atualizado
+2. Crie playbooks curtos em `ai-docs/` para tarefas recorrentes
+3. Sempre que possível, peça análise + implementação + validação no mesmo pedido
+4. Quando a mudança for grande, peça primeiro arquitetura ou plano
+5. Quando uma boa prática se repetir, transforme em documentação persistente
+
+---
+
+## Sugestões de próximos playbooks
+
+- `ai-docs/backend-endpoint-workflow.md`
+- `ai-docs/frontend-feature-workflow.md`
+- `ai-docs/review-checklist.md`
+- `ai-docs/test-strategy.md`
+- `ai-docs/supabase-rls-workflow.md`
+
+Os outros arquivos já existentes em `ai-docs/` continuam úteis como contexto técnico do produto e da stack.
