@@ -1,5 +1,10 @@
+export interface TranscriptionResult {
+  text: string;
+  segments: Array<{ start: number; end: number; text: string }>;
+}
+
 export interface ITranscriptionProvider {
-  transcribe(audioBuffer: Buffer, language?: string): Promise<string>;
+  transcribe(audioBuffer: Buffer, language?: string): Promise<TranscriptionResult>;
 }
 
 export interface ISummaryProvider {

@@ -13,6 +13,12 @@ export interface AudioEntity {
   updatedAt: string
 }
 
+export interface TranscriptionSegment {
+  start: number
+  end: number
+  text: string
+}
+
 export interface TranscriptionEntity {
   id: string
   audioId: string
@@ -22,6 +28,7 @@ export interface TranscriptionEntity {
   title: string | null
   transcriptionText: string | null
   summaryText: string | null
+  segments: TranscriptionSegment[] | null
   errorMessage: string | null
   createdAt: string
   updatedAt: string
@@ -78,6 +85,7 @@ export interface AudioStatusResponse {
     title: string | null
     transcriptionText: string | null
     summaryText: string | null
+    segments: TranscriptionSegment[] | null
     errorMessage: string | null
   } | null
 }

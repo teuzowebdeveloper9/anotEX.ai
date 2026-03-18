@@ -4,6 +4,7 @@ import { ITranscriptionRepository } from '../../domain/repositories/transcriptio
 import {
   CreateTranscriptionProps,
   TranscriptionEntity,
+  TranscriptionSegment,
   TranscriptionStatus,
 } from '../../domain/entities/transcription.entity.js';
 
@@ -88,6 +89,7 @@ export class TranscriptionRepositoryImpl implements ITranscriptionRepository {
     transcriptionText: string,
     summaryText: string,
     title: string,
+    segments: TranscriptionSegment[],
   ): Promise<void> {
     const { error } = await this.supabaseService
       .getClient()
@@ -96,6 +98,7 @@ export class TranscriptionRepositoryImpl implements ITranscriptionRepository {
         title,
         transcription_text: transcriptionText,
         summary_text: summaryText,
+        segments: segments.length > 0 ? segments : null,
         updated_at: new Date().toISOString(),
       })
       .eq('id', id);
@@ -121,6 +124,7 @@ export class TranscriptionRepositoryImpl implements ITranscriptionRepository {
       title: (raw.title as string | null) ?? null,
       transcriptionText: raw.transcription_text as string | null,
       summaryText: raw.summary_text as string | null,
+      segments: (raw.segments as TranscriptionSegment[] | null) ?? null,
       language: raw.language as string,
       status: raw.status as TranscriptionStatus,
       errorMessage: raw.error_message as string | null,

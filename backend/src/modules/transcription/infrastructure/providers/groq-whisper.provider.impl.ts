@@ -10,7 +10,7 @@ import Groq from 'groq-sdk';
 
 // Usa o binário estático incluso no pacote (funciona em qualquer ambiente, incluindo Railway)
 if (ffmpegStatic) ffmpeg.setFfmpegPath(ffmpegStatic);
-import { ITranscriptionProvider } from '../../domain/repositories/transcription.provider.js';
+import type { ITranscriptionProvider, TranscriptionResult } from '../../domain/repositories/transcription.provider.js';
 import { toFile } from 'openai';
 
 const GROQ_MAX_BYTES = 24 * 1024 * 1024; // 24MB safe threshold
@@ -26,7 +26,7 @@ export class GroqWhisperProviderImpl implements ITranscriptionProvider {
     });
   }
 
-  async transcribe(audioBuffer: Buffer, language = 'pt'): Promise<string> {
+  async transcribe(audioBuffer: Buffer, language = 'pt'): Promise<TranscriptionResult> {
     this.logger.log(`Transcribing with Groq Whisper | size=${(audioBuffer.length / 1024 / 1024).toFixed(1)}MB`);
 
     const buffer = audioBuffer.length > GROQ_MAX_BYTES
@@ -41,10 +41,18 @@ export class GroqWhisperProviderImpl implements ITranscriptionProvider {
       file,
       model: 'whisper-large-v3',
       language,
-      response_format: 'text',
-    });
+      response_format: 'verbose_json',
+      timestamp_granularities: ['segment'],
+    }) as unknown as { text: string; segments?: Array<{ start: number; end: number; text: string }> };
 
-    return result as unknown as string;
+    return {
+      text: result.text,
+      segments: (result.segments ?? []).map((s) => ({
+        start: s.start,
+        end: s.end,
+        text: s.text.trim(),
+      })),
+    };
   }
 
   private async compress(input: Buffer): Promise<Buffer> {

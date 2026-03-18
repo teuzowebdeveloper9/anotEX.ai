@@ -95,6 +95,17 @@ export class AudioController {
     };
   }
 
+  @Get(':id/url')
+  async getSignedUrl(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    const result = await this.getAudioStatusUseCase.execute({ audioId: id, userId: req.user.id });
+    if (!result.success) throw result.error;
+    const url = await this.storageRepository.getSignedUrl(result.data.storageKey, 900);
+    return { url };
+  }
+
   @Get(':id/status')
   async getStatus(
     @Param('id', ParseUUIDPipe) id: string,
@@ -122,6 +133,7 @@ export class AudioController {
             title: transcription.title,
             transcriptionText: transcription.transcriptionText,
             summaryText: transcription.summaryText,
+            segments: transcription.segments ?? null,
             errorMessage: transcription.errorMessage,
           }
         : null,

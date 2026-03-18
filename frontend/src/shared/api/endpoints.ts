@@ -3,6 +3,7 @@ export const ENDPOINTS = {
     upload: '/audio/upload',
     list: '/audio',
     status: (id: string) => `/audio/${id}/status`,
+    url: (id: string) => `/audio/${id}/url`,
     delete: (id: string) => `/audio/${id}`,
   },
   transcription: {
