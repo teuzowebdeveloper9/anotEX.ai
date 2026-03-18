@@ -1,5 +1,5 @@
-import { useRef, useState, useEffect, useCallback } from 'react'
-import { Play, Pause, Volume2, Loader2 } from 'lucide-react'
+import { useRef, useState, useCallback } from 'react'
+import { Play, Pause, Volume2, Loader2, AlertCircle } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '@/shared/api/axios'
 import { ENDPOINTS } from '@/shared/api/endpoints'
@@ -13,6 +13,7 @@ interface TranscriptionViewerProps {
 }
 
 function formatTime(seconds: number): string {
+  if (!seconds || !isFinite(seconds)) return '0:00'
   const m = Math.floor(seconds / 60)
   const s = Math.floor(seconds % 60)
   return `${m}:${s.toString().padStart(2, '0')}`
@@ -20,11 +21,16 @@ function formatTime(seconds: number): string {
 
 export function TranscriptionViewer({ audioId, segments, plainText }: TranscriptionViewerProps) {
   const audioRef = useRef<HTMLAudioElement>(null)
+  const activeSegmentRef = useRef<number>(-1)
+  const segmentRefs = useRef<(HTMLButtonElement | null)[]>([])
+
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
-  const [activeSegment, setActiveSegment] = useState<number | null>(null)
-  const segmentRefs = useRef<(HTMLButtonElement | null)[]>([])
+  const [activeSegment, setActiveSegment] = useState(-1)
+  const [audioError, setAudioError] = useState(false)
+
+  const hasSegments = !!segments && segments.length > 0
 
   const { data: urlData, isLoading: urlLoading } = useQuery({
     queryKey: ['audio-url', audioId],
@@ -32,74 +38,74 @@ export function TranscriptionViewer({ audioId, segments, plainText }: Transcript
       const { data } = await api.get<{ url: string }>(ENDPOINTS.audio.url(audioId))
       return data
     },
-    staleTime: 1000 * 60 * 10, // 10 min (signed URL válida por 15)
-    enabled: !!audioId && !!segments?.length,
+    staleTime: 1000 * 60 * 10,
+    enabled: !!audioId && hasSegments,
   })
 
-  // Sync audio events
-  useEffect(() => {
+  // — React event handlers no <audio> — sem useEffect, sem timing race —
+
+  const handleLoadedMetadata = useCallback(() => {
     const audio = audioRef.current
     if (!audio) return
+    setDuration(audio.duration)
+    setAudioError(false)
+  }, [])
 
-    const onTimeUpdate = () => {
-      setCurrentTime(audio.currentTime)
-      if (segments) {
-        const idx = segments.findIndex(
-          (s, i) =>
-            audio.currentTime >= s.start &&
-            (i === segments.length - 1 || audio.currentTime < segments[i + 1].start),
-        )
-        if (idx !== -1 && idx !== activeSegment) {
-          setActiveSegment(idx)
-          segmentRefs.current[idx]?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
-        }
+  const handleTimeUpdate = useCallback(() => {
+    const audio = audioRef.current
+    if (!audio || !segments) return
+    const t = audio.currentTime
+    setCurrentTime(t)
+
+    // Encontra segmento ativo sem causar re-render desnecessário
+    let idx = -1
+    for (let i = 0; i < segments.length; i++) {
+      if (t >= segments[i].start) idx = i
+      else break
+    }
+    if (idx !== activeSegmentRef.current) {
+      activeSegmentRef.current = idx
+      setActiveSegment(idx)
+      if (idx >= 0) {
+        segmentRefs.current[idx]?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
       }
     }
-    const onLoadedMetadata = () => setDuration(audio.duration)
-    const onEnded = () => setIsPlaying(false)
-    const onPlay = () => setIsPlaying(true)
-    const onPause = () => setIsPlaying(false)
+  }, [segments])
 
-    audio.addEventListener('timeupdate', onTimeUpdate)
-    audio.addEventListener('loadedmetadata', onLoadedMetadata)
-    audio.addEventListener('ended', onEnded)
-    audio.addEventListener('play', onPlay)
-    audio.addEventListener('pause', onPause)
-    return () => {
-      audio.removeEventListener('timeupdate', onTimeUpdate)
-      audio.removeEventListener('loadedmetadata', onLoadedMetadata)
-      audio.removeEventListener('ended', onEnded)
-      audio.removeEventListener('play', onPlay)
-      audio.removeEventListener('pause', onPause)
-    }
-  }, [segments, activeSegment])
+  const handleError = useCallback(() => setAudioError(true), [])
 
-  const togglePlay = useCallback(() => {
+  const togglePlay = useCallback(async () => {
     const audio = audioRef.current
     if (!audio) return
-    if (isPlaying) audio.pause()
-    else audio.play()
+    if (isPlaying) {
+      audio.pause()
+    } else {
+      try {
+        await audio.play()
+      } catch {
+        setAudioError(true)
+      }
+    }
   }, [isPlaying])
 
   const seekTo = useCallback((time: number) => {
     const audio = audioRef.current
     if (!audio) return
     audio.currentTime = time
-    audio.play()
+    audio.play().catch(() => setAudioError(true))
   }, [])
 
   const handleProgressClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     const audio = audioRef.current
     if (!audio || !duration) return
     const rect = e.currentTarget.getBoundingClientRect()
-    const ratio = (e.clientX - rect.left) / rect.width
-    audio.currentTime = ratio * duration
+    audio.currentTime = ((e.clientX - rect.left) / rect.width) * duration
   }, [duration])
 
   const progressPct = duration > 0 ? (currentTime / duration) * 100 : 0
 
-  // Se não tem segments, renderiza texto plano
-  if (!segments || segments.length === 0) {
+  // Fallback: sem segments, texto plano
+  if (!hasSegments) {
     return (
       <div className="text-sm text-[var(--text-secondary)] leading-relaxed font-mono whitespace-pre-wrap max-h-[520px] overflow-y-auto pr-2">
         {plainText ?? '—'}
@@ -110,28 +116,40 @@ export function TranscriptionViewer({ audioId, segments, plainText }: Transcript
   return (
     <div className="flex flex-col gap-4">
 
-      {/* Audio player */}
-      {urlData?.url && (
-        <audio ref={audioRef} src={urlData.url} preload="metadata" className="hidden" />
-      )}
+      {/* Elemento de áudio sempre montado, src só seta quando URL chega */}
+      <audio
+        ref={audioRef}
+        src={urlData?.url}
+        preload="metadata"
+        style={{ display: 'none' }}
+        onLoadedMetadata={handleLoadedMetadata}
+        onTimeUpdate={handleTimeUpdate}
+        onPlay={() => setIsPlaying(true)}
+        onPause={() => setIsPlaying(false)}
+        onEnded={() => { setIsPlaying(false); setCurrentTime(0) }}
+        onError={handleError}
+      />
 
+      {/* Player */}
       <div className="flex items-center gap-3 p-3 rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)]">
         <button
           onClick={togglePlay}
-          disabled={!urlData?.url || urlLoading}
+          disabled={!urlData?.url || urlLoading || audioError}
           className="h-8 w-8 rounded-lg flex items-center justify-center bg-[var(--accent-bg)] border border-[var(--accent)]/20 text-[var(--accent)] hover:bg-[var(--accent)]/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
         >
           {urlLoading
             ? <Loader2 size={14} className="animate-spin" />
-            : isPlaying
-              ? <Pause size={14} />
-              : <Play size={14} />
+            : audioError
+              ? <AlertCircle size={14} className="text-red-400" />
+              : isPlaying
+                ? <Pause size={14} />
+                : <Play size={14} />
           }
         </button>
 
         <div className="flex items-center gap-1.5 shrink-0">
           <Volume2 size={11} className="text-[var(--text-secondary)]" />
-          <span className="text-[10px] font-mono text-[var(--text-secondary)] tabular-nums w-[72px]">
+          <span className="text-[10px] font-mono text-[var(--text-secondary)] tabular-nums w-[76px]">
             {formatTime(currentTime)} / {formatTime(duration)}
           </span>
         </div>
@@ -141,11 +159,18 @@ export function TranscriptionViewer({ audioId, segments, plainText }: Transcript
           onClick={handleProgressClick}
         >
           <div
-            className="h-full bg-[var(--accent)] rounded-full transition-none"
-            style={{ width: `${progressPct}%` }}
+            className="h-full bg-[var(--accent)] rounded-full"
+            style={{ width: `${progressPct}%`, transition: 'width 0.1s linear' }}
           />
         </div>
       </div>
+
+      {audioError && (
+        <p className="text-xs text-red-400 flex items-center gap-1.5">
+          <AlertCircle size={11} />
+          Não foi possível carregar o áudio.
+        </p>
+      )}
 
       {/* Segments */}
       <div className="max-h-[480px] overflow-y-auto pr-1 flex flex-col gap-0.5">
@@ -156,7 +181,7 @@ export function TranscriptionViewer({ audioId, segments, plainText }: Transcript
               key={i}
               ref={(el) => { segmentRefs.current[i] = el }}
               onClick={() => seekTo(seg.start)}
-              disabled={!urlData?.url}
+              disabled={!urlData?.url || audioError}
               className={cn(
                 'group w-full text-left flex items-start gap-3 px-3 py-2 rounded-lg transition-all duration-150 disabled:cursor-default',
                 isActive
@@ -164,22 +189,16 @@ export function TranscriptionViewer({ audioId, segments, plainText }: Transcript
                   : 'hover:bg-[var(--bg-elevated)] border border-transparent',
               )}
             >
-              <span
-                className={cn(
-                  'shrink-0 text-[10px] font-mono tabular-nums pt-0.5 transition-colors min-w-[36px]',
-                  isActive
-                    ? 'text-[var(--accent)]'
-                    : 'text-[var(--text-secondary)] group-hover:text-[var(--accent)]',
-                )}
-              >
+              <span className={cn(
+                'shrink-0 text-[10px] font-mono tabular-nums pt-0.5 min-w-[36px] transition-colors',
+                isActive ? 'text-[var(--accent)]' : 'text-[var(--text-secondary)] group-hover:text-[var(--accent)]',
+              )}>
                 {formatTime(seg.start)}
               </span>
-              <p
-                className={cn(
-                  'text-sm leading-relaxed transition-colors',
-                  isActive ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)]',
-                )}
-              >
+              <p className={cn(
+                'text-sm leading-relaxed transition-colors',
+                isActive ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)]',
+              )}>
                 {seg.text}
               </p>
             </button>
