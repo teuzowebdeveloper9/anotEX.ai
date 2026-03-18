@@ -16,6 +16,7 @@ import { GradientOrb } from '@/shared/ui/decorative/GradientOrb'
 import { useTranscriptionStatus } from '@/features/transcription/poll-status/model/useTranscriptionStatus'
 import { useStudyMaterial } from '@/entities/study-material/model/useStudyMaterial'
 import { ShareModal } from '@/shared/ui/ShareModal'
+import { ExportButton } from '@/features/transcription/export/ui/ExportButton'
 import { cn } from '@/shared/lib/cn'
 import type { FlashcardItem, MindmapContent, QuizItem } from '@/shared/types/api.types'
 
@@ -118,13 +119,26 @@ export function TranscriptionPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   {isCompleted && (
-                    <button
-                      onClick={() => setShowShareModal(true)}
-                      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--accent-bg)] border border-[var(--border)] hover:border-[var(--accent)]/30 transition-colors"
-                    >
-                      <Share2 size={12} />
-                      Compartilhar
-                    </button>
+                    <>
+                      <ExportButton
+                        title={transcription?.title ?? data?.audio.fileName ?? 'Gravação'}
+                        transcriptionText={transcription?.transcriptionText ?? null}
+                        summaryText={transcription?.summaryText ?? null}
+                        flashcards={
+                          flashcardsData?.status === 'COMPLETED' && flashcardsData.content
+                            ? (flashcardsData.content as FlashcardItem[])
+                            : null
+                        }
+                        createdAt={new Date().toISOString()}
+                      />
+                      <button
+                        onClick={() => setShowShareModal(true)}
+                        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--accent-bg)] border border-[var(--border)] hover:border-[var(--accent)]/30 transition-colors"
+                      >
+                        <Share2 size={12} />
+                        Compartilhar
+                      </button>
+                    </>
                   )}
                   {data?.audio.status && <Badge status={data.audio.status} />}
                 </div>
