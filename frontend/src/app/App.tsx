@@ -11,6 +11,7 @@ import { TranscriptionsPage } from '@/pages/transcriptions/ui/TranscriptionsPage
 import { SummariesPage } from '@/pages/summaries/ui/SummariesPage'
 import { MindMapsPage } from '@/pages/mindmaps/ui/MindMapsPage'
 import { FlashcardsPage } from '@/pages/flashcards/ui/FlashcardsPage'
+import { QuizPage } from '@/pages/quiz/ui/QuizPage'
 import { StudyFoldersPage } from '@/pages/study-folders/ui/StudyFoldersPage'
 import { StudyFolderPage } from '@/pages/study-folder/ui/StudyFolderPage'
 import { SharedResourcePage } from '@/pages/shared-resource/ui/SharedResourcePage'
@@ -82,6 +83,14 @@ export function App() {
             element={
               <ProtectedRoute>
                 <FlashcardsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/quiz"
+            element={
+              <ProtectedRoute>
+                <QuizPage />
               </ProtectedRoute>
             }
           />

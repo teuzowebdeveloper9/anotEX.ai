@@ -38,6 +38,7 @@ export class TranscriptionController {
       title: t.title,
       transcriptionText: t.transcriptionText,
       summaryText: t.summaryText,
+      segments: t.segments ?? null,
       createdAt: t.createdAt,
     }));
   }
@@ -62,6 +63,7 @@ export class TranscriptionController {
       title: result.data.title,
       transcriptionText: result.data.transcriptionText,
       summaryText: result.data.summaryText,
+      segments: result.data.segments ?? null,
       errorMessage: result.data.errorMessage,
       createdAt: result.data.createdAt,
       updatedAt: result.data.updatedAt,

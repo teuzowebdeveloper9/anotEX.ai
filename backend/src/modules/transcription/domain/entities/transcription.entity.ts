@@ -5,6 +5,12 @@ export enum TranscriptionStatus {
   FAILED = 'FAILED',
 }
 
+export interface TranscriptionSegment {
+  readonly start: number;
+  readonly end: number;
+  readonly text: string;
+}
+
 export interface TranscriptionEntity {
   readonly id: string;
   readonly audioId: string;
@@ -12,6 +18,7 @@ export interface TranscriptionEntity {
   readonly title: string | null;
   readonly transcriptionText: string | null;
   readonly summaryText: string | null;
+  readonly segments: TranscriptionSegment[] | null;
   readonly language: string;
   readonly status: TranscriptionStatus;
   readonly errorMessage: string | null;

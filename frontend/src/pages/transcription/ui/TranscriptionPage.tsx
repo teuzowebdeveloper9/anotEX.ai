@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useParams, Link, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, AlertCircle, Loader2, FileText, Sparkles, Map, BookOpen, Share2 } from 'lucide-react'
+import { ArrowLeft, AlertCircle, Loader2, FileText, Sparkles, Map, BookOpen, Share2, CircleHelp } from 'lucide-react'
 import { Navbar } from '@/widgets/navbar/ui/Navbar'
 import { Sidebar } from '@/widgets/sidebar/ui/Sidebar'
 import { Badge } from '@/shared/ui/Badge/Badge'
@@ -10,20 +10,24 @@ import { SaveToFolderButton } from '@/features/study-folders/save-to-folder/ui/S
 import { MarkdownRenderer } from '@/shared/ui/MarkdownRenderer/MarkdownRenderer'
 import { MindMapViewer } from '@/widgets/mindmap/ui/MindMapViewer'
 import { FlashcardDeck } from '@/widgets/flashcard-deck/ui/FlashcardDeck'
+import { QuizPlayer } from '@/widgets/quiz-player/ui/QuizPlayer'
+import { TranscriptionViewer } from '@/widgets/transcription-viewer/ui/TranscriptionViewer'
 import { GradientOrb } from '@/shared/ui/decorative/GradientOrb'
 import { useTranscriptionStatus } from '@/features/transcription/poll-status/model/useTranscriptionStatus'
 import { useStudyMaterial } from '@/entities/study-material/model/useStudyMaterial'
 import { ShareModal } from '@/shared/ui/ShareModal'
+import { ExportButton } from '@/features/transcription/export/ui/ExportButton'
 import { cn } from '@/shared/lib/cn'
-import type { FlashcardItem, MindmapContent } from '@/shared/types/api.types'
+import type { FlashcardItem, MindmapContent, QuizItem } from '@/shared/types/api.types'
 
-type Tab = 'resumo' | 'transcricao' | 'mindmap' | 'flashcards'
+type Tab = 'resumo' | 'transcricao' | 'mindmap' | 'flashcards' | 'quiz'
 
 const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
-  { id: 'resumo',      label: 'Resumo',       icon: Sparkles  },
-  { id: 'transcricao', label: 'Transcrição',  icon: FileText  },
-  { id: 'mindmap',     label: 'Mapa Mental',  icon: Map       },
-  { id: 'flashcards',  label: 'Flashcards',   icon: BookOpen  },
+  { id: 'resumo',      label: 'Resumo',       icon: Sparkles     },
+  { id: 'transcricao', label: 'Transcrição',  icon: FileText     },
+  { id: 'mindmap',     label: 'Mapa Mental',  icon: Map          },
+  { id: 'flashcards',  label: 'Flashcards',   icon: BookOpen     },
+  { id: 'quiz',        label: 'Quiz',         icon: CircleHelp   },
 ]
 
 function ProcessingState({ message }: { message: string }) {
@@ -54,8 +58,9 @@ export function TranscriptionPage() {
   const transcriptionId = transcription?.id ?? ''
   const isCompleted = transcription?.status === 'COMPLETED'
 
-  const { data: mindmapData }   = useStudyMaterial(transcriptionId, 'mindmap')
+  const { data: mindmapData }    = useStudyMaterial(transcriptionId, 'mindmap')
   const { data: flashcardsData } = useStudyMaterial(transcriptionId, 'flashcards')
+  const { data: quizData }       = useStudyMaterial(transcriptionId, 'quiz')
 
   return (
     <div className="relative min-h-screen bg-[var(--bg-base)] overflow-hidden">
@@ -114,13 +119,26 @@ export function TranscriptionPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   {isCompleted && (
-                    <button
-                      onClick={() => setShowShareModal(true)}
-                      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--accent-bg)] border border-[var(--border)] hover:border-[var(--accent)]/30 transition-colors"
-                    >
-                      <Share2 size={12} />
-                      Compartilhar
-                    </button>
+                    <>
+                      <ExportButton
+                        title={transcription?.title ?? data?.audio.fileName ?? 'Gravação'}
+                        transcriptionText={transcription?.transcriptionText ?? null}
+                        summaryText={transcription?.summaryText ?? null}
+                        flashcards={
+                          flashcardsData?.status === 'COMPLETED' && flashcardsData.content
+                            ? (flashcardsData.content as FlashcardItem[])
+                            : null
+                        }
+                        createdAt={new Date().toISOString()}
+                      />
+                      <button
+                        onClick={() => setShowShareModal(true)}
+                        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--accent-bg)] border border-[var(--border)] hover:border-[var(--accent)]/30 transition-colors"
+                      >
+                        <Share2 size={12} />
+                        Compartilhar
+                      </button>
+                    </>
                   )}
                   {data?.audio.status && <Badge status={data.audio.status} />}
                 </div>
@@ -229,9 +247,11 @@ export function TranscriptionPage() {
                             <SaveToFolderButton transcriptionId={transcriptionId} itemType="TRANSCRIPTION" />
                           </div>
                         </div>
-                        <div className="text-sm text-[var(--text-secondary)] leading-relaxed font-mono whitespace-pre-wrap max-h-[520px] overflow-y-auto pr-2">
-                          {transcription?.transcriptionText ?? '—'}
-                        </div>
+                        <TranscriptionViewer
+                          audioId={id!}
+                          segments={transcription?.segments ?? null}
+                          plainText={transcription?.transcriptionText ?? null}
+                        />
                       </div>
                     )}
 
@@ -282,6 +302,24 @@ export function TranscriptionPage() {
                           <ProcessingState message="Gerando flashcards..." />
                         ) : flashcardsData.content ? (
                           <FlashcardDeck cards={flashcardsData.content as FlashcardItem[]} />
+                        ) : null}
+                      </div>
+                    )}
+
+                    {activeTab === 'quiz' && (
+                      <div className="p-6">
+                        <div className="flex items-center gap-2 mb-6">
+                          <CircleHelp size={15} className="text-[var(--text-secondary)]" />
+                          <h2 className="text-sm font-semibold text-[var(--text-primary)]">
+                            Quiz
+                          </h2>
+                        </div>
+                        {!quizData || quizData.status === 'PENDING' || quizData.status === 'PROCESSING' ? (
+                          <ProcessingState message="Gerando quiz..." />
+                        ) : quizData.status === 'FAILED' ? (
+                          <ProcessingState message="Falha ao gerar quiz." />
+                        ) : quizData.content ? (
+                          <QuizPlayer questions={quizData.content as QuizItem[]} />
                         ) : null}
                       </div>
                     )}

@@ -60,21 +60,22 @@ export class ProcessTranscriptionUseCase {
       const response = await fetch(signedUrl);
       const buffer = Buffer.from(await response.arrayBuffer());
 
-      const transcriptionText = await this.transcriptionProvider.transcribe(
+      const transcriptionResult = await this.transcriptionProvider.transcribe(
         buffer,
         transcription.language,
       );
 
       const [summaryText, title] = await Promise.all([
-        this.summaryProvider.summarize(transcriptionText),
-        this.summaryProvider.generateTitle(transcriptionText),
+        this.summaryProvider.summarize(transcriptionResult.text),
+        this.summaryProvider.generateTitle(transcriptionResult.text),
       ]);
 
       await this.transcriptionRepository.updateResult(
         input.transcriptionId,
-        transcriptionText,
+        transcriptionResult.text,
         summaryText,
         title,
+        transcriptionResult.segments,
       );
       await this.transcriptionRepository.updateStatus(
         input.transcriptionId,
