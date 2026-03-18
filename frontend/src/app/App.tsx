@@ -13,6 +13,9 @@ import { MindMapsPage } from '@/pages/mindmaps/ui/MindMapsPage'
 import { FlashcardsPage } from '@/pages/flashcards/ui/FlashcardsPage'
 import { StudyFoldersPage } from '@/pages/study-folders/ui/StudyFoldersPage'
 import { StudyFolderPage } from '@/pages/study-folder/ui/StudyFolderPage'
+import { SharedResourcePage } from '@/pages/shared-resource/ui/SharedResourcePage'
+import { GroupsPage } from '@/pages/groups/ui/GroupsPage'
+import { GroupDetailPage } from '@/pages/group-detail/ui/GroupDetailPage'
 import { ProtectedRoute } from '@/shared/ui/ProtectedRoute/ProtectedRoute'
 import { useTheme } from '@/shared/hooks/useTheme'
 
@@ -95,6 +98,23 @@ export function App() {
             element={
               <ProtectedRoute>
                 <StudyFolderPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/shared/:token" element={<SharedResourcePage />} />
+          <Route
+            path="/groups"
+            element={
+              <ProtectedRoute>
+                <GroupsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/groups/:id"
+            element={
+              <ProtectedRoute>
+                <GroupDetailPage />
               </ProtectedRoute>
             }
           />

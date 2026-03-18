@@ -24,7 +24,14 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     )
   }
 
-  if (!session) return <Navigate to="/login" replace />
+  if (!session) {
+    // Save the intended destination so we can redirect back after login
+    const returnTo = window.location.pathname + window.location.search
+    if (returnTo !== '/login') {
+      sessionStorage.setItem('returnTo', returnTo)
+    }
+    return <Navigate to="/login" replace />
+  }
 
   return <>{children}</>
 }

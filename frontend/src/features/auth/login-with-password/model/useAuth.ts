@@ -56,7 +56,9 @@ export function useAuth(): UseAuthReturn {
         }
         return
       }
-      navigate('/dashboard', { replace: true })
+      const returnTo = sessionStorage.getItem('returnTo') ?? '/dashboard'
+      sessionStorage.removeItem('returnTo')
+      navigate(returnTo, { replace: true })
     } else {
       const { data, error } = await supabase.auth.signUp({
         email: email.trim(),

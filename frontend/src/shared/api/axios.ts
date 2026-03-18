@@ -15,3 +15,8 @@ instance.interceptors.request.use(async (config) => {
 })
 
 export { instance as api }
+
+// Unauthenticated instance for public endpoints (e.g. shared resource pages)
+export const axiosPublic = axios.create({
+  baseURL: import.meta.env.VITE_API_BASE_URL as string,
+})
