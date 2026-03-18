@@ -8,6 +8,8 @@ import { AudioModule } from './modules/audio/audio.module.js';
 import { TranscriptionModule } from './modules/transcription/transcription.module.js';
 import { StudyMaterialModule } from './modules/study-materials/study-material.module.js';
 import { StudyFolderModule } from './modules/study-folders/study-folder.module.js';
+import { SharingModule } from './modules/sharing/sharing.module.js';
+import { StudyGroupModule } from './modules/study-groups/study-group.module.js';
 import { HealthController } from './shared/presentation/controllers/health.controller.js';
 import { SupabaseAuthGuard } from './modules/audio/presentation/guards/auth.guard.js';
 
@@ -41,6 +43,8 @@ import { SupabaseAuthGuard } from './modules/audio/presentation/guards/auth.guar
     TranscriptionModule,
     StudyMaterialModule,
     StudyFolderModule,
+    SharingModule,
+    StudyGroupModule,
   ],
   controllers: [HealthController],
   providers: [

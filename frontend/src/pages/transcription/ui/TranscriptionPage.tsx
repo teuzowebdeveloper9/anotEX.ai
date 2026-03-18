@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useParams, Link, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, AlertCircle, Loader2, FileText, Sparkles, Map, BookOpen } from 'lucide-react'
+import { ArrowLeft, AlertCircle, Loader2, FileText, Sparkles, Map, BookOpen, Share2 } from 'lucide-react'
 import { Navbar } from '@/widgets/navbar/ui/Navbar'
 import { Sidebar } from '@/widgets/sidebar/ui/Sidebar'
 import { Badge } from '@/shared/ui/Badge/Badge'
@@ -13,6 +13,7 @@ import { FlashcardDeck } from '@/widgets/flashcard-deck/ui/FlashcardDeck'
 import { GradientOrb } from '@/shared/ui/decorative/GradientOrb'
 import { useTranscriptionStatus } from '@/features/transcription/poll-status/model/useTranscriptionStatus'
 import { useStudyMaterial } from '@/entities/study-material/model/useStudyMaterial'
+import { ShareModal } from '@/shared/ui/ShareModal'
 import { cn } from '@/shared/lib/cn'
 import type { FlashcardItem, MindmapContent } from '@/shared/types/api.types'
 
@@ -47,6 +48,7 @@ export function TranscriptionPage() {
   const initialTab = (searchParams.get('tab') as Tab | null) ?? 'resumo'
   const [activeTab, setActiveTab] = useState<Tab>(initialTab)
 
+  const [showShareModal, setShowShareModal] = useState(false)
   const { data, isLoading } = useTranscriptionStatus(id!)
   const transcription = data?.transcription
   const transcriptionId = transcription?.id ?? ''
@@ -110,7 +112,18 @@ export function TranscriptionPage() {
                     </p>
                   )}
                 </div>
-                {data?.audio.status && <Badge status={data.audio.status} />}
+                <div className="flex items-center gap-2">
+                  {isCompleted && (
+                    <button
+                      onClick={() => setShowShareModal(true)}
+                      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--accent-bg)] border border-[var(--border)] hover:border-[var(--accent)]/30 transition-colors"
+                    >
+                      <Share2 size={12} />
+                      Compartilhar
+                    </button>
+                  )}
+                  {data?.audio.status && <Badge status={data.audio.status} />}
+                </div>
               </div>
 
               {/* Processing / Error */}
@@ -279,6 +292,15 @@ export function TranscriptionPage() {
           )}
         </div>
       </main>
+
+      {showShareModal && id && (
+        <ShareModal
+          resourceType="transcription"
+          resourceId={id}
+          title={transcription?.title ?? data?.audio.fileName ?? 'Gravação'}
+          onClose={() => setShowShareModal(false)}
+        />
+      )}
     </div>
   )
 }

@@ -26,4 +26,21 @@ export const ENDPOINTS = {
     recommendations: (id: string) => `/study-folders/${id}/recommendations`,
     processVideo: (id: string) => `/study-folders/${id}/process-video`,
   },
+  sharing: {
+    create: '/sharing',
+    list: '/sharing',
+    public: (token: string) => `/sharing/public/${token}`,
+    toggle: (id: string) => `/sharing/${id}/toggle`,
+    delete: (id: string) => `/sharing/${id}`,
+  },
+  groups: {
+    create: '/groups',
+    list: '/groups',
+    get: (id: string) => `/groups/${id}`,
+    delete: (id: string) => `/groups/${id}`,
+    addMember: (id: string) => `/groups/${id}/members`,
+    removeMember: (id: string, userId: string) => `/groups/${id}/members/${userId}`,
+    addShare: (id: string) => `/groups/${id}/shares`,
+    removeShare: (id: string, shareLinkId: string) => `/groups/${id}/shares/${shareLinkId}`,
+  },
 } as const
