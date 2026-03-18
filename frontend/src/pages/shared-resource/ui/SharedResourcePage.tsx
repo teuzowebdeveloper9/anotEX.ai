@@ -1,6 +1,6 @@
 import { useParams, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { AlertCircle, Loader2, FileText, Sparkles, Map, BookOpen, Lock } from 'lucide-react'
+import { AlertCircle, Loader2, FileText, Sparkles, Map, BookOpen, Lock, FolderOpen } from 'lucide-react'
 import { useState } from 'react'
 import { axiosPublic } from '@/shared/api/axios'
 import { ENDPOINTS } from '@/shared/api/endpoints'
@@ -22,6 +22,13 @@ const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
   { id: 'flashcards',  label: 'Flashcards',   icon: BookOpen  },
 ]
 
+interface FolderItem {
+  id: string
+  title: string
+  itemType: 'SUMMARY' | 'TRANSCRIPTION' | 'FLASHCARDS' | 'MINDMAP'
+  audioId: string
+}
+
 interface SharedResource {
   shareLink: { token: string; resourceType: string; resourceId: string }
   audio: { id: string; status: string; fileName: string } | null
@@ -37,6 +44,22 @@ interface SharedResource {
     mindmap: { status: string; content: unknown } | null
     flashcards: { status: string; content: unknown } | null
   }
+  folder: { id: string; name: string; description: string | null; itemCount: number } | null
+  folderItems: FolderItem[]
+}
+
+const ITEM_TYPE_LABELS: Record<string, string> = {
+  SUMMARY: 'Resumos',
+  TRANSCRIPTION: 'Transcrições',
+  FLASHCARDS: 'Flashcards',
+  MINDMAP: 'Mapas Mentais',
+}
+
+const ITEM_TYPE_ICONS: Record<string, React.ElementType> = {
+  SUMMARY: Sparkles,
+  TRANSCRIPTION: FileText,
+  FLASHCARDS: BookOpen,
+  MINDMAP: Map,
 }
 
 export function SharedResourcePage() {
@@ -107,7 +130,69 @@ export function SharedResourcePage() {
             </div>
           )}
 
-          {data && (
+          {data && data.shareLink.resourceType === 'study_folder' && data.folder && (
+            <div className="flex flex-col gap-6">
+              {/* Folder header */}
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-xl bg-[var(--accent-bg)] border border-[var(--accent)]/20 flex items-center justify-center shrink-0">
+                  <FolderOpen size={18} className="text-[var(--accent)]" />
+                </div>
+                <div>
+                  <h1 className="text-xl font-semibold gradient-text">{data.folder.name}</h1>
+                  {data.folder.description && (
+                    <p className="text-sm text-[var(--text-secondary)] mt-0.5">{data.folder.description}</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Shared banner */}
+              <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[var(--accent)]/20 bg-[var(--accent-bg)] text-xs text-[var(--accent)]">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                Pasta compartilhada via anotEX.ai
+                <span className="ml-auto">
+                  <Link to="/login" className="underline hover:no-underline">Criar minha conta</Link>
+                </span>
+              </div>
+
+              {/* Items grouped by type */}
+              {data.folderItems.length === 0 ? (
+                <p className="text-sm text-[var(--text-secondary)] text-center py-10">Nenhum material nesta pasta.</p>
+              ) : (
+                <div className="flex flex-col gap-5">
+                  {(['SUMMARY', 'TRANSCRIPTION', 'FLASHCARDS', 'MINDMAP'] as const).map((type) => {
+                    const itemsOfType = data.folderItems.filter((i) => i.itemType === type)
+                    if (itemsOfType.length === 0) return null
+                    const Icon = ITEM_TYPE_ICONS[type]
+                    return (
+                      <div key={type}>
+                        <div className="flex items-center gap-2 mb-2">
+                          <Icon size={13} className="text-[var(--text-secondary)]" />
+                          <span className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-widest">
+                            {ITEM_TYPE_LABELS[type]} ({itemsOfType.length})
+                          </span>
+                        </div>
+                        <div className="flex flex-col gap-1.5">
+                          {itemsOfType.map((item) => (
+                            <div
+                              key={item.id}
+                              className="flex items-center gap-3 px-4 py-3 rounded-lg border border-[var(--border)] bg-[var(--bg-surface)]"
+                            >
+                              <p className="text-sm text-[var(--text-primary)] truncate flex-1">{item.title}</p>
+                              <span className="text-xs text-[var(--text-secondary)] shrink-0">
+                                Faça login para abrir
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
+          {data && data.shareLink.resourceType !== 'study_folder' && (
             <div className="flex flex-col gap-6">
               {/* Header */}
               <div className="flex items-start justify-between gap-3">

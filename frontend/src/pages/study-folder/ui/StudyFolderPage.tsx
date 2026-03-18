@@ -14,6 +14,7 @@ import {
   BookOpen,
   Map,
   Wand2,
+  Share2,
 } from 'lucide-react'
 import { Navbar } from '@/widgets/navbar/ui/Navbar'
 import { Sidebar } from '@/widgets/sidebar/ui/Sidebar'
@@ -27,6 +28,7 @@ import { useProcessVideo } from '@/features/study-folders/process-video/model/us
 import { AddItemModal } from '@/features/study-folders/add-item/ui/AddItemModal'
 import { api } from '@/shared/api/axios'
 import { ENDPOINTS } from '@/shared/api/endpoints'
+import { ShareModal } from '@/shared/ui/ShareModal'
 import type { FolderItemType, YouTubeVideo, StudyFolderItem } from '@/entities/study-folder/model/study-folder.types'
 import { FOLDER_ITEM_TYPE_LABELS, FOLDER_ITEM_TYPE_TAB } from '@/entities/study-folder/model/study-folder.types'
 
@@ -195,6 +197,7 @@ function VideoPlayerModal({ video, onClose }: { video: YouTubeVideo; onClose: ()
 export function StudyFolderPage() {
   const { id } = useParams<{ id: string }>()
   const [showAddModal, setShowAddModal] = useState(false)
+  const [showShareModal, setShowShareModal] = useState(false)
   const [selectedVideo, setSelectedVideo] = useState<YouTubeVideo | null>(null)
   const [recommendations, setRecommendations] = useState<YouTubeVideo[] | null>(null)
   const [loadingRecs, setLoadingRecs] = useState(false)
@@ -312,14 +315,24 @@ export function StudyFolderPage() {
                 )}
               </div>
             </div>
-            <button
-              onClick={handleDeleteFolder}
-              disabled={deletingFolder}
-              className="text-[var(--text-secondary)] hover:text-[var(--danger)] transition-colors mt-1 ml-4 shrink-0"
-              title="Excluir pasta"
-            >
-              <Trash2 size={16} />
-            </button>
+            <div className="flex items-center gap-2 mt-1 ml-4 shrink-0">
+              <button
+                onClick={() => setShowShareModal(true)}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--accent-bg)] border border-[var(--border)] hover:border-[var(--accent)]/30 transition-colors"
+                title="Compartilhar pasta"
+              >
+                <Share2 size={12} />
+                Compartilhar
+              </button>
+              <button
+                onClick={handleDeleteFolder}
+                disabled={deletingFolder}
+                className="text-[var(--text-secondary)] hover:text-[var(--danger)] transition-colors"
+                title="Excluir pasta"
+              >
+                <Trash2 size={16} />
+              </button>
+            </div>
           </div>
 
           {/* Progress bar */}
@@ -446,6 +459,15 @@ export function StudyFolderPage() {
 
       {showAddModal && (
         <AddItemModal folderId={id!} existingItems={items} onClose={() => setShowAddModal(false)} />
+      )}
+
+      {showShareModal && folder && (
+        <ShareModal
+          resourceType="study_folder"
+          resourceId={folder.id}
+          title={folder.name}
+          onClose={() => setShowShareModal(false)}
+        />
       )}
 
       {selectedVideo && (
