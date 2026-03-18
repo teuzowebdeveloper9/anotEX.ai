@@ -1,7 +1,7 @@
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { AlertCircle, Loader2, FileText, Sparkles, Map, BookOpen, Lock, FolderOpen } from 'lucide-react'
-import { useState } from 'react'
+import { AlertCircle, Loader2, FileText, Sparkles, Map, BookOpen, Lock, FolderOpen, LayoutDashboard } from 'lucide-react'
+import { useState, useEffect } from 'react'
 import { axiosPublic } from '@/shared/api/axios'
 import { ENDPOINTS } from '@/shared/api/endpoints'
 import { Badge } from '@/shared/ui/Badge/Badge'
@@ -10,6 +10,7 @@ import { MarkdownRenderer } from '@/shared/ui/MarkdownRenderer/MarkdownRenderer'
 import { MindMapViewer } from '@/widgets/mindmap/ui/MindMapViewer'
 import { FlashcardDeck } from '@/widgets/flashcard-deck/ui/FlashcardDeck'
 import { GradientOrb } from '@/shared/ui/decorative/GradientOrb'
+import { supabase } from '@/shared/auth/supabase'
 import { cn } from '@/shared/lib/cn'
 import type { FlashcardItem, MindmapContent } from '@/shared/types/api.types'
 
@@ -21,6 +22,27 @@ const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
   { id: 'mindmap',     label: 'Mapa Mental',  icon: Map       },
   { id: 'flashcards',  label: 'Flashcards',   icon: BookOpen  },
 ]
+
+const ITEM_TYPE_TAB: Record<string, string> = {
+  SUMMARY: 'resumo',
+  TRANSCRIPTION: 'transcricao',
+  FLASHCARDS: 'flashcards',
+  MINDMAP: 'mapa-mental',
+}
+
+const ITEM_TYPE_LABELS: Record<string, string> = {
+  SUMMARY: 'Resumos',
+  TRANSCRIPTION: 'Transcrições',
+  FLASHCARDS: 'Flashcards',
+  MINDMAP: 'Mapas Mentais',
+}
+
+const ITEM_TYPE_ICONS: Record<string, React.ElementType> = {
+  SUMMARY: Sparkles,
+  TRANSCRIPTION: FileText,
+  FLASHCARDS: BookOpen,
+  MINDMAP: Map,
+}
 
 interface FolderItem {
   id: string
@@ -48,23 +70,21 @@ interface SharedResource {
   folderItems: FolderItem[]
 }
 
-const ITEM_TYPE_LABELS: Record<string, string> = {
-  SUMMARY: 'Resumos',
-  TRANSCRIPTION: 'Transcrições',
-  FLASHCARDS: 'Flashcards',
-  MINDMAP: 'Mapas Mentais',
-}
-
-const ITEM_TYPE_ICONS: Record<string, React.ElementType> = {
-  SUMMARY: Sparkles,
-  TRANSCRIPTION: FileText,
-  FLASHCARDS: BookOpen,
-  MINDMAP: Map,
-}
-
 export function SharedResourcePage() {
   const { token } = useParams<{ token: string }>()
+  const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState<Tab>('resumo')
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null)
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setIsLoggedIn(!!data.session)
+    })
+    const { data: listener } = supabase.auth.onAuthStateChange((_e, s) => {
+      setIsLoggedIn(!!s)
+    })
+    return () => listener.subscription.unsubscribe()
+  }, [])
 
   const { data, isLoading, error } = useQuery<SharedResource>({
     queryKey: ['shared-resource', token],
@@ -77,6 +97,12 @@ export function SharedResourcePage() {
   })
 
   const transcription = data?.transcription
+
+  const handleLoginClick = () => {
+    // Don't save returnTo for public shared pages — avoid the loop
+    // Just go to login which will redirect to dashboard
+    navigate('/login')
+  }
 
   return (
     <div className="relative min-h-screen bg-[var(--bg-base)] overflow-hidden">
@@ -93,12 +119,22 @@ export function SharedResourcePage() {
             anotEX.ai
           </span>
         </Link>
-        <Link
-          to="/login"
-          className="text-xs px-3 py-1.5 rounded-lg border border-[var(--accent)]/30 text-[var(--accent)] hover:bg-[var(--accent-bg)] transition-colors"
-        >
-          Entrar
-        </Link>
+        {isLoggedIn ? (
+          <Link
+            to="/dashboard"
+            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] transition-colors"
+          >
+            <LayoutDashboard size={12} />
+            Meu painel
+          </Link>
+        ) : (
+          <button
+            onClick={handleLoginClick}
+            className="text-xs px-3 py-1.5 rounded-lg border border-[var(--accent)]/30 text-[var(--accent)] hover:bg-[var(--accent-bg)] transition-colors"
+          >
+            Entrar
+          </button>
+        )}
       </header>
 
       <main className="relative z-10 pt-14">
@@ -121,18 +157,20 @@ export function SharedResourcePage() {
                   Este link pode ser privado, expirado ou inválido.
                 </p>
               </div>
-              <Link
-                to="/login"
-                className="mt-2 text-xs px-4 py-2 rounded-lg bg-[var(--accent)] text-white font-medium hover:opacity-90 transition-opacity"
-              >
-                Entrar para ver seu conteúdo
-              </Link>
+              {!isLoggedIn && (
+                <button
+                  onClick={handleLoginClick}
+                  className="mt-2 text-xs px-4 py-2 rounded-lg bg-[var(--accent)] text-white font-medium hover:opacity-90 transition-opacity"
+                >
+                  Entrar para ver seu conteúdo
+                </button>
+              )}
             </div>
           )}
 
+          {/* === FOLDER VIEW === */}
           {data && data.shareLink.resourceType === 'study_folder' && data.folder && (
             <div className="flex flex-col gap-6">
-              {/* Folder header */}
               <div className="flex items-center gap-3">
                 <div className="h-10 w-10 rounded-xl bg-[var(--accent-bg)] border border-[var(--accent)]/20 flex items-center justify-center shrink-0">
                   <FolderOpen size={18} className="text-[var(--accent)]" />
@@ -145,16 +183,16 @@ export function SharedResourcePage() {
                 </div>
               </div>
 
-              {/* Shared banner */}
               <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[var(--accent)]/20 bg-[var(--accent-bg)] text-xs text-[var(--accent)]">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
                 Pasta compartilhada via anotEX.ai
-                <span className="ml-auto">
-                  <Link to="/login" className="underline hover:no-underline">Criar minha conta</Link>
-                </span>
+                {!isLoggedIn && (
+                  <span className="ml-auto">
+                    <button onClick={handleLoginClick} className="underline hover:no-underline">Criar minha conta</button>
+                  </span>
+                )}
               </div>
 
-              {/* Items grouped by type */}
               {data.folderItems.length === 0 ? (
                 <p className="text-sm text-[var(--text-secondary)] text-center py-10">Nenhum material nesta pasta.</p>
               ) : (
@@ -177,10 +215,24 @@ export function SharedResourcePage() {
                               key={item.id}
                               className="flex items-center gap-3 px-4 py-3 rounded-lg border border-[var(--border)] bg-[var(--bg-surface)]"
                             >
-                              <p className="text-sm text-[var(--text-primary)] truncate flex-1">{item.title}</p>
-                              <span className="text-xs text-[var(--text-secondary)] shrink-0">
-                                Faça login para abrir
-                              </span>
+                              {isLoggedIn ? (
+                                <Link
+                                  to={`/transcription/${item.audioId}?tab=${ITEM_TYPE_TAB[item.itemType]}`}
+                                  className="text-sm text-[var(--accent)] hover:underline flex-1 truncate"
+                                >
+                                  {item.title}
+                                </Link>
+                              ) : (
+                                <p className="text-sm text-[var(--text-primary)] truncate flex-1">{item.title}</p>
+                              )}
+                              {!isLoggedIn && (
+                                <button
+                                  onClick={handleLoginClick}
+                                  className="text-xs text-[var(--accent)] hover:underline shrink-0"
+                                >
+                                  Fazer login para abrir
+                                </button>
+                              )}
                             </div>
                           ))}
                         </div>
@@ -192,9 +244,9 @@ export function SharedResourcePage() {
             </div>
           )}
 
+          {/* === TRANSCRIPTION VIEW === */}
           {data && data.shareLink.resourceType !== 'study_folder' && (
             <div className="flex flex-col gap-6">
-              {/* Header */}
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
                   <h1 className="text-xl font-semibold leading-snug gradient-text">
@@ -209,15 +261,14 @@ export function SharedResourcePage() {
                 {data.audio?.status && <Badge status={data.audio.status as AudioStatus} />}
               </div>
 
-              {/* Shared banner */}
               <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[var(--accent)]/20 bg-[var(--accent-bg)] text-xs text-[var(--accent)]">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
                 Conteúdo compartilhado via anotEX.ai
-                <span className="ml-auto">
-                  <Link to="/login" className="underline hover:no-underline">
-                    Criar minha conta
-                  </Link>
-                </span>
+                {!isLoggedIn && (
+                  <span className="ml-auto">
+                    <button onClick={handleLoginClick} className="underline hover:no-underline">Criar minha conta</button>
+                  </span>
+                )}
               </div>
 
               {transcription?.status === 'FAILED' && (
@@ -229,7 +280,6 @@ export function SharedResourcePage() {
 
               {transcription?.status === 'COMPLETED' && (
                 <>
-                  {/* Tabs */}
                   <div className="flex gap-1 p-1 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border)]">
                     {TABS.map((tab) => {
                       const Icon = tab.icon
@@ -245,13 +295,7 @@ export function SharedResourcePage() {
                               : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                           )}
                         >
-                          <span
-                            style={
-                              isActive
-                                ? { background: 'var(--gradient-primary)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }
-                                : undefined
-                            }
-                          >
+                          <span style={isActive ? { background: 'var(--gradient-primary)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' } : undefined}>
                             <Icon size={12} />
                           </span>
                           <span className="hidden sm:inline">{tab.label}</span>

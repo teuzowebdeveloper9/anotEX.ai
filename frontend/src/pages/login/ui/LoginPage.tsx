@@ -13,7 +13,11 @@ export function LoginPage() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate('/dashboard', { replace: true })
+      if (data.session) {
+        const returnTo = sessionStorage.getItem('returnTo')
+        sessionStorage.removeItem('returnTo')
+        navigate(returnTo ?? '/dashboard', { replace: true })
+      }
     })
   }, [navigate])
 
