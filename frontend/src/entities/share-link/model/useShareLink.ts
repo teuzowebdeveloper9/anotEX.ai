@@ -10,6 +10,8 @@ export function useShareLinks() {
       const { data } = await api.get<ShareLink[]>(ENDPOINTS.sharing.list)
       return data
     },
+    staleTime: 0,           // sempre considerar stale
+    refetchOnMount: true,   // buscar no servidor toda vez que o modal abre
   })
 }
 

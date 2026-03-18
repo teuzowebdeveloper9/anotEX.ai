@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import * as Switch from '@radix-ui/react-switch'
 import { X, Link2, Globe, Lock, Users, Check, Copy, Plus, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useShareLinkByResource, useShareLinks } from '@/entities/share-link'
@@ -16,11 +17,21 @@ interface ShareModalProps {
 }
 
 export function ShareModal({ resourceType, resourceId, title, onClose }: ShareModalProps) {
-  const { refetch } = useShareLinks()
+  const { refetch, isLoading: linksLoading } = useShareLinks()
   const existing = useShareLinkByResource(resourceType, resourceId)
 
-  // Initialize ONCE from existing — no useEffect sync to avoid overriding user actions
-  const [shareLink, setShareLink] = useState<ShareLink | null>(() => existing)
+  // Sync from server only on initial load (when shareLink is still null)
+  const [shareLink, setShareLink] = useState<ShareLink | null>(null)
+  const [synced, setSynced] = useState(false)
+
+  useEffect(() => {
+    // Once the query finishes loading, sync the server state once
+    if (!synced && !linksLoading) {
+      setShareLink(existing ?? null)
+      setSynced(true)
+    }
+  }, [existing, linksLoading, synced])
+
   const [copied, setCopied] = useState(false)
   const [sharedGroups, setSharedGroups] = useState<Set<string>>(new Set())
 
@@ -34,21 +45,25 @@ export function ShareModal({ resourceType, resourceId, title, onClose }: ShareMo
     ? `${window.location.origin}/shared/${shareLink.token}`
     : null
 
-  const handleToggle = async () => {
-    // First click: create the link (still private); second click: enable public
+  const isPending = createShareLink.isPending || toggleVisibility.isPending
+
+  const handleToggle = async (checked: boolean) => {
     if (!shareLink) {
-      const result = await createShareLink.mutateAsync({ resourceType, resourceId })
+      // First time: create the link, then immediately set its visibility
+      const created = await createShareLink.mutateAsync({ resourceType, resourceId })
+      if (checked) {
+        const updated = await toggleVisibility.mutateAsync({ id: created.id, isPublic: true })
+        setShareLink(updated)
+      } else {
+        setShareLink(created)
+      }
       refetch()
-      setShareLink(result)
       return
     }
-    const updated = await toggleVisibility.mutateAsync({
-      id: shareLink.id,
-      isPublic: !shareLink.isPublic,
-    })
-    refetch()
+    const updated = await toggleVisibility.mutateAsync({ id: shareLink.id, isPublic: checked })
     setShareLink(updated)
-    toast.success(updated.isPublic ? 'Link público ativado' : 'Link tornado privado')
+    refetch()
+    toast.success(checked ? 'Link público ativado' : 'Link tornado privado')
   }
 
   const handleCopy = () => {
@@ -62,12 +77,11 @@ export function ShareModal({ resourceType, resourceId, title, onClose }: ShareMo
   const handleShareToGroup = async (groupId: string) => {
     if (!shareLink) return
 
-    // Ensure it's public before sharing to group
     let link = shareLink
     if (!link.isPublic) {
       const updated = await toggleVisibility.mutateAsync({ id: link.id, isPublic: true })
-      refetch()
       setShareLink(updated)
+      refetch()
       link = updated
     }
 
@@ -76,7 +90,7 @@ export function ShareModal({ resourceType, resourceId, title, onClose }: ShareMo
       setSharedGroups((prev) => new Set(prev).add(groupId))
       toast.success('Compartilhado com o grupo!')
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : ''
+      const msg = String(err)
       if (msg.includes('409') || msg.includes('already') || msg.includes('conflict')) {
         toast.info('Já compartilhado neste grupo.')
         setSharedGroups((prev) => new Set(prev).add(groupId))
@@ -85,8 +99,6 @@ export function ShareModal({ resourceType, resourceId, title, onClose }: ShareMo
       }
     }
   }
-
-  const isPending = createShareLink.isPending || toggleVisibility.isPending
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
@@ -113,46 +125,48 @@ export function ShareModal({ resourceType, resourceId, title, onClose }: ShareMo
 
         <div className="p-5 flex flex-col gap-5">
 
-          {/* Toggle público/privado */}
-          <div className="flex items-center justify-between p-4 rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)]">
-            <div className="flex items-center gap-3">
-              {isPublic ? (
-                <Globe size={16} className="text-emerald-400 shrink-0" />
-              ) : (
-                <Lock size={16} className="text-[var(--text-secondary)] shrink-0" />
-              )}
-              <div>
-                <p className="text-sm font-medium text-[var(--text-primary)]">
-                  {isPublic ? 'Link público' : 'Privado'}
-                </p>
-                <p className="text-xs text-[var(--text-secondary)]">
-                  {isPublic
-                    ? 'Qualquer pessoa com o link pode ver'
-                    : 'Somente você pode ver'}
-                </p>
-              </div>
+          {/* Loading state */}
+          {!synced && linksLoading && (
+            <div className="flex items-center justify-center py-4">
+              <Loader2 size={18} className="text-[var(--accent)] animate-spin" />
             </div>
-            {/* Toggle switch */}
-            <button
-              onClick={handleToggle}
-              disabled={isPending}
-              aria-label={isPublic ? 'Tornar privado' : 'Tornar público'}
-              className={[
-                'relative w-11 h-6 rounded-full transition-colors duration-200 shrink-0 disabled:opacity-60',
-                isPublic ? 'bg-emerald-500' : 'bg-[var(--border)]',
-              ].join(' ')}
-            >
-              <span
-                className={[
-                  'absolute top-[3px] h-[18px] w-[18px] rounded-full bg-white shadow transition-transform duration-200',
-                  isPublic ? 'translate-x-[23px]' : 'translate-x-[3px]',
-                ].join(' ')}
-              />
-            </button>
-          </div>
+          )}
+
+          {/* Toggle público/privado */}
+          {synced && (
+            <div className="flex items-center justify-between p-4 rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)]">
+              <div className="flex items-center gap-3">
+                {isPublic ? (
+                  <Globe size={16} className="text-emerald-400 shrink-0" />
+                ) : (
+                  <Lock size={16} className="text-[var(--text-secondary)] shrink-0" />
+                )}
+                <div>
+                  <p className="text-sm font-medium text-[var(--text-primary)]">
+                    {isPublic ? 'Link público' : 'Privado'}
+                  </p>
+                  <p className="text-xs text-[var(--text-secondary)]">
+                    {isPublic
+                      ? 'Qualquer pessoa com o link pode ver'
+                      : 'Somente você pode ver'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Radix UI Switch — zero problema de CSS */}
+              <Switch.Root
+                checked={isPublic}
+                onCheckedChange={handleToggle}
+                disabled={isPending}
+                className="relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-emerald-500 data-[state=unchecked]:bg-[var(--border)]"
+              >
+                <Switch.Thumb className="pointer-events-none block h-5 w-5 rounded-full bg-white shadow-lg ring-0 transition-transform duration-200 data-[state=checked]:translate-x-5 data-[state=unchecked]:translate-x-0" />
+              </Switch.Root>
+            </div>
+          )}
 
           {/* Link público — só mostra quando ativo */}
-          {isPublic && publicUrl && (
+          {synced && isPublic && publicUrl && (
             <div className="flex gap-2">
               <div className="flex-1 min-w-0 px-3 py-2.5 rounded-xl border border-[var(--border)] bg-[var(--bg-base)]">
                 <p className="text-xs text-[var(--text-secondary)] truncate font-mono">{publicUrl}</p>
@@ -167,7 +181,7 @@ export function ShareModal({ resourceType, resourceId, title, onClose }: ShareMo
           )}
 
           {/* Compartilhar com grupos */}
-          {groups && groups.length > 0 && (
+          {synced && groups && groups.length > 0 && (
             <div>
               <div className="flex items-center gap-2 mb-3">
                 <Users size={13} className="text-[var(--text-secondary)]" />
@@ -199,7 +213,6 @@ export function ShareModal({ resourceType, resourceId, title, onClose }: ShareMo
                         <button
                           onClick={() => handleShareToGroup(group.id)}
                           disabled={isSharing || isPending}
-                          title={!shareLink ? 'Ative o link público primeiro' : undefined}
                           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-[var(--accent-bg)] text-[var(--accent)] border border-[var(--accent)]/20 hover:bg-[var(--accent)]/20 transition-colors disabled:opacity-50"
                         >
                           {isSharing ? (
@@ -217,7 +230,7 @@ export function ShareModal({ resourceType, resourceId, title, onClose }: ShareMo
             </div>
           )}
 
-          {groups?.length === 0 && (
+          {synced && groups?.length === 0 && (
             <p className="text-xs text-[var(--text-secondary)] text-center py-2">
               Você não tem grupos de estudo.{' '}
               <a href="/groups" className="text-[var(--accent)] hover:underline">Criar um grupo</a>
