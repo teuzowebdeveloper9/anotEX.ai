@@ -17,20 +17,20 @@ interface ShareModalProps {
 }
 
 export function ShareModal({ resourceType, resourceId, title, onClose }: ShareModalProps) {
-  const { refetch, isLoading: linksLoading } = useShareLinks()
+  const { refetch, isLoading: linksLoading, isFetching: linksFetching } = useShareLinks()
   const existing = useShareLinkByResource(resourceType, resourceId)
 
-  // Sync from server only on initial load (when shareLink is still null)
+  // Sync from server only after the fetch (including background refetch) completes
   const [shareLink, setShareLink] = useState<ShareLink | null>(null)
   const [synced, setSynced] = useState(false)
 
   useEffect(() => {
-    // Once the query finishes loading, sync the server state once
-    if (!synced && !linksLoading) {
+    // Wait for both loading and fetching (background refetch) to finish before syncing
+    if (!synced && !linksLoading && !linksFetching) {
       setShareLink(existing ?? null)
       setSynced(true)
     }
-  }, [existing, linksLoading, synced])
+  }, [existing, linksLoading, linksFetching, synced])
 
   const [copied, setCopied] = useState(false)
   const [sharedGroups, setSharedGroups] = useState<Set<string>>(new Set())
@@ -126,7 +126,7 @@ export function ShareModal({ resourceType, resourceId, title, onClose }: ShareMo
         <div className="p-5 flex flex-col gap-5">
 
           {/* Loading state */}
-          {!synced && linksLoading && (
+          {!synced && (linksLoading || linksFetching) && (
             <div className="flex items-center justify-center py-4">
               <Loader2 size={18} className="text-[var(--accent)] animate-spin" />
             </div>
