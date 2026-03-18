@@ -12,9 +12,11 @@ import { SHARE_LINK_REPOSITORY } from './domain/repositories/share-link.reposito
 import { AUDIO_REPOSITORY } from '../audio/domain/repositories/audio.repository.js';
 import { TRANSCRIPTION_REPOSITORY } from '../transcription/domain/repositories/transcription.repository.js';
 import { STUDY_MATERIAL_REPOSITORY } from '../study-materials/domain/repositories/study-material.repository.js';
+import { STUDY_FOLDER_REPOSITORY } from '../study-folders/domain/repositories/study-folder.repository.js';
 import { AudioRepositoryImpl } from '../audio/infrastructure/repositories/audio.repository.impl.js';
 import { TranscriptionRepositoryImpl } from '../transcription/infrastructure/repositories/transcription.repository.impl.js';
 import { StudyMaterialRepositoryImpl } from '../study-materials/infrastructure/repositories/study-material.repository.impl.js';
+import { StudyFolderRepositoryImpl } from '../study-folders/infrastructure/repositories/study-folder.repository.impl.js';
 
 @Module({
   imports: [ConfigModule],
@@ -30,6 +32,7 @@ import { StudyMaterialRepositoryImpl } from '../study-materials/infrastructure/r
     { provide: AUDIO_REPOSITORY, useClass: AudioRepositoryImpl },
     { provide: TRANSCRIPTION_REPOSITORY, useClass: TranscriptionRepositoryImpl },
     { provide: STUDY_MATERIAL_REPOSITORY, useClass: StudyMaterialRepositoryImpl },
+    { provide: STUDY_FOLDER_REPOSITORY, useClass: StudyFolderRepositoryImpl },
   ],
   exports: [SHARE_LINK_REPOSITORY],
 })

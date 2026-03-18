@@ -1,4 +1,4 @@
-export type ResourceType = 'transcription' | 'audio' | 'study_material';
+export type ResourceType = 'transcription' | 'audio' | 'study_material' | 'study_folder';
 
 export interface ShareLinkEntity {
   readonly id: string;
