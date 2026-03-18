@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { axiosPublic } from '@/shared/api/axios'
 import { ENDPOINTS } from '@/shared/api/endpoints'
 import { Badge } from '@/shared/ui/Badge/Badge'
+import type { AudioStatus } from '@/shared/types/api.types'
 import { MarkdownRenderer } from '@/shared/ui/MarkdownRenderer/MarkdownRenderer'
 import { MindMapViewer } from '@/widgets/mindmap/ui/MindMapViewer'
 import { FlashcardDeck } from '@/widgets/flashcard-deck/ui/FlashcardDeck'
@@ -120,7 +121,7 @@ export function SharedResourcePage() {
                     </p>
                   )}
                 </div>
-                {data.audio?.status && <Badge status={data.audio.status} />}
+                {data.audio?.status && <Badge status={data.audio.status as AudioStatus} />}
               </div>
 
               {/* Shared banner */}
