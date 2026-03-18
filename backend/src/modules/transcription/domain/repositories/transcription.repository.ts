@@ -1,6 +1,7 @@
 import {
   CreateTranscriptionProps,
   TranscriptionEntity,
+  TranscriptionSegment,
   TranscriptionStatus,
 } from '../entities/transcription.entity.js';
 
@@ -19,6 +20,7 @@ export interface ITranscriptionRepository {
     transcriptionText: string,
     summaryText: string,
     title: string,
+    segments: TranscriptionSegment[],
   ): Promise<void>;
   deleteByAudioId(audioId: string): Promise<void>;
 }
