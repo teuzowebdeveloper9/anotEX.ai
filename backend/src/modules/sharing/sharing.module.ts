@@ -31,6 +31,6 @@ import { StudyMaterialRepositoryImpl } from '../study-materials/infrastructure/r
     { provide: TRANSCRIPTION_REPOSITORY, useClass: TranscriptionRepositoryImpl },
     { provide: STUDY_MATERIAL_REPOSITORY, useClass: StudyMaterialRepositoryImpl },
   ],
-  exports: [SHARE_LINK_REPOSITORY, ShareLinkRepositoryImpl],
+  exports: [SHARE_LINK_REPOSITORY],
 })
 export class SharingModule {}
