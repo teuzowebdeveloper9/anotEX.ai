@@ -4,7 +4,7 @@
 
 # anotEX.ai
 
-**Transforme qualquer aula em resumo, flashcards e mapa mental — automaticamente.**
+**Transforme qualquer aula em resumo, flashcards, mapa mental e quiz — automaticamente.**
 
 Grave, faça upload ou cole um link do YouTube. A IA transcreve, resume e gera materiais de estudo completos em segundos.
 
@@ -42,7 +42,7 @@ Grave, faça upload ou cole um link do YouTube. A IA transcreve, resume e gera m
 
 ## Visão Geral
 
-O **anotEX.ai** é uma plataforma de estudo com IA que automatiza o processo de anotação. Você grava uma aula, faz upload de um arquivo de áudio ou cola um link do YouTube — o sistema transcreve com Groq Whisper, gera um resumo inteligente com título, cria flashcards para revisão espaçada e estrutura um mapa mental navegável, tudo de forma assíncrona.
+O **anotEX.ai** é uma plataforma de estudo com IA que automatiza o processo de anotação. Você grava uma aula, faz upload de um arquivo de áudio ou cola um link do YouTube — o sistema transcreve com Groq Whisper Large v3, gera um resumo inteligente com título, cria flashcards para revisão, estrutura um mapa mental navegável, gera um quiz de múltipla escolha e expõe timestamps clicáveis sincronizados com o áudio original, tudo de forma assíncrona.
 
 O backend foi construído com **NestJS e Clean Architecture** estrita. O frontend segue **Feature-Sliced Design (FSD)**. Todo processamento de áudio passa por uma fila **BullMQ + Upstash Redis** para garantir resiliência e escalabilidade.
 
@@ -56,32 +56,56 @@ O backend foi construído com **NestJS e Clean Architecture** estrita. O fronten
 - Armazenamento seguro no **Cloudflare R2** com URLs assinadas (15 minutos de expiração)
 
 ### Processamento com IA
-- **Transcrição automática** via Groq Whisper Large v3 — alta precisão, baixa latência
+- **Transcrição com timestamps** via Groq Whisper Large v3 — retorna segmentos com `start/end` por trecho
 - **Resumo inteligente** com título gerado automaticamente via Groq Llama 3.3 70B
-- **Flashcards** gerados automaticamente para revisão espaçada
+- **Flashcards** gerados automaticamente com frente, verso, dificuldade e tópico
 - **Mapa mental** estruturado em Markdown navegável via markmap
-- **Quiz** gerado automaticamente (backend completo, UI em desenvolvimento)
+- **Quiz de múltipla escolha** com 4 opções, resposta correta e explicação por questão
+
+### Player com Timestamps Clicáveis
+O painel de transcrição inclui um player de áudio nativo sincronizado com os segmentos:
+- Cada trecho da transcrição é um botão com o timestamp do áudio (`1:14`, `2:32`, etc.)
+- Clicar num trecho posiciona o player naquele momento exato e inicia a reprodução
+- Durante a reprodução, o trecho ativo é destacado em tempo real com auto-scroll
+- Transcrições antigas (sem segments) exibem o texto plano como fallback
+
+### Quiz Interativo
+- Tela de quiz com uma pergunta por vez e 4 opções (A/B/C/D)
+- Ao responder: opção correta em verde, errada em vermelho, demais opacas
+- Explicação da IA exibida após cada resposta
+- Dot indicators coloridos: cinza = não respondido, verde = acertou, vermelho = errou
+- Tela de resultado com score, barra percentual e breakdown completo por questão
+- Botão "Refazer quiz" reinicia do zero
+
+### Exportar Materiais
+Botão **Exportar** na tela de cada transcrição com três opções:
+- **PDF do resumo** — abre janela de impressão com o resumo formatado (sem dependência externa)
+- **TXT da transcrição** — baixa o texto completo como `.txt`
+- **Flashcards para Anki** — gera um `.txt` tab-separado com cabeçalho Anki (`#deck`, `#notetype`), importável via File → Import no Anki Desktop
 
 ### Pastas de Estudo
-A feature central da plataforma. Organize qualquer material por tema, independente de qual aula o gerou.
-
+Organize qualquer material por tema, independente de qual aula o gerou.
 - Crie pastas temáticas e adicione resumos, transcrições, mapas mentais e flashcards de qualquer gravação
 - Visualize todos os materiais de um tema em um único lugar, agrupados por tipo
 - **Recomendações de vídeo desbloqueadas a partir de 5 itens**: o sistema analisa o conteúdo da pasta com Groq Llama e usa a **YouTube Data API v3** para recomendar 5 vídeos relacionados ao tema
 - **Processe qualquer vídeo recomendado direto na plataforma**: o backend baixa o áudio via **yt-dlp-wrap**, joga no mesmo pipeline de transcrição e gera novos materiais — sem sair do app
 - Player do YouTube embedado na tela, sem redirecionamento externo
 
+### Compartilhamento e Grupos
+- Gere links públicos para transcrições e pastas com toggle público/privado
+- Crie grupos de estudo, adicione membros e compartilhe materiais com o grupo
+
 ### Interface
-- Design dark-first com sistema de cores consistente
+- Design dark-first com sistema de cores via CSS custom properties
 - Busca em tempo real nas transcrições
 - Polling automático de status (TanStack Query, 5s quando PENDING/PROCESSING)
-- Toasts de feedback via Sonner
-- Layout responsivo com sidebar e navbar com suporte mobile
+- Sidebar com navegação para: Gravações, Transcrições, Resumos, Mapas Mentais, Flashcards, **Quiz**, Pastas de Estudo, Grupos de Estudo
+- Layout responsivo com suporte mobile
 
 ### Autenticação e Segurança
 - Auth via **Supabase** com email + senha
 - JWT validado em todas as rotas protegidas
-- **Row Level Security (RLS)** habilitado em todas as tabelas — cada usuário acessa apenas seus próprios dados
+- **Row Level Security (RLS)** habilitado em todas as tabelas
 - Rate limiting global (100 req/min) e específico para uploads
 - Headers de segurança via Helmet
 
@@ -94,8 +118,8 @@ A feature central da plataforma. Organize qualquer material por tema, independen
 ```
 backend/src/
 ├── modules/
-│   ├── audio/                  # Upload, storage, status
-│   ├── transcription/          # Transcrição + resumo + fila
+│   ├── audio/                  # Upload, storage, status, URL assinada
+│   ├── transcription/          # Transcrição + resumo + fila + segments
 │   ├── study-materials/        # Flashcards, mindmap, quiz
 │   └── study-folders/          # Pastas temáticas + recomendações YouTube
 ├── shared/
@@ -130,9 +154,9 @@ módulo/
 ```
 frontend/src/
 ├── app/        # Providers globais, router, estilos globais
-├── pages/      # Composição de widgets/features por rota (10 páginas)
-├── widgets/    # Blocos de UI independentes (Navbar, Sidebar, etc.)
-├── features/   # Ações do usuário (login, gravar, upload, pastas)
+├── pages/      # Composição de widgets/features por rota (11 páginas)
+├── widgets/    # Blocos de UI independentes (Navbar, Sidebar, FlashcardDeck, QuizPlayer, TranscriptionViewer, MindMapViewer)
+├── features/   # Ações do usuário (login, gravar, upload, exportar, compartilhar)
 ├── entities/   # Modelos de negócio com UI e queries
 └── shared/     # UI base, axios, supabase client, hooks, tipos
 ```
@@ -151,15 +175,15 @@ frontend/src/
 
 2. Worker de transcrição (serviço separado no Railway)
         │
-        ├─► Groq Whisper Large v3    → texto transcrito
-        ├─► Groq Llama 3.3 70B       → resumo + título
-        └─► Salva COMPLETED no Supabase
+        ├─► Groq Whisper Large v3 (verbose_json) → texto + segments com timestamps
+        ├─► Groq Llama 3.3 70B                   → resumo + título
+        └─► Salva COMPLETED + segments JSONB no Supabase
 
 3. Worker de materiais (mesmo processo do worker de transcrição)
         │
-        ├─► Groq Llama 3.3 70B       → flashcards (array JSON)
-        ├─► Groq Llama 3.3 70B       → mapa mental (Markdown)
-        ├─► Groq Llama 3.3 70B       → quiz (array JSON)
+        ├─► Groq Llama 3.3 70B  → flashcards (array JSON)
+        ├─► Groq Llama 3.3 70B  → mapa mental (Markdown)
+        ├─► Groq Llama 3.3 70B  → quiz (array JSON com explicações)
         └─► Salva em study_materials no Supabase
 
 4. Frontend
@@ -177,17 +201,17 @@ frontend/src/
 | Node.js | 22+ | Runtime |
 | NestJS | 11 | Framework HTTP + injeção de dependência |
 | TypeScript | 5.7 | Linguagem (strict mode, sem `any`) |
-| Groq SDK | 0.37 | Transcrição (Whisper) + LLM (Llama) |
+| Groq SDK | 0.37 | Transcrição (Whisper Large v3) + LLM (Llama 3.3 70B) |
 | @supabase/supabase-js | 2.98 | Banco de dados + Auth |
 | @aws-sdk/client-s3 | 3 | Cloudflare R2 (compatível com S3) |
 | BullMQ | 5 | Fila de jobs assíncrona |
 | yt-dlp-wrap | — | Download de áudio do YouTube |
-| ffmpeg-static | 5 | Conversão de formatos de áudio |
+| ffmpeg-static | 5 | Conversão e compressão de áudio |
 | Helmet | 8 | Headers de segurança HTTP |
 | @nestjs/throttler | 6 | Rate limiting |
 | class-validator | 0.15 | Validação de DTOs |
 | Joi | 18 | Validação de variáveis de ambiente no startup |
-| Jest | 30 | Testes unitários (32 testes, 8 suites) |
+| Jest | 30 | Testes unitários |
 
 ### Frontend
 
@@ -203,6 +227,7 @@ frontend/src/
 | Zustand | 5 | Estado global |
 | Axios | 1 | HTTP client com interceptor JWT automático |
 | @supabase/supabase-js | 2 | Auth (email + senha) |
+| @radix-ui/react-switch | 1 | Toggle de compartilhamento acessível |
 | Lucide React | 0.577 | Ícones (sem emojis na UI) |
 | markmap-lib + markmap-view | 0.18 | Renderização interativa de mapa mental |
 | react-markdown | 10 | Renderização de Markdown |
@@ -214,10 +239,10 @@ frontend/src/
 |---|---|
 | **Supabase** | Banco de dados (Postgres), autenticação, RLS por tabela |
 | **Cloudflare R2** | Storage de áudio — S3-compatible, zero egress fee |
-| **Upstash Redis** | Broker da fila BullMQ — serverless, TLS, porta 6379 |
+| **Upstash Redis** | Broker da fila BullMQ — serverless, TLS |
 | **Railway** | Deploy do backend — API e Worker como serviços separados |
 | **Cloudflare Workers** | Deploy do frontend — edge, modo SPA |
-| **Groq** | APIs de IA: Whisper Large v3 (transcrição) + Llama 3.3 70B (LLM) |
+| **Groq** | Whisper Large v3 (transcrição com timestamps) + Llama 3.3 70B (LLM) |
 | **YouTube Data API v3** | Busca de vídeos recomendados para Pastas de Estudo |
 
 ---
@@ -233,14 +258,14 @@ anotEX.ai/
 │   │   │   │   ├── domain/         # entities, repositories, use-cases
 │   │   │   │   ├── application/    # dto
 │   │   │   │   ├── infrastructure/ # Supabase + R2 implementations
-│   │   │   │   └── presentation/   # controller, guards
+│   │   │   │   └── presentation/   # controller (upload, status, url, delete), guards
 │   │   │   ├── transcription/
-│   │   │   │   ├── domain/
+│   │   │   │   ├── domain/         # TranscriptionEntity + TranscriptionSegment
 │   │   │   │   ├── application/    # queue processor (BullMQ)
-│   │   │   │   ├── infrastructure/ # Groq Whisper + Groq Llama providers
+│   │   │   │   ├── infrastructure/ # Groq Whisper (verbose_json) + Groq Llama providers
 │   │   │   │   └── presentation/
 │   │   │   ├── study-materials/
-│   │   │   │   ├── domain/
+│   │   │   │   ├── domain/         # FlashcardItem, MindmapContent, QuizItem
 │   │   │   │   ├── application/    # queue processor (BullMQ)
 │   │   │   │   ├── infrastructure/ # Groq Llama provider
 │   │   │   │   └── presentation/
@@ -261,19 +286,32 @@ anotEX.ai/
 ├── frontend/
 │   ├── src/
 │   │   ├── app/                    # Router, providers, globals.css
-│   │   ├── pages/                  # 10 páginas (Landing, Login, Dashboard, etc.)
-│   │   ├── widgets/                # Navbar, Sidebar, MouseLight, FlashcardDeck, MindMapViewer
-│   │   ├── features/               # auth, recording, transcription, study-folders
-│   │   ├── entities/               # audio, transcription, study-material, study-folder
+│   │   ├── pages/                  # 11 páginas (Landing, Login, Dashboard, Quiz, etc.)
+│   │   ├── widgets/
+│   │   │   ├── flashcard-deck/     # FlashcardDeck com flip animation
+│   │   │   ├── quiz-player/        # QuizPlayer com score e breakdown
+│   │   │   ├── transcription-viewer/ # Player de áudio + timestamps clicáveis
+│   │   │   ├── mindmap/            # MindMapViewer (markmap)
+│   │   │   ├── navbar/
+│   │   │   ├── sidebar/            # Quiz adicionado na nav
+│   │   │   └── mouse-light/
+│   │   ├── features/
+│   │   │   ├── auth/               # login-with-password, logout
+│   │   │   ├── recording/          # useRecorder, useUploadAudio
+│   │   │   ├── transcription/      # export (PDF/TXT/Anki), copy, delete, poll-status
+│   │   │   ├── sharing/            # create-share-link, toggle-visibility
+│   │   │   ├── groups/             # share-to-group
+│   │   │   └── study-folders/      # create, delete, add-item, remove-item, process-video
+│   │   ├── entities/               # audio, transcription, study-material, study-folder, study-group, share-link
 │   │   └── shared/
 │   │       ├── api/                # axios.ts (interceptor JWT) + endpoints.ts
 │   │       ├── auth/               # supabase.ts client
-│   │       ├── hooks/              # useAudioLevel, useMousePosition
-│   │       ├── ui/                 # Button, Card, Input, Badge, Skeleton, etc.
+│   │       ├── hooks/              # useAudioLevel, useMousePosition, useSidebarStore
+│   │       ├── ui/                 # Button, Card, Input, Badge, Skeleton, ShareModal, etc.
 │   │       └── assets/             # logos e imagens
 │   ├── package.json
 │   ├── vite.config.ts
-│   └── wrangler.jsonc              # config do Cloudflare Workers
+│   └── wrangler.jsonc
 │
 ├── supabase/
 │   └── migrations/
@@ -281,12 +319,11 @@ anotEX.ai/
 │       ├── 20260307000000_enable_rls.sql
 │       ├── 20260307000001_study_materials.sql
 │       ├── 20260313000000_study_folders.sql
-│       └── 20260313000001_study_folder_items_audio_id.sql
+│       ├── 20260313000001_study_folder_items_audio_id.sql
+│       └── 20260318000000_add_segments_to_transcriptions.sql
 │
-├── docs/
-│   └── features/
-│       └── study-folders.md
-├── DEPLOY.md
+├── ai-docs/                        # Documentação técnica de features e roadmap
+├── CLAUDE.md                       # Guia de desenvolvimento para o agente
 └── README.md
 ```
 
@@ -302,7 +339,7 @@ anotEX.ai/
 - Conta no [Groq](https://console.groq.com)
 - Bucket no [Cloudflare R2](https://dash.cloudflare.com)
 - Banco no [Upstash Redis](https://console.upstash.com)
-- Chave da [YouTube Data API v3](https://console.cloud.google.com) (Google Cloud Console → habilitar YouTube Data API v3)
+- Chave da [YouTube Data API v3](https://console.cloud.google.com)
 
 ---
 
@@ -320,13 +357,13 @@ cd anotEx.ai
 1. Crie um projeto em [supabase.com](https://supabase.com)
 2. No **SQL Editor**, execute as migrations na ordem:
 
-```sql
--- Execute cada arquivo individualmente no SQL Editor do Supabase:
--- 1. supabase/migrations/001_initial_schema.sql
--- 2. supabase/migrations/20260307000000_enable_rls.sql
--- 3. supabase/migrations/20260307000001_study_materials.sql
--- 4. supabase/migrations/20260313000000_study_folders.sql
--- 5. supabase/migrations/20260313000001_study_folder_items_audio_id.sql
+```
+supabase/migrations/001_initial_schema.sql
+supabase/migrations/20260307000000_enable_rls.sql
+supabase/migrations/20260307000001_study_materials.sql
+supabase/migrations/20260313000000_study_folders.sql
+supabase/migrations/20260313000001_study_folder_items_audio_id.sql
+supabase/migrations/20260318000000_add_segments_to_transcriptions.sql
 ```
 
 3. Vá em **Authentication → Providers → Email** e confirme que está habilitado
@@ -338,17 +375,15 @@ cd anotEx.ai
 ### 3. Configure o Cloudflare R2
 
 1. No Cloudflare Dashboard → **R2 → Create bucket** → nome: `audios-anotex`
-2. Em **Settings → CORS**, adicione a origem do seu backend
-3. Gere as credenciais de API em **Manage R2 API Tokens**
-4. Anote: `Account ID`, `Access Key ID`, `Secret Access Key`
+2. Gere as credenciais de API em **Manage R2 API Tokens**
+3. Anote: `Account ID`, `Access Key ID`, `Secret Access Key`
 
 ---
 
 ### 4. Configure o Upstash Redis
 
 1. Acesse [console.upstash.com](https://console.upstash.com) → **Create Database**
-2. Escolha região próxima ao Railway
-3. Anote: `UPSTASH_REDIS_URL` (formato `rediss://...`) e `UPSTASH_REDIS_TOKEN`
+2. Anote: `UPSTASH_REDIS_URL` (formato `rediss://...`) e `UPSTASH_REDIS_TOKEN`
 
 ---
 
@@ -374,14 +409,13 @@ WORKER_ONLY=true npm run start:dev
 Verifique:
 ```bash
 curl http://localhost:3000/api/v1/health
-# Esperado: { "status": "ok" }
+# { "status": "ok" }
 ```
 
 **Testes:**
 ```bash
-npm run test          # todos os testes unitários
-npm run test:watch    # modo watch
-npm run test:cov      # relatório de cobertura
+npm run test        # todos os testes unitários
+npm run test:cov    # relatório de cobertura
 ```
 
 ---
@@ -463,14 +497,16 @@ VITE_API_BASE_URL=http://localhost:3000/api/v1
 | Tabela | Descrição |
 |---|---|
 | `audios` | Registro de cada arquivo de áudio — status, path no R2, user_id |
-| `transcriptions` | Texto transcrito, resumo, título e status do processamento |
+| `transcriptions` | Texto transcrito, resumo, título, segments (JSONB) e status |
 | `study_materials` | Flashcards, mapa mental (Markdown) e quiz por transcrição |
-| `study_folders` | Pastas temáticas do usuário — nome, descrição, contagem de itens |
-| `study_folder_items` | Itens salvos em cada pasta — referências por transcription_id e audio_id |
+| `study_folders` | Pastas temáticas do usuário |
+| `study_folder_items` | Itens salvos em cada pasta |
+| `share_links` | Links de compartilhamento com token único e flag isPublic |
+| `study_groups` | Grupos de estudo com membros e compartilhamentos |
 
 ### Row Level Security (RLS)
 
-**Todas as tabelas têm RLS habilitado.** Cada usuário acessa somente seus próprios dados via `auth.uid()` — a verificação acontece no banco, não apenas no código.
+**Todas as tabelas têm RLS habilitado.** Cada usuário acessa somente seus próprios dados via `auth.uid()` — verificação no banco, não apenas no código.
 
 ```sql
 -- Exemplo: usuário vê apenas seus próprios áudios
@@ -479,9 +515,7 @@ CREATE POLICY "audios_select_own"
   USING (auth.uid() = user_id);
 ```
 
-O backend usa `SUPABASE_SERVICE_ROLE_KEY`, que bypassa o RLS de forma controlada para escrita nos workers. O frontend usa apenas a `SUPABASE_ANON_KEY` — nunca acessa o banco diretamente.
-
-Todas as colunas `user_id` usadas nas policies têm índices dedicados para evitar full table scans.
+O backend usa `SUPABASE_SERVICE_ROLE_KEY` apenas nos workers. O frontend usa somente a `SUPABASE_ANON_KEY` — nunca acessa o banco diretamente.
 
 ---
 
@@ -489,37 +523,23 @@ Todas as colunas `user_id` usadas nas policies têm índices dedicados para evit
 
 ### Backend — Railway
 
-O backend roda como **dois serviços separados** no Railway a partir do mesmo repositório. O mesmo binário decide o que fazer pela variável `WORKER_ONLY`.
+O backend roda como **dois serviços separados** no Railway. O mesmo binário decide o que fazer pela variável `WORKER_ONLY`.
 
 #### Serviço `api`
 
-1. [railway.app](https://railway.app) → **New Project → Deploy from GitHub repo** → selecione o repositório
-2. **Settings:**
-   - Root Directory: `backend`
-   - Start Command: `node dist/main.js`
+1. [railway.app](https://railway.app) → **New Project → Deploy from GitHub repo**
+2. **Settings:** Root Directory: `backend` · Start Command: `node dist/main.js`
 3. **Variables:** adicione todas as env vars do backend
 
 #### Serviço `worker`
 
 1. No mesmo projeto → **+ Create → GitHub Repo** → mesmo repositório
-2. **Settings:**
-   - Root Directory: `backend`
-   - Start Command: `node dist/main.js`
+2. **Settings:** Root Directory: `backend` · Start Command: `node dist/main.js`
 3. **Variables:** mesmas env vars do `api` + `WORKER_ONLY=true`
-
-> O Worker não sobe servidor HTTP — apenas inicializa o contexto NestJS e processa jobs da fila BullMQ continuamente.
-
-#### Após criar os serviços
-
-1. **Settings → Domains → Generate Domain** no serviço `api` → anote a URL
-2. Atualize `ALLOWED_ORIGINS` com a URL do frontend em produção (sem barra no final)
-3. Verifique: `https://sua-url.up.railway.app/api/v1/health`
 
 ---
 
 ### Frontend — Cloudflare Workers
-
-#### Deploy manual
 
 ```bash
 cd frontend
@@ -527,58 +547,24 @@ npm run build
 npx wrangler deploy --assets ./dist
 ```
 
-> **Importante:** sempre use `--assets ./dist`. Sem a flag, o Wrangler lê o projeto inteiro ao invés do build compilado.
-
-#### Deploy via Cloudflare Pages (CI/CD automático)
-
-1. [pages.cloudflare.com](https://pages.cloudflare.com) → **Create a project → Connect to Git**
-2. Selecione o repositório
-3. **Build settings:**
-   - Build command: `cd frontend && npm run build`
-   - Build output directory: `frontend/dist`
-   - Root directory: `/` (deixe vazio)
-4. **Environment Variables:**
-   ```
-   VITE_SUPABASE_URL=
-   VITE_SUPABASE_ANON_KEY=
-   VITE_API_BASE_URL=https://sua-api.up.railway.app/api/v1
-   ```
-
-#### `wrangler.jsonc`
-
-```jsonc
-{
-  "name": "anoteexai",
-  "compatibility_date": "2025-09-27",
-  "assets": {
-    "not_found_handling": "single-page-application"
-  }
-}
-```
-
----
-
-### Configurações pós-deploy
-
-1. **Railway → serviço `api` → Variables:**
-   - Atualize `ALLOWED_ORIGINS` com a URL do Cloudflare (sem barra no final)
-   - Múltiplas origens: separe por vírgula — `https://site1.com,https://site2.com`
-
-2. **Supabase → Authentication → URL Configuration:**
-   - **Site URL:** URL do Cloudflare
-   - **Redirect URLs:** `https://seu-site.workers.dev/auth/callback`
+> **Importante:** sempre use `--assets ./dist`. Sem a flag, o Wrangler lê o projeto inteiro.
 
 ---
 
 ### Checklist de deploy
 
 - [ ] `GET /api/v1/health` retorna 200 no Railway
-- [ ] Logs do serviço `worker` no Railway mostram jobs sendo processados
-- [ ] Login com email + senha funcionando no frontend
+- [ ] Logs do serviço `worker` mostram jobs sendo processados
+- [ ] Login com email + senha funcionando
 - [ ] Upload de áudio e transcrição ponta a ponta funcionando
-- [ ] Flashcards e mapa mental gerados após transcrição
+- [ ] Segments (timestamps) sendo salvos em novas transcrições
+- [ ] Player de áudio com timestamps clicáveis funcionando
+- [ ] Flashcards, mapa mental e quiz gerados após transcrição
+- [ ] Quiz interativo com score funcionando
+- [ ] Exportar PDF, TXT e Anki funcionando
 - [ ] Pastas de Estudo criando e listando corretamente
 - [ ] Recomendações de YouTube aparecem após 5 itens na pasta
+- [ ] Compartilhamento de links funcionando
 
 ---
 
@@ -590,26 +576,47 @@ Todas as rotas (exceto `/health`) exigem `Authorization: Bearer <token>` no head
 GET    /api/v1/health
 
 # Áudio
-POST   /api/v1/audio/upload                          # multipart/form-data
-GET    /api/v1/audio/status/:jobId
+POST   /api/v1/audio/upload              # multipart/form-data
+GET    /api/v1/audio                     # lista do usuário
+GET    /api/v1/audio/:id/status          # status + transcrição (com segments)
+GET    /api/v1/audio/:id/url             # URL assinada (15min) para reprodução
+DELETE /api/v1/audio/:id
 
 # Transcrições
-GET    /api/v1/transcription                         # lista do usuário
-GET    /api/v1/transcription/:id
+GET    /api/v1/transcription             # lista do usuário
+GET    /api/v1/transcription/:audioId    # transcrição com segments
 
 # Materiais de estudo
-GET    /api/v1/study-materials/:transcriptionId      # flashcards + mindmap + quiz
+GET    /api/v1/study-materials/:transcriptionId/:type   # flashcards | mindmap | quiz
+POST   /api/v1/study-materials/:transcriptionId/generate
 
 # Pastas de estudo
-GET    /api/v1/study-folders                         # lista todas as pastas
-POST   /api/v1/study-folders                         # cria nova pasta
-GET    /api/v1/study-folders/:id                     # pasta + itens agrupados por tipo
-PATCH  /api/v1/study-folders/:id                     # renomeia ou atualiza descrição
+GET    /api/v1/study-folders
+POST   /api/v1/study-folders
+GET    /api/v1/study-folders/:id
+PATCH  /api/v1/study-folders/:id
 DELETE /api/v1/study-folders/:id
-POST   /api/v1/study-folders/:id/items               # adiciona material à pasta
-DELETE /api/v1/study-folders/:id/items/:itemId       # remove material da pasta
-GET    /api/v1/study-folders/:id/recommendations     # vídeos YouTube (requer 5+ itens)
-POST   /api/v1/study-folders/:id/process-video       # processa vídeo YouTube na plataforma
+POST   /api/v1/study-folders/:id/items
+DELETE /api/v1/study-folders/:id/items/:itemId
+GET    /api/v1/study-folders/:id/recommendations
+POST   /api/v1/study-folders/:id/process-video
+
+# Compartilhamento
+POST   /api/v1/sharing
+GET    /api/v1/sharing
+GET    /api/v1/sharing/public/:token
+PATCH  /api/v1/sharing/:id/toggle
+DELETE /api/v1/sharing/:id
+
+# Grupos de estudo
+POST   /api/v1/groups
+GET    /api/v1/groups
+GET    /api/v1/groups/:id
+DELETE /api/v1/groups/:id
+POST   /api/v1/groups/:id/members
+DELETE /api/v1/groups/:id/members/:userId
+POST   /api/v1/groups/:id/shares
+DELETE /api/v1/groups/:id/shares/:shareLinkId
 ```
 
 ---
