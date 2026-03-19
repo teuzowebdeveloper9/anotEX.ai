@@ -15,6 +15,7 @@ import {
   Map,
   Wand2,
   Share2,
+  CircleHelp,
 } from 'lucide-react'
 import { Navbar } from '@/widgets/navbar/ui/Navbar'
 import { Sidebar } from '@/widgets/sidebar/ui/Sidebar'
@@ -35,13 +36,14 @@ import { FOLDER_ITEM_TYPE_LABELS, FOLDER_ITEM_TYPE_TAB } from '@/entities/study-
 const RECOMMENDATIONS_THRESHOLD = 5
 
 const TYPE_CONFIG: Record<FolderItemType, { icon: React.ElementType; color: string; gradient: string }> = {
-  SUMMARY:       { icon: Sparkles, color: 'text-purple-400', gradient: 'from-purple-500/20 to-transparent' },
-  TRANSCRIPTION: { icon: FileText, color: 'text-blue-400',   gradient: 'from-blue-500/20 to-transparent'   },
-  FLASHCARDS:    { icon: BookOpen, color: 'text-pink-400',   gradient: 'from-pink-500/20 to-transparent'   },
-  MINDMAP:       { icon: Map,      color: 'text-cyan-400',   gradient: 'from-cyan-500/20 to-transparent'   },
+  SUMMARY:       { icon: Sparkles,    color: 'text-purple-400', gradient: 'from-purple-500/20 to-transparent' },
+  TRANSCRIPTION: { icon: FileText,    color: 'text-blue-400',   gradient: 'from-blue-500/20 to-transparent'   },
+  FLASHCARDS:    { icon: BookOpen,    color: 'text-pink-400',   gradient: 'from-pink-500/20 to-transparent'   },
+  MINDMAP:       { icon: Map,         color: 'text-cyan-400',   gradient: 'from-cyan-500/20 to-transparent'   },
+  QUIZ:          { icon: CircleHelp,  color: 'text-amber-400',  gradient: 'from-amber-500/20 to-transparent'  },
 }
 
-const TYPE_ORDER: FolderItemType[] = ['SUMMARY', 'TRANSCRIPTION', 'FLASHCARDS', 'MINDMAP']
+const TYPE_ORDER: FolderItemType[] = ['SUMMARY', 'TRANSCRIPTION', 'FLASHCARDS', 'MINDMAP', 'QUIZ']
 
 function FolderItemRow({ item, onRemove }: { item: StudyFolderItem; onRemove: () => void }) {
   const tab = FOLDER_ITEM_TYPE_TAB[item.itemType]
@@ -216,7 +218,7 @@ export function StudyFolderPage() {
       acc[type] = items.filter((i) => i.itemType === type)
       return acc
     },
-    { SUMMARY: [], TRANSCRIPTION: [], FLASHCARDS: [], MINDMAP: [] },
+    { SUMMARY: [], TRANSCRIPTION: [], FLASHCARDS: [], MINDMAP: [], QUIZ: [] },
   )
 
   const itemsLeft = RECOMMENDATIONS_THRESHOLD - (folder?.itemCount ?? 0)
