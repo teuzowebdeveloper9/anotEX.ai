@@ -7,6 +7,7 @@ import {
   Logger,
   OnModuleInit,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectQueue } from '@nestjs/bull';
 import * as https from 'https';
 import { createWriteStream } from 'fs';
@@ -32,6 +33,12 @@ import type { TranscriptionJobData } from '../../../transcription/application/se
 import { ok, fail, Result } from '../../../../shared/domain/result.js';
 
 const MAX_DOWNLOAD_REDIRECTS = 5;
+const DEFAULT_AUDIO_FORMAT = 'bestaudio[ext=webm]/bestaudio/best';
+
+interface YtDlpAttempt {
+  readonly label: string;
+  readonly args: readonly string[];
+}
 
 export interface ProcessVideoInput {
   readonly folderId: string;
@@ -116,7 +123,86 @@ export class ProcessVideoUseCase implements OnModuleInit {
     private readonly transcriptionRepository: ITranscriptionRepository,
     @InjectQueue(TRANSCRIPTION_QUEUE)
     private readonly transcriptionQueue: Queue<TranscriptionJobData>,
+    private readonly configService: ConfigService,
   ) {}
+
+  private getOptionalCookieArgs(): string[] {
+    const cookiesPath = this.configService.get<string>('YTDLP_COOKIES_PATH')?.trim();
+    if (!cookiesPath) {
+      return [];
+    }
+
+    return ['--cookies', cookiesPath];
+  }
+
+  private getOptionalJsRuntimeArgs(): string[] {
+    const configuredRuntime = this.configService.get<string>('YTDLP_JS_RUNTIME')?.trim();
+    if (configuredRuntime) {
+      return ['--js-runtimes', configuredRuntime];
+    }
+
+    return ['--js-runtimes', 'node'];
+  }
+
+  private buildDownloadAttempts(url: string, tmpFile: string): YtDlpAttempt[] {
+    const baseArgs = [
+      url,
+      '-f',
+      DEFAULT_AUDIO_FORMAT,
+      '--no-playlist',
+      '--max-filesize',
+      '200m',
+      '-o',
+      tmpFile,
+      ...this.getOptionalCookieArgs(),
+    ];
+
+    return [
+      {
+        label: 'default',
+        args: baseArgs,
+      },
+      {
+        label: 'js-runtime+android',
+        args: [
+          ...baseArgs,
+          ...this.getOptionalJsRuntimeArgs(),
+          '--extractor-args',
+          'youtube:player-client=android,-web_creator',
+        ],
+      },
+      {
+        label: 'js-runtime+ios',
+        args: [
+          ...baseArgs,
+          ...this.getOptionalJsRuntimeArgs(),
+          '--extractor-args',
+          'youtube:player-client=ios,android,-web_creator',
+        ],
+      },
+    ];
+  }
+
+  private async downloadAudioWithFallback(url: string, tmpFile: string): Promise<void> {
+    let lastError: unknown;
+
+    for (const attempt of this.buildDownloadAttempts(url, tmpFile)) {
+      try {
+        this.logger.log(`Tentando baixar áudio via yt-dlp | strategy=${attempt.label}`);
+        await this.ytDlp.execPromise([...attempt.args]);
+        return;
+      } catch (error) {
+        lastError = error;
+        this.logger.warn(
+          `Tentativa yt-dlp falhou | strategy=${attempt.label} | reason=${
+            error instanceof Error ? error.message : String(error)
+          }`,
+        );
+      }
+    }
+
+    throw lastError instanceof Error ? lastError : new Error(String(lastError));
+  }
 
   async execute(input: ProcessVideoInput): Promise<Result<ProcessVideoOutput>> {
     const folder = await this.folderRepository.findById(input.folderId);
@@ -128,16 +214,7 @@ export class ProcessVideoUseCase implements OnModuleInit {
 
     this.logger.log(`Baixando áudio do YouTube | videoId=${input.videoId}`);
     try {
-      await this.ytDlp.execPromise([
-        url,
-        '-f',
-        'bestaudio[ext=webm]/bestaudio/best',
-        '--no-playlist',
-        '--max-filesize',
-        '200m',
-        '-o',
-        tmpFile,
-      ]);
+      await this.downloadAudioWithFallback(url, tmpFile);
     } catch (err) {
       this.logger.error(
         `Falha ao baixar vídeo | videoId=${input.videoId}`,
