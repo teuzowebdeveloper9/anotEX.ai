@@ -3,6 +3,7 @@ export enum FolderItemType {
   TRANSCRIPTION = 'TRANSCRIPTION',
   FLASHCARDS = 'FLASHCARDS',
   MINDMAP = 'MINDMAP',
+  QUIZ = 'QUIZ',
 }
 
 export const RECOMMENDATIONS_THRESHOLD = 5;
