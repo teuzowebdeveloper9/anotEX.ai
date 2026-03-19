@@ -41,37 +41,37 @@
 
 /* ─── Light theme ───────────────────────────────────────── */
 [data-theme="light"] {
-  --bg-base:     #FFFFFF;
-  --bg-surface:  #F8FAFC;
-  --bg-elevated: #F1F5F9;
-  --border:      #E2E8F0;
-  --border-hover: #CBD5E1;
+  --bg-base:      #F0F2F7;
+  --bg-surface:   #FFFFFF;
+  --bg-elevated:  #E8ECF4;
+  --border:       #C8D0E0;
+  --border-hover: #A8B4CC;
 
-  --accent:      #3B82F6;
+  --accent:      #6366F1;
   --accent-2:    #06B6D4;
   --accent-3:    #8B5CF6;
   --accent-4:    #10B981;
   --accent-5:    #EC4899;
-  --accent-glow: rgba(59,130,246,0.15);
-  --accent-bg:   rgba(59,130,246,0.06);
+  --accent-glow: rgba(99,102,241,0.18);
+  --accent-bg:   rgba(99,102,241,0.08);
 
-  --gradient-primary:   linear-gradient(135deg, #3B82F6, #22D3EE);
+  --gradient-primary:   linear-gradient(135deg, #6366F1, #22D3EE);
   --gradient-secondary: linear-gradient(135deg, #8B5CF6, #10B981);
-  --gradient-warm:      linear-gradient(135deg, #EC4899, #3B82F6);
+  --gradient-warm:      linear-gradient(135deg, #EC4899, #6366F1);
 
-  --text-primary:   #0F172A;
-  --text-secondary: #475569;
-  --text-tertiary:  #94A3B8;
+  --text-primary:   #0D1117;
+  --text-secondary: #4A5568;
+  --text-tertiary:  #8896AA;
 
   --success:    #059669;
   --warning:    #D97706;
   --danger:     #EF4444;
-  --success-bg: #F0FDF4;
+  --success-bg: #ECFDF5;
   --warning-bg: #FFFBEB;
   --danger-bg:  #FEF2F2;
 
-  --shadow-card:     0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
-  --shadow-elevated: 0 4px 24px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.04);
+  --shadow-card:     0 1px 4px rgba(0,0,0,0.10), 0 0 0 1px rgba(0,0,0,0.05);
+  --shadow-elevated: 0 6px 28px rgba(0,0,0,0.13), 0 0 0 1px rgba(0,0,0,0.06);
 }
 
 /* ─── Base ──────────────────────────────────────────────── */
@@ -123,6 +123,11 @@
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255,255,255,0.08);
+}
+
+[data-theme="light"] .glass {
+  background: rgba(255,255,255,0.70);
+  border: 1px solid rgba(0,0,0,0.08);
 }
 
 /* ─── Markdown ──────────────────────────────────────────── */

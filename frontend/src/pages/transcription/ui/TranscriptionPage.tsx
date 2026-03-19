@@ -308,11 +308,14 @@ export function TranscriptionPage() {
 
                     {activeTab === 'quiz' && (
                       <div className="p-6">
-                        <div className="flex items-center gap-2 mb-6">
-                          <CircleHelp size={15} className="text-[var(--text-secondary)]" />
-                          <h2 className="text-sm font-semibold text-[var(--text-primary)]">
-                            Quiz
-                          </h2>
+                        <div className="flex items-center justify-between mb-6">
+                          <div className="flex items-center gap-2">
+                            <CircleHelp size={15} className="text-[var(--text-secondary)]" />
+                            <h2 className="text-sm font-semibold text-[var(--text-primary)]">
+                              Quiz
+                            </h2>
+                          </div>
+                          <SaveToFolderButton transcriptionId={transcriptionId} itemType="QUIZ" />
                         </div>
                         {!quizData || quizData.status === 'PENDING' || quizData.status === 'PROCESSING' ? (
                           <ProcessingState message="Gerando quiz..." />

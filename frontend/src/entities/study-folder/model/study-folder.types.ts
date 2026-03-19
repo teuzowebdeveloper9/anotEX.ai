@@ -1,10 +1,11 @@
-export type FolderItemType = 'SUMMARY' | 'TRANSCRIPTION' | 'FLASHCARDS' | 'MINDMAP'
+export type FolderItemType = 'SUMMARY' | 'TRANSCRIPTION' | 'FLASHCARDS' | 'MINDMAP' | 'QUIZ'
 
 export const FOLDER_ITEM_TYPE_LABELS: Record<FolderItemType, string> = {
   SUMMARY: 'Resumo',
   TRANSCRIPTION: 'Transcrição',
   FLASHCARDS: 'Flashcards',
   MINDMAP: 'Mapa Mental',
+  QUIZ: 'Quiz',
 }
 
 export const FOLDER_ITEM_TYPE_TAB: Record<FolderItemType, string> = {
@@ -12,6 +13,7 @@ export const FOLDER_ITEM_TYPE_TAB: Record<FolderItemType, string> = {
   TRANSCRIPTION: 'transcricao',
   FLASHCARDS: 'flashcards',
   MINDMAP: 'mapa-mental',
+  QUIZ: 'quiz',
 }
 
 export interface StudyFolder {
