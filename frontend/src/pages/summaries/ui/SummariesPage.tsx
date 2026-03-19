@@ -9,6 +9,15 @@ import { Skeleton } from '@/shared/ui/Skeleton/Skeleton'
 import { GradientOrb } from '@/shared/ui/decorative/GradientOrb'
 import { useTranscriptionList } from '@/entities/transcription/model/useTranscriptionList'
 
+function stripMarkdown(text: string): string {
+  return text
+    .replace(/\*\*(.+?)\*\*/g, '$1')
+    .replace(/\*(.+?)\*/g, '$1')
+    .replace(/^#+\s+/gm, '')
+    .replace(/\n+/g, ' ')
+    .trim()
+}
+
 export function SummariesPage() {
   const [search, setSearch] = useState('')
   const { data: transcriptions, isLoading } = useTranscriptionList(search)
@@ -91,10 +100,10 @@ export function SummariesPage() {
                 })
                 return (
                   <Link key={t.id} to={`/transcription/${t.audioId}?tab=resumo`}>
-                    <div className="group flex items-start gap-0 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] hover:border-[var(--accent)]/40 hover:bg-[var(--bg-elevated)] hover:-translate-y-px transition-all duration-200 cursor-pointer shadow-[var(--shadow-card)] overflow-hidden">
+                    <div className="group flex items-start gap-0 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] hover:border-[var(--accent)]/40 hover:bg-[var(--bg-elevated)] hover:-translate-y-px transition-all duration-200 cursor-pointer shadow-[var(--shadow-card)] overflow-visible">
                       {/* Gradient left border */}
                       <div
-                        className="w-0.5 self-stretch shrink-0"
+                        className="w-0.5 self-stretch shrink-0 rounded-l-xl overflow-hidden"
                         style={{ background: 'linear-gradient(180deg, #7C3AED, #22D3EE)' }}
                       />
                       <div className="flex items-start gap-4 p-4 flex-1 min-w-0">
@@ -107,7 +116,7 @@ export function SummariesPage() {
                             {t.title ?? 'Transcrição'}
                           </p>
                           <p className="text-xs text-[var(--text-secondary)] mt-1 line-clamp-2 leading-relaxed">
-                            {t.summaryText}
+                            {stripMarkdown(t.summaryText ?? '')}
                           </p>
                           <p className="text-xs text-[var(--text-secondary)]/60 mt-1">{date}</p>
                         </div>
