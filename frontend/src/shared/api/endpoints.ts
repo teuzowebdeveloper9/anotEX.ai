@@ -45,6 +45,7 @@ export const ENDPOINTS = {
     removeShare: (id: string, shareLinkId: string) => `/groups/${id}/shares/${shareLinkId}`,
   },
   chat: {
+    conversations: '/chat/conversations',
     send: (transcriptionId: string) => `/chat/${transcriptionId}`,
     history: (transcriptionId: string) => `/chat/${transcriptionId}/history`,
     clearHistory: (transcriptionId: string) => `/chat/${transcriptionId}/history`,
