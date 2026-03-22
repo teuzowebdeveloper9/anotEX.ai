@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from 'react-router-dom'
-import { Mic, FileText, Map, BookOpen, Sparkles, FolderOpen, Users, CircleHelp } from 'lucide-react'
+import { Mic, FileText, Map, BookOpen, Sparkles, FolderOpen, Users, CircleHelp, MessageSquare } from 'lucide-react'
 import { useEffect } from 'react'
 import { GradientOrb } from '@/shared/ui/decorative/GradientOrb'
 import { useSidebarStore } from '@/shared/hooks/useSidebarStore'
@@ -16,12 +16,13 @@ const mainItems: NavItem[] = [
 ]
 
 const studyItems: NavItem[] = [
-  { icon: <Sparkles size={15} />,    label: 'Resumos',         to: '/summaries'     },
-  { icon: <Map size={15} />,         label: 'Mapas Mentais',   to: '/mindmaps'      },
-  { icon: <BookOpen size={15} />,    label: 'Flashcards',      to: '/flashcards'    },
-  { icon: <CircleHelp size={15} />,  label: 'Quiz',            to: '/quiz'          },
-  { icon: <FolderOpen size={15} />,  label: 'Pastas de Estudo', to: '/study-folders' },
-  { icon: <Users size={15} />,       label: 'Grupos de Estudo', to: '/groups'       },
+  { icon: <Sparkles size={15} />,      label: 'Resumos',          to: '/summaries'      },
+  { icon: <Map size={15} />,           label: 'Mapas Mentais',    to: '/mindmaps'       },
+  { icon: <BookOpen size={15} />,      label: 'Flashcards',       to: '/flashcards'     },
+  { icon: <CircleHelp size={15} />,    label: 'Quiz',             to: '/quiz'           },
+  { icon: <MessageSquare size={15} />, label: 'Conversas',        to: '/conversations'  },
+  { icon: <FolderOpen size={15} />,    label: 'Pastas de Estudo', to: '/study-folders'  },
+  { icon: <Users size={15} />,         label: 'Grupos de Estudo', to: '/groups'         },
 ]
 
 function SideNavItem({ item, onClick }: { item: NavItem; onClick?: () => void }) {

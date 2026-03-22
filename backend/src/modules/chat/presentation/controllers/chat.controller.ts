@@ -18,6 +18,8 @@ import type { AuthenticatedRequest } from '../../../audio/presentation/guards/au
 import { SendMessageUseCase } from '../../domain/use-cases/send-message.use-case.js';
 import { GetChatHistoryUseCase } from '../../domain/use-cases/get-chat-history.use-case.js';
 import { ClearChatHistoryUseCase } from '../../domain/use-cases/clear-chat-history.use-case.js';
+import { GetConversationsUseCase } from '../../domain/use-cases/get-conversations.use-case.js';
+import type { ConversationSummary } from '../../domain/repositories/chat.repository.js';
 import { SendMessageDto } from '../../application/dto/send-message.dto.js';
 import { ChatMessageResponseDto } from '../../application/dto/chat-message-response.dto.js';
 
@@ -29,7 +31,15 @@ export class ChatController {
     private readonly sendMessageUseCase: SendMessageUseCase,
     private readonly getChatHistoryUseCase: GetChatHistoryUseCase,
     private readonly clearChatHistoryUseCase: ClearChatHistoryUseCase,
+    private readonly getConversationsUseCase: GetConversationsUseCase,
   ) {}
+
+  @Get('conversations')
+  async getConversations(
+    @Req() req: AuthenticatedRequest,
+  ): Promise<ConversationSummary[]> {
+    return this.getConversationsUseCase.execute({ userId: req.user.id });
+  }
 
   @Throttle({ default: { limit: 20, ttl: 60_000 } })
   @Post(':transcriptionId')

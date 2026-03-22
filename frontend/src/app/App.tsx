@@ -18,6 +18,7 @@ import { SharedResourcePage } from '@/pages/shared-resource/ui/SharedResourcePag
 import { GroupsPage } from '@/pages/groups/ui/GroupsPage'
 import { GroupDetailPage } from '@/pages/group-detail/ui/GroupDetailPage'
 import { ChatPage } from '@/pages/chat/ui/ChatPage'
+import { ConversationsPage } from '@/pages/conversations/ui/ConversationsPage'
 import { ProtectedRoute } from '@/shared/ui/ProtectedRoute/ProtectedRoute'
 import { useTheme } from '@/shared/hooks/useTheme'
 
@@ -116,6 +117,14 @@ export function App() {
             element={
               <ProtectedRoute>
                 <ChatPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/conversations"
+            element={
+              <ProtectedRoute>
+                <ConversationsPage />
               </ProtectedRoute>
             }
           />
