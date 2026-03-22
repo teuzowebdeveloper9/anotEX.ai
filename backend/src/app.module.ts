@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, type MiddlewareConsumer, type NestModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { BullModule } from '@nestjs/bull';
@@ -13,6 +13,7 @@ import { StudyGroupModule } from './modules/study-groups/study-group.module.js';
 import { ChatModule } from './modules/chat/chat.module.js';
 import { HealthController } from './shared/presentation/controllers/health.controller.js';
 import { SupabaseAuthGuard } from './modules/audio/presentation/guards/auth.guard.js';
+import { LoggingMiddleware } from './shared/presentation/middlewares/logging.middleware.js';
 
 @Module({
   imports: [
@@ -62,4 +63,8 @@ import { SupabaseAuthGuard } from './modules/audio/presentation/guards/auth.guar
     },
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer): void {
+    consumer.apply(LoggingMiddleware).forRoutes('*');
+  }
+}
