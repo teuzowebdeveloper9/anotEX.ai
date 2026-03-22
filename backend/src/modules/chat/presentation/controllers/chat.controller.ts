@@ -43,6 +43,7 @@ export class ChatController {
 
   @Throttle({ default: { limit: 20, ttl: 60_000 } })
   @Post(':transcriptionId')
+  @HttpCode(HttpStatus.OK)
   async sendMessage(
     @Param('transcriptionId', ParseUUIDPipe) transcriptionId: string,
     @Body() dto: SendMessageDto,
