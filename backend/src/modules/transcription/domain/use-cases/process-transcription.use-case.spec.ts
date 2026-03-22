@@ -26,6 +26,7 @@ const makeTranscription = (overrides = {}) => ({
   title: null,
   transcriptionText: null,
   summaryText: null,
+  segments: null,
   language: 'pt',
   status: TranscriptionStatus.PENDING,
   errorMessage: null,
@@ -108,7 +109,7 @@ describe('ProcessTranscriptionUseCase', () => {
       global.fetch = jest.fn().mockResolvedValue({
         arrayBuffer: jest.fn().mockResolvedValue(new ArrayBuffer(8)),
       } as unknown as Response);
-      transcriptionProvider.transcribe.mockResolvedValue('Texto transcrito da aula');
+      transcriptionProvider.transcribe.mockResolvedValue({ text: 'Texto transcrito da aula', segments: [] });
       summaryProvider.summarize.mockResolvedValue('Resumo da aula');
       summaryProvider.generateTitle.mockResolvedValue('Título da aula');
 

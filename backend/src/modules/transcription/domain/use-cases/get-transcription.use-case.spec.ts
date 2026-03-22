@@ -10,6 +10,7 @@ const makeTranscription = (overrides = {}) => ({
   title: null,
   transcriptionText: null,
   summaryText: null,
+  segments: null,
   language: 'pt',
   status: TranscriptionStatus.PENDING,
   errorMessage: null,
