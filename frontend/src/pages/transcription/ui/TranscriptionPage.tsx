@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useParams, Link, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, AlertCircle, Loader2, FileText, Sparkles, Map, BookOpen, Share2, CircleHelp } from 'lucide-react'
+import { ArrowLeft, AlertCircle, Loader2, FileText, Sparkles, Map, BookOpen, Share2, CircleHelp, MessageSquare } from 'lucide-react'
 import { Navbar } from '@/widgets/navbar/ui/Navbar'
 import { Sidebar } from '@/widgets/sidebar/ui/Sidebar'
 import { Badge } from '@/shared/ui/Badge/Badge'
@@ -120,6 +120,13 @@ export function TranscriptionPage() {
                 <div className="flex items-center gap-2">
                   {isCompleted && (
                     <>
+                      <Link
+                        to={`/transcription/${id}/chat`}
+                        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--accent-bg)] border border-[var(--border)] hover:border-[var(--accent)]/30 transition-colors"
+                      >
+                        <MessageSquare size={12} />
+                        Chat
+                      </Link>
                       <ExportButton
                         title={transcription?.title ?? data?.audio.fileName ?? 'Gravação'}
                         transcriptionText={transcription?.transcriptionText ?? null}

@@ -17,6 +17,7 @@ import { StudyFolderPage } from '@/pages/study-folder/ui/StudyFolderPage'
 import { SharedResourcePage } from '@/pages/shared-resource/ui/SharedResourcePage'
 import { GroupsPage } from '@/pages/groups/ui/GroupsPage'
 import { GroupDetailPage } from '@/pages/group-detail/ui/GroupDetailPage'
+import { ChatPage } from '@/pages/chat/ui/ChatPage'
 import { ProtectedRoute } from '@/shared/ui/ProtectedRoute/ProtectedRoute'
 import { useTheme } from '@/shared/hooks/useTheme'
 
@@ -107,6 +108,14 @@ export function App() {
             element={
               <ProtectedRoute>
                 <StudyFolderPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/transcription/:id/chat"
+            element={
+              <ProtectedRoute>
+                <ChatPage />
               </ProtectedRoute>
             }
           />

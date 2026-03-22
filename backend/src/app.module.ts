@@ -10,6 +10,7 @@ import { StudyMaterialModule } from './modules/study-materials/study-material.mo
 import { StudyFolderModule } from './modules/study-folders/study-folder.module.js';
 import { SharingModule } from './modules/sharing/sharing.module.js';
 import { StudyGroupModule } from './modules/study-groups/study-group.module.js';
+import { ChatModule } from './modules/chat/chat.module.js';
 import { HealthController } from './shared/presentation/controllers/health.controller.js';
 import { SupabaseAuthGuard } from './modules/audio/presentation/guards/auth.guard.js';
 
@@ -45,6 +46,7 @@ import { SupabaseAuthGuard } from './modules/audio/presentation/guards/auth.guar
     StudyFolderModule,
     SharingModule,
     StudyGroupModule,
+    ChatModule,
   ],
   controllers: [HealthController],
   providers: [
