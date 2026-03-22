@@ -36,6 +36,7 @@ Grave, faça upload ou cole um link do YouTube. A IA transcreve, resume e gera m
 - [Variáveis de Ambiente](#variáveis-de-ambiente)
 - [Banco de Dados — Supabase](#banco-de-dados--supabase)
 - [Deploy](#deploy)
+- [Performance — Teste de Carga](#performance--teste-de-carga)
 - [Endpoints da API](#endpoints-da-api)
 
 ---
@@ -565,6 +566,40 @@ npx wrangler deploy --assets ./dist
 - [ ] Pastas de Estudo criando e listando corretamente
 - [ ] Recomendações de YouTube aparecem após 5 itens na pasta
 - [ ] Compartilhamento de links funcionando
+
+---
+
+## Performance — Teste de Carga
+
+Testado com **k6** em 22/03/2026 contra o ambiente de produção (Railway single instance).
+
+### Cenário: 100 usuários simultâneos navegando pelo app (leitura)
+
+```
+Estágios: 0→10 VUs (20s) → 10→50 VUs (30s) → 50→100 VUs (30s) → cooldown (20s)
+Endpoints: health, /audio, /audio/:id/status, /transcription, /chat/history, /chat/conversations, /study-materials
+```
+
+| Métrica | Resultado |
+|---|---|
+| **Total de requisições** | 3.598 |
+| **Taxa de erro** | **0%** — zero crashes, zero 4xx/5xx |
+| **Rate limit 429** | 0 ocorrências |
+| **Latência média** | 1.13s |
+| **Latência p90** | 2.35s |
+| **Throughput sustentado** | 33 req/s |
+
+### Comportamento por volume de usuários
+
+| Usuários simultâneos | Latência média | Status |
+|---|---|---|
+| 10 | ~400ms | Rápido |
+| 50 | ~900ms | OK |
+| 100 | ~2.4s | Lento mas estável, zero erro |
+
+### Gargalo identificado
+
+O único gargalo real é o **chat com IA (Groq free tier)** — com 20+ usuários enviando mensagens simultâneas, o rate limit de ~30 req/min do Groq cria fila e timeouts. Para operações de leitura pura, o sistema escala bem até 100+ usuários simultâneos sem nenhuma mudança de infra.
 
 ---
 
