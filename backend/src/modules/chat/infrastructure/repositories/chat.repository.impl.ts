@@ -53,7 +53,7 @@ export class ChatRepositoryImpl implements IChatRepository {
     const { data, error } = await this.supabaseService
       .getClient()
       .from('chat_messages')
-      .select('transcription_id, content, role, created_at, transcriptions(id, title)')
+      .select('transcription_id, content, role, created_at, transcriptions(id, title, audio_id)')
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
 
@@ -68,9 +68,10 @@ export class ChatRepositoryImpl implements IChatRepository {
       counts.set(tid, (counts.get(tid) ?? 0) + 1);
 
       if (!seen.has(tid)) {
-        const transcription = (Array.isArray(row.transcriptions) ? row.transcriptions[0] : row.transcriptions) as { id: string; title: string | null } | null;
+        const transcription = (Array.isArray(row.transcriptions) ? row.transcriptions[0] : row.transcriptions) as { id: string; title: string | null; audio_id: string } | null;
         seen.set(tid, {
           transcriptionId: tid,
+          audioId: transcription?.audio_id ?? '',
           transcriptionTitle: transcription?.title ?? null,
           lastMessage: row.content as string,
           lastMessageRole: row.role as 'user' | 'assistant',

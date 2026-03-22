@@ -2,6 +2,7 @@ import type { ChatMessageEntity, CreateChatMessageProps } from '../entities/chat
 
 export interface ConversationSummary {
   readonly transcriptionId: string;
+  readonly audioId: string;
   readonly transcriptionTitle: string | null;
   readonly lastMessage: string;
   readonly lastMessageRole: 'user' | 'assistant';

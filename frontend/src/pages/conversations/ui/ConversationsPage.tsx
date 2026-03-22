@@ -10,6 +10,7 @@ import { ENDPOINTS } from '@/shared/api/endpoints'
 
 interface ConversationSummary {
   transcriptionId: string
+  audioId: string
   transcriptionTitle: string | null
   lastMessage: string
   lastMessageRole: 'user' | 'assistant'
@@ -97,7 +98,7 @@ export function ConversationsPage() {
               {data.map(conv => (
                 <Link
                   key={conv.transcriptionId}
-                  to={`/transcription/${conv.transcriptionId}/chat`}
+                  to={`/transcription/${conv.audioId}/chat`}
                   className="group flex items-center gap-4 p-4 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] hover:border-[var(--accent)]/30 hover:bg-[var(--bg-elevated)] transition-all"
                 >
                   <div className="w-9 h-9 rounded-lg bg-[var(--accent-bg)] border border-[var(--accent)]/20 flex items-center justify-center shrink-0">
