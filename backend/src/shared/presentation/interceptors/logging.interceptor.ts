@@ -6,9 +6,11 @@ import {
   Logger,
 } from '@nestjs/common';
 import { Observable, throwError } from 'rxjs';
-import { tap, catchError } from 'rxjs/operators';
+import { catchError } from 'rxjs/operators';
 import { Request } from 'express';
 
+// Apenas captura erros internos (5xx) com stack trace detalhado.
+// O log de request/response completo (incluindo 4xx) fica no LoggingMiddleware.
 @Injectable()
 export class LoggingInterceptor implements NestInterceptor {
   private readonly logger = new Logger('HTTP');
@@ -18,17 +20,11 @@ export class LoggingInterceptor implements NestInterceptor {
     const { method, url } = request;
     const start = Date.now();
 
-    this.logger.log(`--> ${method} ${url}`);
-
     return next.handle().pipe(
-      tap(() => {
-        const ms = Date.now() - start;
-        this.logger.log(`<-- ${method} ${url} ${ms}ms`);
-      }),
       catchError((err: unknown) => {
         const ms = Date.now() - start;
         const message = err instanceof Error ? err.message : String(err);
-        this.logger.error(`<-- ${method} ${url} ${ms}ms | ${message}`, err instanceof Error ? err.stack : undefined);
+        this.logger.error(`${method} ${url} ${ms}ms | ${message}`, err instanceof Error ? err.stack : undefined);
         return throwError(() => err);
       }),
     );
