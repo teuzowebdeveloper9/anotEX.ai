@@ -89,3 +89,12 @@ export interface AudioStatusResponse {
     errorMessage: string | null
   } | null
 }
+
+export interface ChatMessageEntity {
+  id: string
+  transcriptionId: string
+  userId: string
+  role: 'user' | 'assistant'
+  content: string
+  createdAt: string
+}
