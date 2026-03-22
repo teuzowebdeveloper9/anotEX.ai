@@ -21,13 +21,14 @@ export function ChatPage() {
   const queryClient = useQueryClient()
 
   const { data: statusData } = useTranscriptionStatus(id!)
-  const { data: history } = useChatHistory(id ?? '')
-  const { messages, isStreaming, streamingContent, error, sendMessage } = useChatStream(id ?? '')
+  const transcriptionId = statusData?.transcription?.id ?? ''
+  const { data: history } = useChatHistory(transcriptionId)
+  const { messages, isStreaming, streamingContent, error, sendMessage } = useChatStream(transcriptionId)
 
   const clearMutation = useMutation({
-    mutationFn: () => api.delete(ENDPOINTS.chat.clearHistory(id!)),
+    mutationFn: () => api.delete(ENDPOINTS.chat.clearHistory(transcriptionId)),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['chat-history', id] })
+      queryClient.invalidateQueries({ queryKey: ['chat-history', transcriptionId] })
       toast.success('Histórico limpo')
     },
     onError: () => toast.error('Erro ao limpar histórico'),
