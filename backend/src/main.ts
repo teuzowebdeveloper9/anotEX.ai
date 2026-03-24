@@ -20,7 +20,11 @@ async function bootstrapApi() {
 
   const configService = app.get(ConfigService);
   const port = 3000;
-  const allowedOrigins = configService.get<string>('ALLOWED_ORIGINS', '').split(',');
+  const allowedOrigins = configService
+    .get<string>('ALLOWED_ORIGINS', '')
+    .split(',')
+    .map((o) => o.trim())
+    .filter(Boolean);
 
   app.use(helmet());
 
