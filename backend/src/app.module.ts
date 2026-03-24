@@ -11,6 +11,7 @@ import { StudyFolderModule } from './modules/study-folders/study-folder.module.j
 import { SharingModule } from './modules/sharing/sharing.module.js';
 import { StudyGroupModule } from './modules/study-groups/study-group.module.js';
 import { ChatModule } from './modules/chat/chat.module.js';
+import { SpacedRepetitionModule } from './modules/spaced-repetition/spaced-repetition.module.js';
 import { HealthController } from './shared/presentation/controllers/health.controller.js';
 import { SupabaseAuthGuard } from './modules/audio/presentation/guards/auth.guard.js';
 import { LoggingMiddleware } from './shared/presentation/middlewares/logging.middleware.js';
@@ -48,6 +49,7 @@ import { LoggingMiddleware } from './shared/presentation/middlewares/logging.mid
     SharingModule,
     StudyGroupModule,
     ChatModule,
+    SpacedRepetitionModule,
   ],
   controllers: [HealthController],
   providers: [

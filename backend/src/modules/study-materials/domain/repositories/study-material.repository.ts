@@ -1,5 +1,6 @@
 import type {
   CreateStudyMaterialProps,
+  FlashcardItem,
   StudyMaterialContent,
   StudyMaterialEntity,
   StudyMaterialStatus,
@@ -17,6 +18,8 @@ export interface IStudyMaterialRepository {
   updateStatus(id: string, status: StudyMaterialStatus, errorMessage?: string): Promise<void>;
   updateContent(id: string, content: StudyMaterialContent): Promise<void>;
   deleteById(id: string): Promise<void>;
+  findAllFlashcardsByUserId(userId: string): Promise<StudyMaterialEntity[]>;
+  updateFlashcardsContent(id: string, flashcards: FlashcardItem[]): Promise<void>;
 }
 
 export const STUDY_MATERIAL_REPOSITORY = Symbol('IStudyMaterialRepository');

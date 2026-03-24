@@ -45,11 +45,30 @@ export interface UploadAudioResponse {
 export type StudyMaterialType = 'flashcards' | 'mindmap' | 'quiz'
 export type StudyMaterialStatus = 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED'
 
+export interface FlashcardReviewData {
+  nextReview: string // "YYYY-MM-DD"
+  interval: number
+  repetitions: number
+  easeFactor: number
+}
+
 export interface FlashcardItem {
   front: string
   back: string
   difficulty: 'easy' | 'medium' | 'hard'
   topic: string
+  reviewData?: FlashcardReviewData
+}
+
+export interface DueCardItem {
+  studyMaterialId: string
+  transcriptionId: string
+  flashcardIndex: number
+  front: string
+  back: string
+  difficulty: 'easy' | 'medium' | 'hard'
+  topic: string
+  reviewData: FlashcardReviewData | null
 }
 
 export interface MindmapContent {

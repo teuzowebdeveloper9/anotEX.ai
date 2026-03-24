@@ -3,6 +3,7 @@ import { SupabaseService } from '../../../../shared/infrastructure/config/supaba
 import type { IStudyMaterialRepository } from '../../domain/repositories/study-material.repository.js';
 import type {
   CreateStudyMaterialProps,
+  FlashcardItem,
   StudyMaterialContent,
   StudyMaterialEntity,
   StudyMaterialStatus,
@@ -98,6 +99,30 @@ export class StudyMaterialRepositoryImpl implements IStudyMaterialRepository {
       .eq('id', id);
 
     if (error) throw new Error(`Failed to update study material content: ${error.message}`);
+  }
+
+  async findAllFlashcardsByUserId(userId: string): Promise<StudyMaterialEntity[]> {
+    const { data, error } = await this.supabaseService
+      .getClient()
+      .from('study_materials')
+      .select()
+      .eq('user_id', userId)
+      .eq('type', 'flashcards')
+      .eq('status', 'COMPLETED')
+      .order('created_at', { ascending: false });
+
+    if (error) throw new Error(`Failed to fetch flashcard materials: ${error.message}`);
+    return (data ?? []).map(this.toEntity);
+  }
+
+  async updateFlashcardsContent(id: string, flashcards: FlashcardItem[]): Promise<void> {
+    const { error } = await this.supabaseService
+      .getClient()
+      .from('study_materials')
+      .update({ content: flashcards, updated_at: new Date().toISOString() })
+      .eq('id', id);
+
+    if (error) throw new Error(`Failed to update flashcards content: ${error.message}`);
   }
 
   private toEntity(raw: Record<string, unknown>): StudyMaterialEntity {
