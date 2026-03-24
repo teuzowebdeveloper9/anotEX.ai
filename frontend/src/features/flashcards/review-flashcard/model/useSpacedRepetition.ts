@@ -6,7 +6,7 @@ import type { DueCardItem, FlashcardReviewData } from '@/shared/types/api.types'
 
 export type ReviewQuality = 'hard' | 'medium' | 'easy'
 
-const qualityMap: Record<ReviewQuality, 0 | 2 | 5> = {
+const qualityMap: Record<ReviewQuality, number> = {
   hard: 2,
   medium: 3,
   easy: 5,
