@@ -2,6 +2,9 @@
 -- Executa todo dia 1 do mês às 3h UTC
 -- LGPD Art. 15 — elimina dados desnecessários automaticamente
 
+CREATE EXTENSION IF NOT EXISTS pg_cron;
+
+
 SELECT cron.schedule(
   'data-retention-monthly',   -- nome do job (único)
   '0 3 1 * *',                -- cron expression: dia 1, às 03:00 UTC
