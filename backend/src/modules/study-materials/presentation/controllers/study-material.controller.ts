@@ -7,6 +7,7 @@ import {
   BadRequestException,
   NotFoundException,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import type { AuthenticatedRequest } from '../../../audio/presentation/guards/auth.guard.js';
 import { GetStudyMaterialsUseCase } from '../../domain/use-cases/get-study-materials.use-case.js';
 import { StudyMaterialType } from '../../domain/entities/study-material.entity.js';
@@ -26,6 +27,7 @@ function toResponse(m: StudyMaterialEntity) {
   };
 }
 
+@Throttle({ default: { limit: 30, ttl: 60000 } })
 @Controller('study-materials')
 export class StudyMaterialController {
   constructor(private readonly getStudyMaterialsUseCase: GetStudyMaterialsUseCase) {}

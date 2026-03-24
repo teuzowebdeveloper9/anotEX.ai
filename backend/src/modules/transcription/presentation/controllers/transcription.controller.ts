@@ -7,12 +7,14 @@ import {
   ParseUUIDPipe,
   Inject,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import type { AuthenticatedRequest } from '../../../audio/presentation/guards/auth.guard.js';
 import { GetTranscriptionUseCase } from '../../domain/use-cases/get-transcription.use-case.js';
 import type { ITranscriptionRepository } from '../../domain/repositories/transcription.repository.js';
 import { TRANSCRIPTION_REPOSITORY } from '../../domain/repositories/transcription.repository.js';
 import { ListTranscriptionsQueryDto } from '../../application/dto/list-transcriptions-query.dto.js';
 
+@Throttle({ default: { limit: 30, ttl: 60000 } })
 @Controller('transcription')
 export class TranscriptionController {
   constructor(

@@ -3,6 +3,6 @@ import { IsOptional, IsString, MaxLength } from 'class-validator';
 export class ListTranscriptionsQueryDto {
   @IsOptional()
   @IsString()
-  @MaxLength(200)
+  @MaxLength(100)
   q?: string;
 }

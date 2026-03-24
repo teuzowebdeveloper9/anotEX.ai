@@ -74,7 +74,7 @@ export class UploadAudioUseCase {
     this.logger.log(`Upload iniciado | userId=${input.userId} | file=${input.file.originalname} | size=${input.file.size}B | mime=${input.file.mimetype}`);
 
     if (!detectedMimeType || !ALLOWED_MIME_TYPES.includes(detectedMimeType)) {
-      this.logger.warn(`Conteúdo de áudio inválido | mimeInformado=${input.file.mimetype}`);
+      this.logger.warn(`Conteúdo de áudio inválido | detectedMime=none | size=${input.file.size}B | userId=${input.userId}`);
       return fail(new BadRequestException('Unsupported audio format'));
     }
 
