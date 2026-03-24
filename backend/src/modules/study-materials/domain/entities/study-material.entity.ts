@@ -11,11 +11,19 @@ export enum StudyMaterialStatus {
   FAILED = 'FAILED',
 }
 
+export interface FlashcardReviewData {
+  readonly nextReview: string; // ISO date "YYYY-MM-DD"
+  readonly interval: number;
+  readonly repetitions: number;
+  readonly easeFactor: number;
+}
+
 export interface FlashcardItem {
   readonly front: string;
   readonly back: string;
   readonly difficulty: 'easy' | 'medium' | 'hard';
   readonly topic: string;
+  readonly reviewData?: FlashcardReviewData;
 }
 
 export interface MindmapContent {

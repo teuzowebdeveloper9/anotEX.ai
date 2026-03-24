@@ -50,4 +50,8 @@ export const ENDPOINTS = {
     history: (transcriptionId: string) => `/chat/${transcriptionId}/history`,
     clearHistory: (transcriptionId: string) => `/chat/${transcriptionId}/history`,
   },
+  review: {
+    due: '/review/due',
+    submit: '/review',
+  },
 } as const
