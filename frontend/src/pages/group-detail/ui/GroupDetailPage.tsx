@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import {
   ArrowLeft, Users, Plus, Loader2, Crown, User2, Trash2,
-  ExternalLink, FileText, UserMinus
+  ExternalLink, FileText, UserMinus, Pencil
 } from 'lucide-react'
 import { useEffect } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
@@ -15,9 +15,69 @@ import { Input } from '@/shared/ui/Input/Input'
 import { Skeleton } from '@/shared/ui/Skeleton/Skeleton'
 import { useGroupDetail } from '@/entities/study-group'
 import { useAddGroupMember } from '@/features/groups/add-member/model/useAddGroupMember'
+import { useUpdateGroup } from '@/features/groups/edit-group/model/useUpdateGroup'
 import { api } from '@/shared/api/axios'
 import { ENDPOINTS } from '@/shared/api/endpoints'
 import { supabase } from '@/shared/auth/supabase'
+
+function EditGroupModal({
+  groupId,
+  currentName,
+  currentDescription,
+  onClose,
+}: {
+  groupId: string
+  currentName: string
+  currentDescription: string | null
+  onClose: () => void
+}) {
+  const [name, setName] = useState(currentName)
+  const [description, setDescription] = useState(currentDescription ?? '')
+  const updateGroup = useUpdateGroup()
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!name.trim()) return
+    try {
+      await updateGroup.mutateAsync({ groupId, name: name.trim(), description: description.trim() || undefined })
+      toast.success('Grupo atualizado!')
+      onClose()
+    } catch {
+      toast.error('Erro ao atualizar grupo.')
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+      <div className="w-full max-w-sm rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] shadow-2xl">
+        <div className="p-5 border-b border-[var(--border)]">
+          <h2 className="text-sm font-semibold text-[var(--text-primary)]">Editar grupo</h2>
+        </div>
+        <form onSubmit={handleSubmit} className="p-5 flex flex-col gap-4">
+          <Input
+            placeholder="Nome do grupo"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            maxLength={100}
+            autoFocus
+          />
+          <Input
+            placeholder="Descrição (opcional)"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            maxLength={300}
+          />
+          <div className="flex gap-2 justify-end">
+            <Button type="button" variant="ghost" size="sm" onClick={onClose}>Cancelar</Button>
+            <Button type="submit" size="sm" disabled={!name.trim() || updateGroup.isPending}>
+              {updateGroup.isPending ? <Loader2 size={13} className="animate-spin" /> : 'Salvar'}
+            </Button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
 
 function AddMemberModal({ groupId, onClose }: { groupId: string; onClose: () => void }) {
   const [email, setEmail] = useState('')
@@ -72,6 +132,7 @@ export function GroupDetailPage() {
   const { id } = useParams<{ id: string }>()
   const { data, isLoading } = useGroupDetail(id!)
   const [showAddMember, setShowAddMember] = useState(false)
+  const [showEditGroup, setShowEditGroup] = useState(false)
   const queryClient = useQueryClient()
 
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
@@ -143,10 +204,16 @@ export function GroupDetailPage() {
                   )}
                 </div>
                 {isOwner && (
-                  <Button size="sm" onClick={() => setShowAddMember(true)}>
-                    <Plus size={13} />
-                    Membro
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button size="sm" variant="ghost" onClick={() => setShowEditGroup(true)}>
+                      <Pencil size={13} />
+                      Editar
+                    </Button>
+                    <Button size="sm" onClick={() => setShowAddMember(true)}>
+                      <Plus size={13} />
+                      Membro
+                    </Button>
+                  </div>
                 )}
               </div>
 
@@ -252,6 +319,14 @@ export function GroupDetailPage() {
       </main>
 
       {showAddMember && <AddMemberModal groupId={id!} onClose={() => setShowAddMember(false)} />}
+      {showEditGroup && data && (
+        <EditGroupModal
+          groupId={id!}
+          currentName={data.group.name}
+          currentDescription={data.group.description}
+          onClose={() => setShowEditGroup(false)}
+        />
+      )}
     </div>
   )
 }
