@@ -1,15 +1,14 @@
+
 import { Injectable } from '@nestjs/common';
 import type { FlashcardReviewData } from '../../../study-materials/domain/entities/study-material.entity.js';
 
 @Injectable()
 export class Sm2Helper {
-  calculate(
-    current: FlashcardReviewData | undefined,
-    quality: 0 | 1 | 2 | 3 | 4 | 5,
-  ): FlashcardReviewData {
-    const interval = current?.interval ?? 1;
-    const repetitions = current?.repetitions ?? 0;
-    const easeFactor = current?.easeFactor ?? 2.5;
+
+  calculate(reviewData: FlashcardReviewData | undefined, quality: number): FlashcardReviewData {
+    const interval = reviewData?.interval ?? 0;
+    const repetitions = reviewData?.repetitions ?? 0;
+    const easeFactor = reviewData?.easeFactor ?? 2.5;
 
     let newInterval: number;
     let newRepetitions: number;
