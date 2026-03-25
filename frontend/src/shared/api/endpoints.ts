@@ -38,6 +38,7 @@ export const ENDPOINTS = {
     create: '/groups',
     list: '/groups',
     get: (id: string) => `/groups/${id}`,
+    update: (id: string) => `/groups/${id}`,
     delete: (id: string) => `/groups/${id}`,
     addMember: (id: string) => `/groups/${id}/members`,
     removeMember: (id: string, userId: string) => `/groups/${id}/members/${userId}`,
