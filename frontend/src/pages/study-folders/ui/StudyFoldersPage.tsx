@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { FolderOpen, Inbox, Plus, Sparkles, ChevronRight } from 'lucide-react'
-import { Navbar } from '@/widgets/navbar/ui/Navbar'
 import { Sidebar } from '@/widgets/sidebar/ui/Sidebar'
 import { Button } from '@/shared/ui/Button/Button'
 import { Skeleton } from '@/shared/ui/Skeleton/Skeleton'
@@ -16,36 +15,21 @@ export function StudyFoldersPage() {
   const { data: folders, isLoading } = useFolderList()
 
   return (
-    <div className="relative min-h-screen bg-[var(--bg-base)] overflow-hidden">
-      <GradientOrb
-        size={500}
-        color="#38ABE4"
-        opacity={0.07}
-        className="top-0 right-0 z-0"
-        style={{ transform: 'translate(30%, -30%)' }}
-      />
-      <GradientOrb
-        size={350}
-        color="#38ABE4"
-        opacity={0.04}
-        className="bottom-0 left-52 z-0"
-        style={{ transform: 'translate(-20%, 30%)' }}
-      />
+    <div className="pen-shell">
+      <GradientOrb size={500} color="#38ABE4" opacity={0.07} className="top-0 right-0 z-0" style={{ transform: 'translate(30%, -30%)' }} />
+      <Sidebar withTopBar={false} />
 
-      <Navbar />
-      <Sidebar />
-
-      <main className="relative z-10 pt-14 md:pl-56">
-        <div className="max-w-3xl mx-auto px-8 pt-10 pb-12">
+      <main className="relative z-10 md:pl-56">
+        <div className="pen-content max-w-5xl">
           <div className="flex items-start justify-between mb-8">
             <div>
               <div className="flex items-center gap-3 mb-1">
                 <div className="h-8 w-8 rounded-lg bg-[var(--accent)]/10 flex items-center justify-center">
                   <FolderOpen size={16} className="text-[var(--accent)]" />
                 </div>
-                <h1 className="text-2xl font-semibold gradient-text">Pastas de Estudo</h1>
+                <h1 className="pen-page-title">Pastas de estudo</h1>
               </div>
-              <p className="text-sm text-[var(--text-secondary)] mt-1">
+              <p className="pen-page-subtitle">
                 {folders?.length ?? 0} pasta{folders?.length !== 1 ? 's' : ''} criada{folders?.length !== 1 ? 's' : ''}
               </p>
             </div>
@@ -88,7 +72,7 @@ export function StudyFoldersPage() {
 
                 return (
                   <Link key={folder.id} to={`/study-folders/${folder.id}`}>
-                    <div className="group flex items-start gap-0 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] hover:border-[var(--accent)]/40 hover:bg-[var(--bg-elevated)] hover:-translate-y-px transition-all duration-200 cursor-pointer shadow-[var(--shadow-card)] overflow-hidden">
+                    <div className="pen-list-card group flex items-start gap-0 rounded-[20px] hover:border-[var(--accent)]/40 hover:-translate-y-px transition-all duration-200 cursor-pointer overflow-hidden">
                       <div
                         className="w-0.5 self-stretch shrink-0"
                         style={{ background: 'linear-gradient(180deg, #38ABE4, #38ABE4)' }}

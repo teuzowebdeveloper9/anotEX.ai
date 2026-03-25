@@ -7,7 +7,6 @@ import {
 import { useEffect } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { Navbar } from '@/widgets/navbar/ui/Navbar'
 import { Sidebar } from '@/widgets/sidebar/ui/Sidebar'
 import { GradientOrb } from '@/shared/ui/decorative/GradientOrb'
 import { Button } from '@/shared/ui/Button/Button'
@@ -165,14 +164,12 @@ export function GroupDetailPage() {
   const isOwner = data?.group.ownerId === currentUserId
 
   return (
-    <div className="relative min-h-screen bg-[var(--bg-base)] overflow-hidden">
+    <div className="pen-shell">
       <GradientOrb size={500} color="#38ABE4" opacity={0.06} className="top-0 right-0 z-0" style={{ transform: 'translate(30%, -30%)' }} />
+      <Sidebar withTopBar={false} />
 
-      <Navbar />
-      <Sidebar />
-
-      <main className="relative z-10 pt-14 md:pl-52">
-        <div className="max-w-3xl mx-auto px-6 pt-10 pb-16">
+      <main className="relative z-10 md:pl-56">
+        <div className="pen-content max-w-5xl">
 
           <Link
             to="/groups"
@@ -196,7 +193,7 @@ export function GroupDetailPage() {
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <div className="flex items-center gap-2.5">
-                    <h1 className="text-xl font-semibold gradient-text">{data.group.name}</h1>
+                    <h1 className="pen-page-title text-xl">{data.group.name}</h1>
                     {isOwner && <Crown size={14} className="text-amber-400" />}
                   </div>
                   {data.group.description && (
@@ -229,7 +226,7 @@ export function GroupDetailPage() {
                   {data.members.map((member) => (
                     <div
                       key={member.id}
-                      className="flex items-center gap-3 p-3 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] group"
+                      className="pen-list-card flex items-center gap-3 rounded-[18px] p-3 group"
                     >
                       <div className="h-8 w-8 rounded-full bg-[var(--bg-elevated)] border border-[var(--border)] flex items-center justify-center shrink-0">
                         {member.role === 'owner'
@@ -276,10 +273,7 @@ export function GroupDetailPage() {
 
                 <div className="flex flex-col gap-2">
                   {data.shares.map((share) => (
-                    <div
-                      key={share.id}
-                      className="flex items-center gap-3 p-4 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] group"
-                    >
+                    <div key={share.id} className="pen-list-card flex items-center gap-3 rounded-[18px] p-4 group">
                       <div className="h-9 w-9 rounded-xl bg-[var(--accent-bg)] border border-[var(--accent)]/20 flex items-center justify-center shrink-0">
                         <FileText size={14} className="text-[var(--accent)]" />
                       </div>

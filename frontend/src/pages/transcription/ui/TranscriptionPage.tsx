@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useParams, Link, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, AlertCircle, Loader2, FileText, Sparkles, Map, BookOpen, Share2, CircleHelp, MessageSquare } from 'lucide-react'
-import { Navbar } from '@/widgets/navbar/ui/Navbar'
 import { Sidebar } from '@/widgets/sidebar/ui/Sidebar'
 import { Badge } from '@/shared/ui/Badge/Badge'
 import { Skeleton } from '@/shared/ui/Skeleton/Skeleton'
@@ -63,8 +62,7 @@ export function TranscriptionPage() {
   const { data: quizData }       = useStudyMaterial(transcriptionId, 'quiz')
 
   return (
-    <div className="relative min-h-screen bg-[var(--bg-base)] overflow-hidden">
-      {/* Background orbs */}
+    <div className="pen-shell">
       <GradientOrb
         size={600}
         color="#38ABE4"
@@ -72,18 +70,9 @@ export function TranscriptionPage() {
         className="top-0 right-0 z-0"
         style={{ transform: 'translate(30%, -30%)' }}
       />
-      <GradientOrb
-        size={350}
-        color="#22D3EE"
-        opacity={0.04}
-        className="bottom-0 left-52 z-0"
-        style={{ transform: 'translate(-20%, 30%)' }}
-      />
-
-      <Navbar />
-      <Sidebar />
-      <main className="relative z-10 pt-14 md:pl-52">
-        <div className="max-w-3xl mx-auto px-8 pt-10 pb-16">
+      <Sidebar withTopBar={false} />
+      <main className="relative z-10 md:pl-56">
+        <div className="pen-content max-w-5xl">
 
           <Link
             to="/dashboard"
@@ -153,7 +142,7 @@ export function TranscriptionPage() {
 
               {/* Processing / Error */}
               {transcription?.status === 'PENDING' || transcription?.status === 'PROCESSING' ? (
-                <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] shadow-[var(--shadow-card)]">
+                <div className="pen-surface rounded-[24px]">
                   <ProcessingState message="Processando transcrição..." />
                 </div>
               ) : transcription?.status === 'FAILED' ? (
@@ -169,7 +158,7 @@ export function TranscriptionPage() {
               ) : isCompleted ? (
                 <>
                   {/* Pill tabs */}
-                  <div className="flex gap-1 p-1 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border)]">
+                  <div className="pen-surface flex gap-1 rounded-[20px] p-1.5">
                     {TABS.map((tab) => {
                       const Icon = tab.icon
                       const isActive = activeTab === tab.id
@@ -180,7 +169,7 @@ export function TranscriptionPage() {
                           className={cn(
                             'flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg transition-all duration-200',
                             isActive
-                              ? 'bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[var(--shadow-card)]'
+                              ? 'bg-white/85 text-[var(--text-primary)] shadow-[0_8px_18px_rgba(56,171,228,0.14)]'
                               : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                           )}
                         >
@@ -205,7 +194,7 @@ export function TranscriptionPage() {
                   </div>
 
                   {/* Tab content */}
-                  <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] shadow-[var(--shadow-card)] overflow-hidden">
+                  <div className="pen-surface rounded-[24px] overflow-hidden">
                     {activeTab === 'resumo' && (
                       <div className="p-6">
                         {/* Gradient left border accent */}

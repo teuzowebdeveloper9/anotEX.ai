@@ -23,24 +23,23 @@ export function ReviewCard({
 }: ReviewCardProps) {
   return (
     <div className="flex flex-col items-center gap-6 w-full max-w-2xl mx-auto">
-      {/* Card */}
       <div
         className={cn(
-          'w-full rounded-2xl border p-8 min-h-[220px] flex flex-col justify-between',
+          'w-full rounded-[28px] border p-9 min-h-[320px] flex flex-col justify-between pen-surface',
           'transition-colors duration-300',
           isFlipped
-            ? 'border-[var(--accent)]/40 bg-[var(--accent-bg)]'
-            : 'border-[var(--border)] bg-[var(--bg-elevated)] cursor-pointer hover:border-[var(--border-hover)]',
+            ? 'border-[var(--accent)]/40 bg-[rgba(56,171,228,0.12)]'
+            : 'cursor-pointer hover:border-[var(--border-hover)]',
         )}
         onClick={!isFlipped ? onFlip : undefined}
       >
         {!isFlipped ? (
           <>
-            <span className="text-xs text-[var(--text-tertiary)] font-medium">{topic}</span>
-            <p className="text-base font-medium text-[var(--text-primary)] leading-relaxed text-center px-4 py-4">
+            <span className="pen-pill w-fit">{topic}</span>
+            <p className="text-xl font-semibold text-[var(--text-primary)] leading-relaxed text-center px-6 py-8">
               {front}
             </p>
-            <p className="text-xs text-[var(--text-tertiary)] text-center">
+            <p className="text-sm text-[var(--text-tertiary)] text-center">
               Clique para revelar a resposta
             </p>
           </>
@@ -52,7 +51,7 @@ export function ReviewCard({
                 Resposta
               </span>
             </div>
-            <p className="text-sm text-[var(--text-primary)] leading-relaxed text-center px-4 py-4">
+            <p className="text-lg text-[var(--text-primary)] leading-relaxed text-center px-6 py-8">
               {back}
             </p>
             <p className="text-xs text-[var(--text-tertiary)] text-center opacity-0">—</p>

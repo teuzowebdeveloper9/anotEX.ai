@@ -3,7 +3,6 @@ import { useParams, Link } from 'react-router-dom'
 import { ArrowLeft, MessageSquare, Trash2 } from 'lucide-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { Navbar } from '@/widgets/navbar/ui/Navbar'
 import { Sidebar } from '@/widgets/sidebar/ui/Sidebar'
 import { GradientOrb } from '@/shared/ui/decorative/GradientOrb'
 import { ChatMessage } from '@/widgets/chat-panel/ui/ChatMessage'
@@ -42,89 +41,79 @@ export function ChatPage() {
   const allMessages = [...(history ?? []), ...messages]
 
   return (
-    <div className="relative min-h-screen bg-[var(--bg-base)] overflow-hidden">
-      <GradientOrb
-        size={500}
-        color="#6366f1"
-        opacity={0.05}
-        className="top-0 right-0 z-0"
-        style={{ transform: 'translate(30%, -30%)' }}
-      />
+    <div className="pen-shell">
+      <GradientOrb size={500} color="#38ABE4" opacity={0.04} className="top-0 right-0 z-0" style={{ transform: 'translate(30%, -30%)' }} />
+      <Sidebar withTopBar={false} />
 
-      <Navbar />
-      <Sidebar />
-
-      <main className="relative z-10 pt-14 md:pl-52 flex flex-col h-screen">
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-3 border-b border-[var(--border)] bg-[var(--bg-surface)] shrink-0">
-          <div className="flex items-center gap-3">
-            <Link
-              to={`/transcription/${id}`}
-              className="flex items-center justify-center w-7 h-7 rounded-lg hover:bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
-            >
-              <ArrowLeft size={15} />
-            </Link>
-            <div className="flex items-center gap-2">
-              <MessageSquare size={14} className="text-[var(--accent)]" />
-              <div>
-                <h1 className="text-sm font-semibold text-[var(--text-primary)] leading-tight">
-                  Chat com a Aula
+      <main className="relative z-10 h-screen overflow-hidden md:pl-56">
+        <div className="flex h-full min-h-0 flex-col bg-[linear-gradient(180deg,#eef8ff_0%,#e8f4ff_100%)]">
+          <div className="flex h-12 items-center justify-between border-b border-[rgba(56,171,228,0.14)] bg-[rgba(255,255,255,0.74)] px-5 shrink-0 backdrop-blur-sm">
+            <div className="flex items-center gap-3">
+              <Link
+                to={`/transcription/${id}`}
+                className="flex h-7 w-7 items-center justify-center rounded-lg text-[#7b9aba] transition-colors hover:bg-[rgba(56,171,228,0.08)] hover:text-[var(--text-primary)]"
+              >
+                <ArrowLeft size={15} />
+              </Link>
+              <div className="flex items-center gap-2">
+                <MessageSquare size={13} className="text-[#4c94ea]" />
+                <h1 className="text-[13px] font-semibold leading-tight text-[var(--text-primary)]">
+                  Chat — {title}
                 </h1>
-                <p className="text-[11px] text-[var(--text-secondary)] truncate max-w-[240px]">
-                  {title}
-                </p>
               </div>
             </div>
+
+            {allMessages.length > 0 && (
+              <button
+                onClick={() => clearMutation.mutate()}
+                disabled={clearMutation.isPending}
+                className="flex items-center gap-1.5 rounded-full border border-[rgba(113,171,35,0.24)] bg-[rgba(113,171,35,0.10)] px-3 py-1 text-[11px] text-[#5f8c2d] transition-colors disabled:opacity-50"
+              >
+                <Trash2 size={11} />
+                Contexto em vigor
+              </button>
+            )}
           </div>
 
-          {allMessages.length > 0 && (
-            <button
-              onClick={() => clearMutation.mutate()}
-              disabled={clearMutation.isPending}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs text-[var(--text-secondary)] hover:text-[var(--danger)] hover:bg-[var(--danger-bg)] border border-[var(--border)] transition-colors disabled:opacity-50"
-            >
-              <Trash2 size={11} />
-              Limpar
-            </button>
-          )}
-        </div>
+          <div className="mx-auto flex w-full max-w-[920px] min-h-0 flex-1 flex-col px-10 pb-6 pt-4">
+            <div className="min-h-0 flex-1 overflow-y-auto px-2 py-2">
+              {allMessages.length === 0 && !isStreaming && (
+                <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-[rgba(56,171,228,0.16)] bg-white/55">
+                    <MessageSquare size={20} className="text-[#4c94ea]" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-[var(--text-primary)]">Pergunte sobre a aula</p>
+                    <p className="mt-1 max-w-xs text-xs text-[var(--text-tertiary)]">
+                      A IA responde com base exclusivamente no conteúdo transcrito
+                    </p>
+                  </div>
+                </div>
+              )}
 
-        {/* Messages */}
-        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
-          {allMessages.length === 0 && !isStreaming && (
-            <div className="flex flex-col items-center justify-center h-full gap-3 text-center">
-              <div className="w-12 h-12 rounded-2xl bg-[var(--accent-bg)] border border-[var(--accent)]/20 flex items-center justify-center">
-                <MessageSquare size={20} className="text-[var(--accent)]" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-[var(--text-primary)]">
-                  Pergunte sobre a aula
-                </p>
-                <p className="text-xs text-[var(--text-secondary)] mt-1 max-w-xs">
-                  A IA responde com base exclusivamente no conteúdo transcrito
-                </p>
+              <div className="space-y-5">
+                {allMessages.map(msg => (
+                  <ChatMessage key={msg.id} role={msg.role} content={msg.content} />
+                ))}
+
+                {isStreaming && streamingContent && (
+                  <ChatMessage role="assistant" content={streamingContent} isStreaming />
+                )}
+                {isStreaming && !streamingContent && <TypingIndicator />}
+
+                {error && (
+                  <p className="py-2 text-center text-xs text-[var(--danger)]">{error}</p>
+                )}
+
+                <div ref={messagesEndRef} />
               </div>
             </div>
-          )}
 
-          {allMessages.map(msg => (
-            <ChatMessage key={msg.id} role={msg.role} content={msg.content} />
-          ))}
-
-          {isStreaming && streamingContent && (
-            <ChatMessage role="assistant" content={streamingContent} isStreaming />
-          )}
-          {isStreaming && !streamingContent && <TypingIndicator />}
-
-          {error && (
-            <p className="text-xs text-[var(--danger)] text-center py-2">{error}</p>
-          )}
-
-          <div ref={messagesEndRef} />
+            <div className="mt-5 px-8">
+              <ChatInput onSend={sendMessage} disabled={isStreaming} />
+            </div>
+          </div>
         </div>
-
-        {/* Input */}
-        <ChatInput onSend={sendMessage} disabled={isStreaming} />
       </main>
     </div>
   )

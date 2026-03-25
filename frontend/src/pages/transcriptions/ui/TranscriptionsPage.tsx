@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { FileText, Inbox, ChevronRight, Search } from 'lucide-react'
-import { Navbar } from '@/widgets/navbar/ui/Navbar'
 import { Sidebar } from '@/widgets/sidebar/ui/Sidebar'
 import { Card } from '@/shared/ui/Card/Card'
 import { Badge } from '@/shared/ui/Badge/Badge'
@@ -14,32 +13,18 @@ export function TranscriptionsPage() {
   const { data: transcriptions, isLoading } = useTranscriptionList(search)
 
   return (
-    <div className="relative min-h-screen bg-[var(--bg-base)] overflow-hidden">
-      {/* Background orbs */}
-      <GradientOrb
-        size={500}
-        color="#38ABE4"
-        opacity={0.08}
-        className="top-0 right-0 z-0"
-        style={{ transform: 'translate(30%, -30%)' }}
-      />
-      <GradientOrb
-        size={350}
-        color="#22D3EE"
-        opacity={0.04}
-        className="bottom-0 left-52 z-0"
-        style={{ transform: 'translate(-20%, 30%)' }}
-      />
-
-      <Navbar />
-      <Sidebar />
-      <main className="relative z-10 pt-14 md:pl-56">
-        <div className="max-w-3xl mx-auto px-8 pt-10 pb-12">
-          <div className="mb-8">
-            <h1 className="text-2xl font-semibold gradient-text">Transcrições</h1>
-            <p className="text-sm text-[var(--text-secondary)] mt-1">
+    <div className="pen-shell">
+      <GradientOrb size={500} color="#38ABE4" opacity={0.08} className="top-0 right-0 z-0" style={{ transform: 'translate(30%, -30%)' }} />
+      <Sidebar withTopBar={false} />
+      <main className="relative z-10 md:pl-56">
+        <div className="pen-content max-w-5xl">
+          <div className="pen-page-header">
+            <div>
+              <h1 className="pen-page-title">Transcrições</h1>
+              <p className="pen-page-subtitle">
               {transcriptions?.length ?? 0} transcrição{transcriptions?.length !== 1 ? 'ões' : ''}
-            </p>
+              </p>
+            </div>
           </div>
 
           <div className="relative mb-6">
@@ -82,7 +67,7 @@ export function TranscriptionsPage() {
                 })
                 return (
                   <Link key={t.id} to={`/transcription/${t.audioId}`}>
-                    <Card className="p-4 flex items-center gap-4 hover:border-[var(--accent)]/40 hover:bg-[var(--bg-elevated)] hover:-translate-y-px transition-all duration-200 cursor-pointer group shadow-[var(--shadow-card)]">
+                    <Card className="pen-list-card p-4 flex items-center gap-4 hover:border-[var(--accent)]/40 hover:-translate-y-px transition-all duration-200 cursor-pointer group">
                       <div className="h-10 w-10 rounded-lg bg-[var(--accent)]/10 flex items-center justify-center shrink-0">
                         <FileText size={18} className="text-[var(--accent)]" />
                       </div>
