@@ -2,6 +2,7 @@ import {
   Controller,
   Post,
   Get,
+  Patch,
   Delete,
   Param,
   Body,
@@ -19,7 +20,9 @@ import { ShareToGroupUseCase } from '../../domain/use-cases/share-to-group.use-c
 import { GetGroupDetailUseCase } from '../../domain/use-cases/get-group-detail.use-case.js';
 import { DeleteGroupUseCase } from '../../domain/use-cases/delete-group.use-case.js';
 import { RemoveGroupShareUseCase } from '../../domain/use-cases/remove-group-share.use-case.js';
+import { UpdateGroupUseCase } from '../../domain/use-cases/update-group.use-case.js';
 import { CreateGroupDto } from '../../application/dto/create-group.dto.js';
+import { UpdateGroupDto } from '../../application/dto/update-group.dto.js';
 import { AddMemberDto } from '../../application/dto/add-member.dto.js';
 import { ShareToGroupDto } from '../../application/dto/share-to-group.dto.js';
 
@@ -34,6 +37,7 @@ export class StudyGroupController {
     private readonly getGroupDetailUseCase: GetGroupDetailUseCase,
     private readonly deleteGroupUseCase: DeleteGroupUseCase,
     private readonly removeGroupShareUseCase: RemoveGroupShareUseCase,
+    private readonly updateGroupUseCase: UpdateGroupUseCase,
   ) {}
 
   @Post()
@@ -65,6 +69,23 @@ export class StudyGroupController {
     @Req() req: AuthenticatedRequest,
   ) {
     const result = await this.getGroupDetailUseCase.execute(id, req.user.id);
+    if (!result.success) throw result.error;
+    return result.data;
+  }
+
+  @Patch(':id')
+  async updateGroup(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateGroupDto,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    const result = await this.updateGroupUseCase.execute({
+      groupId: id,
+      userId: req.user.id,
+      name: dto.name,
+      description: dto.description,
+    });
+
     if (!result.success) throw result.error;
     return result.data;
   }

@@ -10,6 +10,7 @@ import { ShareToGroupUseCase } from './domain/use-cases/share-to-group.use-case.
 import { GetGroupDetailUseCase } from './domain/use-cases/get-group-detail.use-case.js';
 import { DeleteGroupUseCase } from './domain/use-cases/delete-group.use-case.js';
 import { RemoveGroupShareUseCase } from './domain/use-cases/remove-group-share.use-case.js';
+import { UpdateGroupUseCase } from './domain/use-cases/update-group.use-case.js';
 import { StudyGroupRepositoryImpl } from './infrastructure/repositories/study-group.repository.impl.js';
 import { STUDY_GROUP_REPOSITORY } from './domain/repositories/study-group.repository.js';
 import { SHARE_LINK_REPOSITORY } from '../sharing/domain/repositories/share-link.repository.js';
@@ -28,6 +29,7 @@ import { ShareLinkRepositoryImpl } from '../sharing/infrastructure/repositories/
     GetGroupDetailUseCase,
     DeleteGroupUseCase,
     RemoveGroupShareUseCase,
+    UpdateGroupUseCase,
     { provide: STUDY_GROUP_REPOSITORY, useClass: StudyGroupRepositoryImpl },
     { provide: SHARE_LINK_REPOSITORY, useClass: ShareLinkRepositoryImpl },
   ],
