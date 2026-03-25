@@ -2,7 +2,8 @@ import http from 'k6/http'
 import { check, sleep } from 'k6'
 import { Trend, Rate, Counter } from 'k6/metrics'
 
-// ── Métricas customizadas ─────────────────────────────────────────────────────
+// ── Métricas customizadas ────────────────────────
+// ─────────────────────────────
 const chatDuration    = new Trend('chat_duration_ms',  true)
 const listDuration    = new Trend('list_duration_ms',  true)
 const errorRate       = new Rate('error_rate')
