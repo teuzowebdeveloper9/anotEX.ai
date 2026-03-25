@@ -35,7 +35,7 @@ const steps = [
     title: 'Grave a aula',
     description:
       'Grave diretamente pelo navegador ou envie um arquivo de áudio. Funciona com qualquer formato: MP3, MP4, WAV, WebM.',
-    color: '#7C3AED',
+    color: '#38ABE4',
     color2: '#22D3EE',
   },
   {
@@ -63,7 +63,7 @@ const features = [
     icon: Mic,
     label: 'Transcrição automática',
     description: 'Groq Whisper Large v3 transcreve qualquer áudio com alta precisão.',
-    color: '#7C3AED',
+    color: '#38ABE4',
     color2: '#22D3EE',
   },
   {
@@ -71,7 +71,7 @@ const features = [
     label: 'Resumos com IA',
     description: 'Llama 3.3 70B extrai os pontos-chave e gera resumos inteligentes.',
     color: '#EC4899',
-    color2: '#7C3AED',
+    color2: '#38ABE4',
   },
   {
     icon: Map,
@@ -99,7 +99,7 @@ const features = [
     label: 'Interface limpa',
     description: 'Design focado em produtividade, sem distrações. Tudo onde precisa estar.',
     color: '#22D3EE',
-    color2: '#7C3AED',
+    color2: '#38ABE4',
   },
 ]
 
@@ -124,7 +124,7 @@ const studyTools = [
     icon: FileText,
     label: 'Resumo',
     description: 'Pontos mais importantes da aula em formato estruturado.',
-    color: '#7C3AED',
+    color: '#38ABE4',
     color2: '#22D3EE',
     preview: ['Introdução ao tema', 'Desenvolvimento', 'Conclusões'],
   },
@@ -203,7 +203,7 @@ export function LandingPage() {
         {/* Background decorations */}
         <EnergyLines className="z-0 opacity-40" />
         <FloatingShapes />
-        <GradientOrb size={600} color="#7C3AED" opacity={0.18} className="-top-40 -left-40 z-0" />
+        <GradientOrb size={600} color="#38ABE4" opacity={0.18} className="-top-40 -left-40 z-0" />
         <GradientOrb size={500} color="#22D3EE" opacity={0.10} className="-top-20 right-0 z-0" style={{ transform: 'translateX(40%)' }} />
         <GradientOrb size={300} color="#EC4899" opacity={0.08} className="bottom-0 left-1/3 z-0" />
 
@@ -293,7 +293,7 @@ export function LandingPage() {
               <div className="p-5 flex gap-4">
                 <div className="flex-1 flex flex-col gap-3">
                   <div className="flex items-center gap-2">
-                    <div className="h-7 w-7 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #7C3AED, #22D3EE)' }}>
+                    <div className="h-7 w-7 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #38ABE4, #22D3EE)' }}>
                       <Sparkles size={12} className="text-white" />
                     </div>
                     <div className="h-3 w-28 rounded bg-[rgba(255,255,255,0.08)]" />
@@ -437,7 +437,7 @@ export function LandingPage() {
 
       {/* ── Features Grid ─────────────────────── */}
       <section className="relative z-10 max-w-5xl mx-auto px-6 py-24 overflow-hidden">
-        <GradientOrb size={700} color="#7C3AED" opacity={0.07} className="top-1/2 left-1/2 z-0" style={{ transform: 'translate(-50%, -50%)' }} />
+        <GradientOrb size={700} color="#38ABE4" opacity={0.07} className="top-1/2 left-1/2 z-0" style={{ transform: 'translate(-50%, -50%)' }} />
         <div className="relative z-10">
           <div className="text-center mb-14">
             <p className="text-xs font-semibold uppercase tracking-widest text-[var(--accent)] mb-3">
@@ -542,7 +542,7 @@ export function LandingPage() {
               background: 'linear-gradient(135deg, rgba(124,58,237,0.06) 0%, rgba(22,30,46,1) 60%)',
             }}
           >
-            <GradientOrb size={400} color="#7C3AED" opacity={0.12} className="top-0 left-0 z-0" style={{ transform: 'translate(-30%, -30%)' }} />
+            <GradientOrb size={400} color="#38ABE4" opacity={0.12} className="top-0 left-0 z-0" style={{ transform: 'translate(-30%, -30%)' }} />
             <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-widest text-[var(--accent)] mb-3">
@@ -633,7 +633,7 @@ export function LandingPage() {
           <div
             className="relative max-w-4xl mx-auto rounded-3xl overflow-hidden p-16 text-center"
             style={{
-              background: 'linear-gradient(135deg, #7C3AED 0%, #4F46E5 40%, #22D3EE 100%)',
+              background: 'linear-gradient(135deg, #38ABE4 0%, #4F46E5 40%, #22D3EE 100%)',
             }}
           >
             {/* Noise/pattern overlay */}
@@ -652,7 +652,7 @@ export function LandingPage() {
               </p>
               <Link to="/login">
                 <button
-                  className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl font-semibold text-sm bg-white text-[#7C3AED] hover:bg-white/90 active:scale-[0.98] transition-all duration-200 shadow-xl"
+                  className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl font-semibold text-sm bg-white text-[#38ABE4] hover:bg-white/90 active:scale-[0.98] transition-all duration-200 shadow-xl"
                 >
                   Começar gratuitamente
                   <ArrowRight size={15} />

@@ -18,7 +18,7 @@ export function TranscriptionsPage() {
       {/* Background orbs */}
       <GradientOrb
         size={500}
-        color="#7C3AED"
+        color="#38ABE4"
         opacity={0.08}
         className="top-0 right-0 z-0"
         style={{ transform: 'translate(30%, -30%)' }}
@@ -62,7 +62,7 @@ export function TranscriptionsPage() {
               <div className="relative flex flex-col items-center gap-4 py-20 text-center overflow-hidden">
                 <GradientOrb
                   size={280}
-                  color="#7C3AED"
+                  color="#38ABE4"
                   opacity={0.07}
                   className="top-1/2 left-1/2 z-0"
                   style={{ transform: 'translate(-50%, -50%)' }}

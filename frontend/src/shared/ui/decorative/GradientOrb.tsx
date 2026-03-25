@@ -10,8 +10,8 @@ interface GradientOrbProps {
 
 export function GradientOrb({
   size = 400,
-  color = '#7C3AED',
-  opacity = 0.15,
+  color = '#38ABE4',
+  opacity = 0.18,
   className,
   style,
 }: GradientOrbProps) {

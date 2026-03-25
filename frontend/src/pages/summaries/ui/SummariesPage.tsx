@@ -31,7 +31,7 @@ export function SummariesPage() {
       {/* Background orbs */}
       <GradientOrb
         size={500}
-        color="#7C3AED"
+        color="#38ABE4"
         opacity={0.08}
         className="top-0 right-0 z-0"
         style={{ transform: 'translate(30%, -30%)' }}
@@ -80,7 +80,7 @@ export function SummariesPage() {
               <div className="relative flex flex-col items-center gap-4 py-20 text-center overflow-hidden">
                 <GradientOrb
                   size={280}
-                  color="#7C3AED"
+                  color="#38ABE4"
                   opacity={0.07}
                   className="top-1/2 left-1/2 z-0"
                   style={{ transform: 'translate(-50%, -50%)' }}
@@ -104,7 +104,7 @@ export function SummariesPage() {
                       {/* Gradient left border */}
                       <div
                         className="w-0.5 self-stretch shrink-0 rounded-l-xl overflow-hidden"
-                        style={{ background: 'linear-gradient(180deg, #7C3AED, #22D3EE)' }}
+                        style={{ background: 'linear-gradient(180deg, #38ABE4, #22D3EE)' }}
                       />
                       <div className="flex items-start gap-4 p-4 flex-1 min-w-0">
                         <div className="h-10 w-10 rounded-lg bg-[var(--accent)]/10 flex items-center justify-center shrink-0 mt-0.5">
