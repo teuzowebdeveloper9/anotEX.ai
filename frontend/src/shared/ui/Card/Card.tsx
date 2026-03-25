@@ -10,16 +10,16 @@ export function Card({ className, children, hover, glass = true, ...props }: Car
   return (
     <div
       className={cn(
-        'rounded-2xl border border-[var(--border)] transition-all duration-200',
+        'rounded-3xl border border-[var(--border)] transition-all duration-200',
         glass
-          ? 'bg-white/80 backdrop-blur-sm shadow-[var(--shadow-card)]'
+          ? 'bg-[rgba(255,255,255,0.7)] backdrop-blur-md shadow-[var(--shadow-card)]'
           : 'bg-[var(--bg-surface)] shadow-[var(--shadow-card)]',
         hover && [
           'cursor-pointer',
           'hover:-translate-y-0.5',
           'hover:border-[var(--border-hover)]',
           'hover:shadow-[var(--shadow-elevated)]',
-          'hover:bg-white/92',
+          'hover:bg-white/82',
         ],
         className
       )}

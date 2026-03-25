@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { MessageSquare, ChevronRight, Clock } from 'lucide-react'
-import { Navbar } from '@/widgets/navbar/ui/Navbar'
 import { Sidebar } from '@/widgets/sidebar/ui/Sidebar'
 import { GradientOrb } from '@/shared/ui/decorative/GradientOrb'
 import { Skeleton } from '@/shared/ui/Skeleton/Skeleton'
@@ -40,27 +39,19 @@ export function ConversationsPage() {
   })
 
   return (
-    <div className="relative min-h-screen bg-[var(--bg-base)] overflow-hidden">
-      <GradientOrb
-        size={500}
-        color="#6366f1"
-        opacity={0.05}
-        className="top-0 right-0 z-0"
-        style={{ transform: 'translate(30%, -30%)' }}
-      />
+    <div className="pen-shell">
+      <GradientOrb size={500} color="#38ABE4" opacity={0.05} className="top-0 right-0 z-0" style={{ transform: 'translate(30%, -30%)' }} />
+      <Sidebar withTopBar={false} />
 
-      <Navbar />
-      <Sidebar />
-
-      <main className="relative z-10 pt-14 md:pl-52">
-        <div className="max-w-2xl mx-auto px-6 pt-10 pb-16">
+      <main className="relative z-10 md:pl-56">
+        <div className="pen-content max-w-5xl">
           <div className="flex items-center gap-3 mb-8">
             <div className="w-9 h-9 rounded-xl bg-[var(--accent-bg)] border border-[var(--accent)]/20 flex items-center justify-center">
               <MessageSquare size={16} className="text-[var(--accent)]" />
             </div>
             <div>
-              <h1 className="text-lg font-semibold text-[var(--text-primary)]">Conversas</h1>
-              <p className="text-xs text-[var(--text-secondary)]">
+              <h1 className="pen-page-title text-lg">Conversas</h1>
+              <p className="pen-page-subtitle mt-0 text-xs">
                 Chats com suas aulas transcritas
               </p>
             </div>
@@ -99,7 +90,7 @@ export function ConversationsPage() {
                 <Link
                   key={conv.transcriptionId}
                   to={`/transcription/${conv.audioId}/chat`}
-                  className="group flex items-center gap-4 p-4 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] hover:border-[var(--accent)]/30 hover:bg-[var(--bg-elevated)] transition-all"
+                  className="pen-list-card group flex items-center gap-4 rounded-[18px] p-4 hover:border-[var(--accent)]/30 transition-all"
                 >
                   <div className="w-9 h-9 rounded-lg bg-[var(--accent-bg)] border border-[var(--accent)]/20 flex items-center justify-center shrink-0">
                     <MessageSquare size={15} className="text-[var(--accent)]" />

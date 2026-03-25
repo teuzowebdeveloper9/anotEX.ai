@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom'
 import { Users, Plus, Loader2, Crown, User2, Trash2 } from 'lucide-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { Navbar } from '@/widgets/navbar/ui/Navbar'
 import { Sidebar } from '@/widgets/sidebar/ui/Sidebar'
 import { GradientOrb } from '@/shared/ui/decorative/GradientOrb'
 import { Button } from '@/shared/ui/Button/Button'
@@ -79,20 +78,18 @@ export function GroupsPage() {
   })
 
   return (
-    <div className="relative min-h-screen bg-[var(--bg-base)] overflow-hidden">
+    <div className="pen-shell">
       <GradientOrb size={500} color="#38ABE4" opacity={0.06} className="top-0 right-0 z-0" style={{ transform: 'translate(30%, -30%)' }} />
+      <Sidebar withTopBar={false} />
 
-      <Navbar />
-      <Sidebar />
-
-      <main className="relative z-10 pt-14 md:pl-52">
-        <div className="max-w-3xl mx-auto px-6 pt-10 pb-16">
+      <main className="relative z-10 md:pl-56">
+        <div className="pen-content max-w-5xl">
 
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h1 className="text-xl font-semibold gradient-text">Grupos de Estudo</h1>
-              <p className="text-sm text-[var(--text-secondary)] mt-1">
+              <h1 className="pen-page-title">Grupos de estudo</h1>
+              <p className="pen-page-subtitle">
                 Colabore e compartilhe conteúdo com colegas
               </p>
             </div>
@@ -131,7 +128,7 @@ export function GroupsPage() {
               {groups.map((group) => (
                 <div
                   key={group.id}
-                  className="flex items-center gap-4 p-4 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] hover:border-[var(--accent)]/30 transition-colors group"
+                  className="pen-list-card flex items-center gap-4 rounded-[20px] p-4 hover:border-[var(--accent)]/30 transition-colors group"
                 >
                   <div className="h-10 w-10 rounded-xl bg-[var(--accent-bg)] border border-[var(--accent)]/20 flex items-center justify-center shrink-0">
                     <Users size={16} className="text-[var(--accent)]" />

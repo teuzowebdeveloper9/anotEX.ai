@@ -16,12 +16,12 @@ export function Navbar() {
 
   return (
     <nav
-      className="fixed top-0 inset-x-0 z-50 h-14 border-b border-[var(--border)]"
+      className="fixed inset-x-0 top-0 z-50 h-14 border-b border-[var(--border)]"
       style={{
-        background: 'rgba(255,255,255,0.82)',
-        backdropFilter: 'blur(16px) saturate(1.5)',
-        WebkitBackdropFilter: 'blur(16px) saturate(1.5)',
-        boxShadow: '0 1px 0 rgba(56,171,228,0.15), 0 2px 12px rgba(56,171,228,0.08)',
+        background: 'rgba(255,255,255,0.72)',
+        backdropFilter: 'blur(14px)',
+        WebkitBackdropFilter: 'blur(14px)',
+        boxShadow: '0 1px 0 rgba(56,171,228,0.1)',
       }}
     >
       <div className="max-w-6xl mx-auto px-4 h-full flex items-center justify-between">

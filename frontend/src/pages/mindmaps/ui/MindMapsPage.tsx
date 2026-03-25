@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom'
 import { Map, Inbox, ChevronRight, Loader2, AlertCircle, Search } from 'lucide-react'
 import { SaveToFolderButton } from '@/features/study-folders/save-to-folder/ui/SaveToFolderButton'
 import { useQueries } from '@tanstack/react-query'
-import { Navbar } from '@/widgets/navbar/ui/Navbar'
 import { Sidebar } from '@/widgets/sidebar/ui/Sidebar'
 import { Skeleton } from '@/shared/ui/Skeleton/Skeleton'
 import { GradientOrb } from '@/shared/ui/decorative/GradientOrb'
@@ -32,35 +31,19 @@ export function MindMapsPage() {
   })
 
   return (
-    <div className="relative min-h-screen bg-[var(--bg-base)] overflow-hidden">
-      {/* Background orbs — cyan-tinted for mind maps */}
-      <GradientOrb
-        size={500}
-        color="#22D3EE"
-        opacity={0.08}
-        className="top-0 right-0 z-0"
-        style={{ transform: 'translate(30%, -30%)' }}
-      />
-      <GradientOrb
-        size={350}
-        color="#38ABE4"
-        opacity={0.05}
-        className="bottom-0 left-52 z-0"
-        style={{ transform: 'translate(-20%, 30%)' }}
-      />
-
-      <Navbar />
-      <Sidebar />
-      <main className="relative z-10 pt-14 md:pl-56">
-        <div className="max-w-3xl mx-auto px-8 pt-10 pb-12">
+    <div className="pen-shell">
+      <GradientOrb size={500} color="#22D3EE" opacity={0.08} className="top-0 right-0 z-0" style={{ transform: 'translate(30%, -30%)' }} />
+      <Sidebar withTopBar={false} />
+      <main className="relative z-10 md:pl-56">
+        <div className="pen-content max-w-5xl">
           <div className="mb-8">
             <div className="flex items-center gap-3 mb-1">
               <div className="h-8 w-8 rounded-lg bg-[var(--accent-2)]/10 flex items-center justify-center">
                 <Map size={16} className="text-[var(--accent-2)]" />
               </div>
-              <h1 className="text-2xl font-semibold gradient-text">Mapas Mentais</h1>
+              <h1 className="pen-page-title">Mapas Mentais</h1>
             </div>
-            <p className="text-sm text-[var(--text-secondary)] mt-1">
+            <p className="pen-page-subtitle">
               Mapas gerados automaticamente das suas aulas
             </p>
           </div>
@@ -108,7 +91,7 @@ export function MindMapsPage() {
 
                 return (
                   <Link key={t.id} to={`/transcription/${t.audioId}?tab=mindmap`}>
-                    <div className="group flex items-center gap-0 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] hover:border-[var(--accent-2)]/40 hover:bg-[var(--bg-elevated)] hover:-translate-y-px transition-all duration-200 cursor-pointer shadow-[var(--shadow-card)] overflow-hidden">
+                    <div className="pen-list-card group flex items-center gap-0 rounded-[20px] hover:border-[var(--accent-2)]/40 hover:-translate-y-px transition-all duration-200 cursor-pointer overflow-hidden">
                       {/* Gradient left border */}
                       <div
                         className="w-0.5 self-stretch shrink-0"

@@ -42,6 +42,7 @@
   /* Shadows — blue-tinted like Frutiger Aero */
   --shadow-card:     0 4px 18px rgba(56,171,228,0.14), 0 1px 4px rgba(56,171,228,0.08), inset 0 1px 0 rgba(255,255,255,0.80);
   --shadow-elevated: 0 12px 40px rgba(56,171,228,0.22), 0 4px 12px rgba(56,171,228,0.12), inset 0 1px 0 rgba(255,255,255,0.90);
+  --glass-strong: linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(232,245,255,0.92) 100%);
 
   --mouse-x: 50%;
   --mouse-y: 50%;
@@ -101,6 +102,10 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     transition: background-color 0.3s ease, color 0.15s ease;
+    min-height: 100vh;
+  }
+
+  #root {
     min-height: 100vh;
   }
 
@@ -169,6 +174,143 @@
 /* Aero-style blue glow for cards */
 .aero-glow {
   box-shadow: 0 6px 28px rgba(56,171,228,0.22), 0 2px 8px rgba(56,171,228,0.12), inset 0 1px 0 rgba(255,255,255,0.85);
+}
+
+.pen-page {
+  position: relative;
+  background:
+    radial-gradient(ellipse 34% 28% at 4% 0%, rgba(56,171,228,0.22) 0%, transparent 72%),
+    radial-gradient(ellipse 26% 24% at 87% 26%, rgba(0,196,204,0.16) 0%, transparent 72%),
+    radial-gradient(ellipse 18% 20% at 42% 92%, rgba(113,171,35,0.10) 0%, transparent 72%),
+    linear-gradient(180deg, #eef8ff 0%, #e8f4ff 100%);
+}
+
+.pen-nav {
+  background: rgba(255, 255, 255, 0.75);
+  border-bottom: 1px solid rgba(56,171,228,0.14);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.pen-blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(6px);
+}
+
+.pen-blob-blue {
+  background: radial-gradient(circle, rgba(56,171,228,0.32) 0%, rgba(56,171,228,0) 72%);
+}
+
+.pen-blob-cyan {
+  background: radial-gradient(circle, rgba(0,196,204,0.18) 0%, rgba(0,196,204,0) 72%);
+}
+
+.pen-blob-green {
+  background: radial-gradient(circle, rgba(113,171,35,0.14) 0%, rgba(113,171,35,0) 72%);
+}
+
+.pen-card {
+  border: 1.5px solid rgba(56,171,228,0.18);
+  background: linear-gradient(175deg, rgba(255,255,255,0.7), rgba(255,255,255,0.54));
+  box-shadow: 0 6px 18px rgba(56,171,228,0.12);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.pen-card-blue {
+  background: linear-gradient(175deg, rgba(105,207,255,0.20), rgba(56,171,228,0.10));
+  border-color: rgba(56,171,228,0.24);
+}
+
+.pen-card-teal {
+  background: linear-gradient(175deg, rgba(0,196,204,0.16), rgba(0,196,204,0.06));
+  border-color: rgba(0,196,204,0.24);
+}
+
+.pen-card-green {
+  background: linear-gradient(175deg, rgba(113,171,35,0.16), rgba(113,171,35,0.06));
+  border-color: rgba(113,171,35,0.24);
+}
+
+.pen-hero-frame {
+  position: relative;
+  border-radius: 24px;
+  border: 1.5px solid rgba(255,255,255,0.56);
+  box-shadow: 0 20px 56px rgba(56,171,228,0.2);
+  overflow: hidden;
+}
+
+.pen-shell {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 30% 24% at 88% 0%, rgba(56,171,228,0.14) 0%, transparent 72%),
+    radial-gradient(ellipse 22% 22% at 18% 88%, rgba(0,196,204,0.08) 0%, transparent 72%),
+    linear-gradient(180deg, #eef8ff 0%, #e8f4ff 100%);
+}
+
+.pen-main {
+  position: relative;
+  z-index: 10;
+  padding-top: 3.5rem;
+}
+
+.pen-content {
+  margin: 0 auto;
+  max-width: 72rem;
+  padding: 2rem 2.5rem 3rem;
+}
+
+.pen-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.pen-page-title {
+  color: var(--text-primary);
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.pen-page-subtitle {
+  margin-top: 0.25rem;
+  color: var(--text-tertiary);
+  font-size: 0.875rem;
+}
+
+.pen-surface {
+  border: 1.5px solid rgba(56,171,228,0.18);
+  background: linear-gradient(180deg, rgba(255,255,255,0.74) 0%, rgba(255,255,255,0.58) 100%);
+  box-shadow: 0 10px 28px rgba(56,171,228,0.12);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.pen-list-card {
+  border: 1.5px solid rgba(56,171,228,0.16);
+  background: linear-gradient(180deg, rgba(255,255,255,0.72) 0%, rgba(255,255,255,0.6) 100%);
+  box-shadow: 0 6px 18px rgba(56,171,228,0.10);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.pen-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(56,171,228,0.22);
+  background: rgba(56,171,228,0.08);
+  padding: 0.38rem 0.75rem;
+  color: var(--accent-5);
+  font-size: 0.75rem;
+  font-weight: 600;
 }
 
 /* ─── Markdown ──────────────────────────────────────────── */

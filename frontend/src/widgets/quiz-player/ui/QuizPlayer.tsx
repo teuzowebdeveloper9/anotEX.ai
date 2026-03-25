@@ -55,7 +55,7 @@ export function QuizPlayer({ questions }: QuizPlayerProps) {
       <div className="flex flex-col gap-6">
 
         {/* Score card */}
-        <div className="flex flex-col items-center gap-4 py-8 rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)]">
+        <div className="pen-surface flex flex-col items-center gap-4 rounded-[28px] py-10">
           <div
             className="h-16 w-16 rounded-2xl flex items-center justify-center"
             style={{
@@ -199,7 +199,7 @@ export function QuizPlayer({ questions }: QuizPlayerProps) {
       )}
 
       {/* Question card */}
-      <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)] p-5">
+      <div className="pen-surface rounded-[28px] p-8">
         <div className="flex items-start gap-3 mb-5">
           <span className="shrink-0 h-6 w-6 rounded-lg bg-[var(--accent-bg)] border border-[var(--accent)]/20 flex items-center justify-center text-[10px] font-bold text-[var(--accent)]">
             {currentIndex + 1}
@@ -226,7 +226,7 @@ export function QuizPlayer({ questions }: QuizPlayerProps) {
                 optionStyle = 'border-[var(--border)] text-[var(--text-secondary)] opacity-50'
               }
             } else {
-              optionStyle = 'border-[var(--border)] text-[var(--text-secondary)] hover:border-[var(--accent)]/40 hover:bg-[var(--accent-bg)] hover:text-[var(--text-primary)] cursor-pointer'
+                  optionStyle = 'border-[var(--border)] text-[var(--text-secondary)] hover:border-[var(--accent)]/40 hover:bg-white/70 hover:text-[var(--text-primary)] cursor-pointer'
             }
 
             return (
