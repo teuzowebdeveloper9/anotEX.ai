@@ -36,7 +36,7 @@ export function FlashcardsPage() {
       {/* Background orbs */}
       <GradientOrb
         size={500}
-        color="#7C3AED"
+        color="#38ABE4"
         opacity={0.08}
         className="top-0 right-0 z-0"
         style={{ transform: 'translate(30%, -30%)' }}
@@ -115,7 +115,7 @@ export function FlashcardsPage() {
                       {/* Gradient left border — warm purple→pink */}
                       <div
                         className="w-0.5 self-stretch shrink-0"
-                        style={{ background: 'linear-gradient(180deg, #7C3AED, #EC4899)' }}
+                        style={{ background: 'linear-gradient(180deg, #38ABE4, #EC4899)' }}
                       />
                       <div className="flex items-center gap-4 p-4 flex-1 min-w-0">
                         <div className="h-10 w-10 rounded-lg bg-[var(--accent)]/10 flex items-center justify-center shrink-0">

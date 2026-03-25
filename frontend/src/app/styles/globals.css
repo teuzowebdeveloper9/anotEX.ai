@@ -1,77 +1,85 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300..800;1,14..32,300..800&family=JetBrains+Mono:wght@400;500&display=swap');
 @import "tailwindcss";
 
-/* ─── Dark theme (default) ─────────────────────────────── */
+/* ─── Frutiger Metro — Light theme (default) ────────────── */
 :root {
-  --bg-base:     #080C14;
-  --bg-surface:  #0F1624;
-  --bg-elevated: #161E2E;
-  --border:      #1E2A3D;
-  --border-hover: #2D3F5C;
+  /* Backgrounds */
+  --bg-base:     #E8F4FF;
+  --bg-surface:  rgba(255,255,255,0.85);
+  --bg-elevated: rgba(255,255,255,0.96);
 
-  --accent:      #7C3AED;
-  --accent-2:    #22D3EE;
-  --accent-3:    #3B82F6;
-  --accent-4:    #10B981;
-  --accent-5:    #EC4899;
-  --accent-glow: rgba(124,58,237,0.20);
-  --accent-bg:   rgba(124,58,237,0.08);
+  /* Borders */
+  --border:       rgba(56,171,228,0.22);
+  --border-hover: rgba(56,171,228,0.48);
 
-  --gradient-primary:   linear-gradient(135deg, #7C3AED, #22D3EE);
-  --gradient-secondary: linear-gradient(135deg, #3B82F6, #10B981);
-  --gradient-warm:      linear-gradient(135deg, #EC4899, #7C3AED);
+  /* Accent palette — sky blue / teal / green / orange */
+  --accent:      #38ABE4;
+  --accent-2:    #00C4CC;
+  --accent-3:    #71AB23;
+  --accent-4:    #F4801A;
+  --accent-5:    #1E6CDC;
+  --accent-glow: rgba(56,171,228,0.28);
+  --accent-bg:   rgba(56,171,228,0.10);
 
-  --text-primary:   #F0F4FF;
-  --text-secondary: #8B9CC4;
-  --text-tertiary:  #4A5568;
+  /* Glossy button gradient — 4-stop Frutiger Aero gloss */
+  --gradient-primary:   linear-gradient(180deg, #7AD5F5 0%, #38ABE4 52%, #1E6CDC 53%, #0050A0 100%);
+  --gradient-secondary: linear-gradient(180deg, #50E0E8 0%, #00C4CC 52%, #009AA0 53%, #006670 100%);
+  --gradient-warm:      linear-gradient(135deg, #F4801A, #CC4400);
 
-  --success:    #10B981;
-  --warning:    #F59E0B;
-  --danger:     #EF4444;
-  --success-bg: rgba(16,185,129,0.08);
-  --warning-bg: rgba(245,158,11,0.08);
-  --danger-bg:  rgba(239,68,68,0.08);
+  /* Text */
+  --text-primary:   #0A2540;
+  --text-secondary: #3A6080;
+  --text-tertiary:  #7A9BB5;
 
-  --shadow-card:     0 1px 3px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.03);
-  --shadow-elevated: 0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.04);
+  /* Status */
+  --success:    #71AB23;
+  --warning:    #F4801A;
+  --danger:     #E03030;
+  --success-bg: rgba(113,171,35,0.10);
+  --warning-bg: rgba(244,128,26,0.10);
+  --danger-bg:  rgba(224,48,48,0.10);
+
+  /* Shadows — blue-tinted like Frutiger Aero */
+  --shadow-card:     0 4px 18px rgba(56,171,228,0.14), 0 1px 4px rgba(56,171,228,0.08), inset 0 1px 0 rgba(255,255,255,0.80);
+  --shadow-elevated: 0 12px 40px rgba(56,171,228,0.22), 0 4px 12px rgba(56,171,228,0.12), inset 0 1px 0 rgba(255,255,255,0.90);
 
   --mouse-x: 50%;
   --mouse-y: 50%;
 }
 
-/* ─── Light theme ───────────────────────────────────────── */
-[data-theme="light"] {
-  --bg-base:      #F0F2F7;
-  --bg-surface:   #FFFFFF;
-  --bg-elevated:  #E8ECF4;
-  --border:       #C8D0E0;
-  --border-hover: #A8B4CC;
+/* ─── Dark override (toggled via useTheme) ──────────────── */
+[data-theme="dark"] {
+  --bg-base:     #080C14;
+  --bg-surface:  #0F1624;
+  --bg-elevated: #161E2E;
+  --border:       #1E2A3D;
+  --border-hover: #2D3F5C;
 
-  --accent:      #6366F1;
-  --accent-2:    #06B6D4;
-  --accent-3:    #8B5CF6;
-  --accent-4:    #10B981;
-  --accent-5:    #EC4899;
-  --accent-glow: rgba(99,102,241,0.18);
-  --accent-bg:   rgba(99,102,241,0.08);
+  --accent:      #38ABE4;
+  --accent-2:    #00C4CC;
+  --accent-3:    #71AB23;
+  --accent-4:    #F4801A;
+  --accent-5:    #1E6CDC;
+  --accent-glow: rgba(56,171,228,0.20);
+  --accent-bg:   rgba(56,171,228,0.10);
 
-  --gradient-primary:   linear-gradient(135deg, #6366F1, #22D3EE);
-  --gradient-secondary: linear-gradient(135deg, #8B5CF6, #10B981);
-  --gradient-warm:      linear-gradient(135deg, #EC4899, #6366F1);
+  --gradient-primary:   linear-gradient(180deg, #7AD5F5 0%, #38ABE4 52%, #1E6CDC 53%, #0050A0 100%);
+  --gradient-secondary: linear-gradient(180deg, #50E0E8 0%, #00C4CC 52%, #009AA0 53%, #006670 100%);
+  --gradient-warm:      linear-gradient(135deg, #F4801A, #CC4400);
 
-  --text-primary:   #0D1117;
-  --text-secondary: #4A5568;
-  --text-tertiary:  #8896AA;
+  --text-primary:   #E8F4FF;
+  --text-secondary: #7AACC8;
+  --text-tertiary:  #4A6880;
 
-  --success:    #059669;
-  --warning:    #D97706;
+  --success:    #71AB23;
+  --warning:    #F4801A;
   --danger:     #EF4444;
-  --success-bg: #ECFDF5;
-  --warning-bg: #FFFBEB;
-  --danger-bg:  #FEF2F2;
+  --success-bg: rgba(113,171,35,0.10);
+  --warning-bg: rgba(244,128,26,0.10);
+  --danger-bg:  rgba(239,68,68,0.10);
 
-  --shadow-card:     0 1px 4px rgba(0,0,0,0.10), 0 0 0 1px rgba(0,0,0,0.05);
-  --shadow-elevated: 0 6px 28px rgba(0,0,0,0.13), 0 0 0 1px rgba(0,0,0,0.06);
+  --shadow-card:     0 2px 8px rgba(0,0,0,0.50), 0 0 0 1px rgba(56,171,228,0.06);
+  --shadow-elevated: 0 10px 40px rgba(0,0,0,0.55), 0 0 0 1px rgba(56,171,228,0.08);
 }
 
 /* ─── Base ──────────────────────────────────────────────── */
@@ -82,52 +90,85 @@
 
   body {
     background-color: var(--bg-base);
+    /* Frutiger Metro mesh gradient background */
+    background-image:
+      radial-gradient(ellipse 80% 50% at 0% 0%,   rgba(56,171,228,0.22) 0%, transparent 70%),
+      radial-gradient(ellipse 60% 40% at 100% 30%, rgba(0,196,204,0.18) 0%, transparent 65%),
+      radial-gradient(ellipse 50% 60% at 50% 100%, rgba(113,171,35,0.10) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 35% at 80% 80%,  rgba(56,171,228,0.12) 0%, transparent 60%);
     color: var(--text-primary);
     font-family: 'Inter', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    transition: background-color 0.25s ease, color 0.1s ease;
+    transition: background-color 0.3s ease, color 0.15s ease;
+    min-height: 100vh;
+  }
+
+  [data-theme="dark"] body {
+    background-image:
+      radial-gradient(ellipse 80% 50% at 0% 0%,   rgba(56,171,228,0.07) 0%, transparent 70%),
+      radial-gradient(ellipse 60% 40% at 100% 30%, rgba(0,196,204,0.05) 0%, transparent 65%),
+      radial-gradient(ellipse 50% 60% at 50% 100%, rgba(113,171,35,0.04) 0%, transparent 70%);
   }
 
   ::selection {
-    background: var(--accent-glow);
+    background: rgba(56,171,228,0.25);
     color: var(--text-primary);
   }
 
   ::-webkit-scrollbar { width: 5px; }
   ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 9px; }
-  ::-webkit-scrollbar-thumb:hover { background: var(--text-tertiary); }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(56,171,228,0.30);
+    border-radius: 9px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(56,171,228,0.55);
+  }
 }
 
 /* ─── Utility classes ───────────────────────────────────── */
+
+/* Gradient text — sky blue to teal */
 .gradient-text {
-  background: var(--gradient-primary);
+  background: linear-gradient(135deg, #38ABE4, #00C4CC);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-.gradient-border {
-  border: 1px solid transparent;
-  background-clip: padding-box;
-  position: relative;
+/* Frutiger glass card */
+.glass {
+  background: rgba(255,255,255,0.72);
+  backdrop-filter: blur(14px) saturate(1.4);
+  -webkit-backdrop-filter: blur(14px) saturate(1.4);
+  border: 1.5px solid rgba(255,255,255,0.75);
+  box-shadow: 0 4px 24px rgba(56,171,228,0.14), inset 0 1px 0 rgba(255,255,255,0.90);
+}
+
+[data-theme="dark"] .glass {
+  background: rgba(8,20,40,0.72);
+  border: 1px solid rgba(56,171,228,0.12);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.45), inset 0 1px 0 rgba(56,171,228,0.08);
+}
+
+/* Glossy button highlight overlay */
+.gloss::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(180deg, rgba(255,255,255,0.50) 0%, rgba(255,255,255,0.12) 45%, transparent 100%);
+  pointer-events: none;
 }
 
 .glow-accent {
   box-shadow: 0 0 20px var(--accent-glow), 0 0 40px var(--accent-glow);
 }
 
-.glass {
-  background: rgba(255,255,255,0.04);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255,255,255,0.08);
-}
-
-[data-theme="light"] .glass {
-  background: rgba(255,255,255,0.70);
-  border: 1px solid rgba(0,0,0,0.08);
+/* Aero-style blue glow for cards */
+.aero-glow {
+  box-shadow: 0 6px 28px rgba(56,171,228,0.22), 0 2px 8px rgba(56,171,228,0.12), inset 0 1px 0 rgba(255,255,255,0.85);
 }
 
 /* ─── Markdown ──────────────────────────────────────────── */
@@ -148,7 +189,7 @@
   color: var(--text-primary);
 }
 .markdown-body h1 { font-size: 1.3rem; }
-.markdown-body h2 { font-size: 1.1rem; color: var(--accent); }
+.markdown-body h2 { font-size: 1.1rem; color: var(--accent-5); }
 .markdown-body h3 { font-size: 1rem; }
 .markdown-body p  { margin-bottom: 0.875em; }
 .markdown-body strong { color: var(--text-primary); font-weight: 600; }
@@ -157,34 +198,38 @@
 .markdown-body li { margin-bottom: 0.3em; }
 .markdown-body li strong { color: var(--text-primary); }
 .markdown-body code {
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
+  background: rgba(56,171,228,0.08);
+  border: 1px solid rgba(56,171,228,0.20);
   border-radius: 5px;
   padding: 0.15em 0.45em;
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.8em;
-  color: var(--accent);
+  color: var(--accent-5);
 }
 .markdown-body pre {
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
-  border-radius: 10px;
+  background: rgba(255,255,255,0.75);
+  border: 1px solid rgba(56,171,228,0.18);
+  border-radius: 12px;
   padding: 1.125rem;
   overflow-x: auto;
   margin-bottom: 1em;
+  box-shadow: inset 0 1px 3px rgba(56,171,228,0.08);
 }
 .markdown-body pre code { background: none; border: none; padding: 0; color: var(--text-primary); }
 .markdown-body blockquote {
-  border-left: 2px solid var(--accent);
+  border-left: 3px solid var(--accent);
   padding-left: 1rem;
   color: var(--text-secondary);
   margin: 1em 0;
   font-style: italic;
+  background: rgba(56,171,228,0.04);
+  border-radius: 0 8px 8px 0;
+  padding: 0.5rem 1rem;
 }
 .markdown-body hr { border: none; border-top: 1px solid var(--border); margin: 1.75em 0; }
-.markdown-body a { color: var(--accent); text-underline-offset: 3px; }
+.markdown-body a { color: var(--accent-5); text-underline-offset: 3px; }
 
-/* ─── Flashcard flip (scaleX, sem backface-visibility) ───── */
+/* ─── Flashcard flip ─────────────────────────────────────── */
 @keyframes card-shrink {
   from { transform: scaleX(1); opacity: 1; }
   to   { transform: scaleX(0); opacity: 0; }
@@ -196,7 +241,7 @@
 .card-shrink { animation: card-shrink 180ms ease-in forwards; }
 .card-expand { animation: card-expand 180ms ease-out forwards; }
 
-/* ─── Animations ────────────────────────────────────────── */
+/* ─── Animations ─────────────────────────────────────────── */
 @keyframes fade-up {
   from { opacity: 0; transform: translateY(10px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -213,3 +258,9 @@
   0%, 100% { transform: translateY(0px); }
   50%       { transform: translateY(-8px); }
 }
+@keyframes blob-drift {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33%       { transform: translate(20px, -15px) scale(1.05); }
+  66%       { transform: translate(-10px, 12px) scale(0.97); }
+}
+.blob-drift { animation: blob-drift 12s ease-in-out infinite; }

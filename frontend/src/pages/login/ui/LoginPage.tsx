@@ -30,7 +30,7 @@ export function LoginPage() {
       <FloatingShapes />
       <GradientOrb
         size={500}
-        color="#7C3AED"
+        color="#38ABE4"
         opacity={0.12}
         className="-top-32 -left-32 z-0"
       />

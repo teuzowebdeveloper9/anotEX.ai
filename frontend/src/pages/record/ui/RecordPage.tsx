@@ -57,7 +57,7 @@ export function RecordPage() {
       {/* Background orbs */}
       <GradientOrb
         size={500}
-        color="#7C3AED"
+        color="#38ABE4"
         opacity={0.1}
         className="top-0 right-0 z-0"
         style={{ transform: 'translate(30%, -30%)' }}

@@ -43,7 +43,7 @@ export function MindMapsPage() {
       />
       <GradientOrb
         size={350}
-        color="#7C3AED"
+        color="#38ABE4"
         opacity={0.05}
         className="bottom-0 left-52 z-0"
         style={{ transform: 'translate(-20%, 30%)' }}

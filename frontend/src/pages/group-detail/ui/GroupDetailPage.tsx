@@ -166,7 +166,7 @@ export function GroupDetailPage() {
 
   return (
     <div className="relative min-h-screen bg-[var(--bg-base)] overflow-hidden">
-      <GradientOrb size={500} color="#7C3AED" opacity={0.06} className="top-0 right-0 z-0" style={{ transform: 'translate(30%, -30%)' }} />
+      <GradientOrb size={500} color="#38ABE4" opacity={0.06} className="top-0 right-0 z-0" style={{ transform: 'translate(30%, -30%)' }} />
 
       <Navbar />
       <Sidebar />

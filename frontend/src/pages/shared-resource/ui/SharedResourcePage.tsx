@@ -106,7 +106,7 @@ export function SharedResourcePage() {
 
   return (
     <div className="relative min-h-screen bg-[var(--bg-base)] overflow-hidden">
-      <GradientOrb size={600} color="#7C3AED" opacity={0.06} className="top-0 right-0 z-0" style={{ transform: 'translate(30%, -30%)' }} />
+      <GradientOrb size={600} color="#38ABE4" opacity={0.06} className="top-0 right-0 z-0" style={{ transform: 'translate(30%, -30%)' }} />
       <GradientOrb size={350} color="#22D3EE" opacity={0.04} className="bottom-0 left-0 z-0" style={{ transform: 'translate(-20%, 30%)' }} />
 
       {/* Minimal navbar for public page */}

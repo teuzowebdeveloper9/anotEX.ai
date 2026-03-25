@@ -1,7 +1,6 @@
 import { NavLink, useLocation } from 'react-router-dom'
 import { Mic, FileText, Map, BookOpen, Sparkles, FolderOpen, Users, CircleHelp, MessageSquare, Brain } from 'lucide-react'
 import { useEffect } from 'react'
-import { GradientOrb } from '@/shared/ui/decorative/GradientOrb'
 import { useSidebarStore } from '@/shared/hooks/useSidebarStore'
 
 interface NavItem {
@@ -33,11 +32,20 @@ function SideNavItem({ item, onClick }: { item: NavItem; onClick?: () => void })
       end
       onClick={onClick}
       className={({ isActive }) =>
-        `relative flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150 ${
+        `relative flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm transition-all duration-150 ${
           isActive
-            ? 'bg-[var(--accent-bg)] text-[var(--accent)] font-medium'
-            : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)]'
+            ? 'text-[var(--accent-5)] font-semibold'
+            : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-white/60'
         }`
+      }
+      style={({ isActive }) =>
+        isActive
+          ? {
+              background: 'linear-gradient(90deg, rgba(56,171,228,0.14) 0%, rgba(56,171,228,0.06) 100%)',
+              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.80), 0 2px 8px rgba(56,171,228,0.10)',
+              border: '1px solid rgba(56,171,228,0.22)',
+            }
+          : undefined
       }
     >
       {({ isActive }) => (
@@ -45,14 +53,14 @@ function SideNavItem({ item, onClick }: { item: NavItem; onClick?: () => void })
           {isActive && (
             <span
               className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-r-full"
-              style={{ background: 'var(--gradient-primary)' }}
+              style={{ background: 'linear-gradient(180deg, #7AD5F5, #1E6CDC)' }}
             />
           )}
           <span
             style={
               isActive
                 ? {
-                    background: 'var(--gradient-primary)',
+                    background: 'linear-gradient(135deg, #38ABE4, #1E6CDC)',
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent',
                     backgroundClip: 'text',
@@ -73,7 +81,6 @@ export function Sidebar() {
   const { isOpen, close } = useSidebarStore()
   const location = useLocation()
 
-  // Fecha o sidebar ao navegar no mobile
   useEffect(() => {
     close()
   }, [location.pathname, close])
@@ -81,20 +88,34 @@ export function Sidebar() {
   const sidebarContent = (
     <aside
       className={[
-        'fixed top-14 left-0 bottom-0 w-52 border-r border-[var(--border)] bg-[var(--bg-base)]',
+        'fixed top-14 left-0 bottom-0 w-52 border-r border-[var(--border)]',
         'flex flex-col py-4 px-2.5 z-40 overflow-hidden',
         'transition-transform duration-300 ease-in-out',
-        // Mobile: slide in/out; Desktop: always visible
         'md:translate-x-0',
         isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0',
       ].join(' ')}
+      style={{
+        background: 'rgba(255,255,255,0.78)',
+        backdropFilter: 'blur(18px) saturate(1.4)',
+        WebkitBackdropFilter: 'blur(18px) saturate(1.4)',
+        boxShadow: '1px 0 0 rgba(56,171,228,0.12), 4px 0 24px rgba(56,171,228,0.06)',
+      }}
     >
-      <GradientOrb
-        size={200}
-        color="#7C3AED"
-        opacity={0.06}
-        className="top-0 left-0 z-0"
-        style={{ transform: 'translate(-40%, -40%)' }}
+      {/* Decorative blobs */}
+      <div
+        className="pointer-events-none absolute -top-16 -left-16 w-48 h-48 rounded-full blob-drift"
+        style={{
+          background: 'radial-gradient(circle, rgba(56,171,228,0.28) 0%, transparent 70%)',
+          filter: 'blur(20px)',
+        }}
+      />
+      <div
+        className="pointer-events-none absolute bottom-10 -right-10 w-36 h-36 rounded-full"
+        style={{
+          background: 'radial-gradient(circle, rgba(0,196,204,0.20) 0%, transparent 70%)',
+          filter: 'blur(16px)',
+          animationDelay: '4s',
+        }}
       />
 
       <div className="relative z-10 flex flex-col gap-0.5">
@@ -107,7 +128,7 @@ export function Sidebar() {
         <p className="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest text-[var(--text-tertiary)] flex items-center gap-1.5">
           <span
             className="inline-block h-px w-3 rounded"
-            style={{ background: 'var(--gradient-primary)', opacity: 0.6 }}
+            style={{ background: 'linear-gradient(90deg, #38ABE4, #00C4CC)', opacity: 0.7 }}
           />
           Estudo
         </p>
@@ -122,10 +143,9 @@ export function Sidebar() {
 
   return (
     <>
-      {/* Backdrop para mobile */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-30 bg-black/50 md:hidden"
+          className="fixed inset-0 z-30 bg-black/30 backdrop-blur-sm md:hidden"
           onClick={close}
         />
       )}

@@ -8,7 +8,8 @@ function getInitialTheme(): Theme {
   if (typeof window === 'undefined') return 'dark'
   const stored = localStorage.getItem(STORAGE_KEY) as Theme | null
   if (stored === 'dark' || stored === 'light') return stored
-  return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
+  // Default to light (Frutiger Metro)
+  return 'light'
 }
 
 export function useTheme() {

@@ -19,14 +19,14 @@ export function StudyFoldersPage() {
     <div className="relative min-h-screen bg-[var(--bg-base)] overflow-hidden">
       <GradientOrb
         size={500}
-        color="#6366f1"
+        color="#38ABE4"
         opacity={0.07}
         className="top-0 right-0 z-0"
         style={{ transform: 'translate(30%, -30%)' }}
       />
       <GradientOrb
         size={350}
-        color="#7C3AED"
+        color="#38ABE4"
         opacity={0.04}
         className="bottom-0 left-52 z-0"
         style={{ transform: 'translate(-20%, 30%)' }}
@@ -64,7 +64,7 @@ export function StudyFoldersPage() {
               <div className="relative flex flex-col items-center gap-4 py-20 text-center overflow-hidden">
                 <GradientOrb
                   size={280}
-                  color="#6366f1"
+                  color="#38ABE4"
                   opacity={0.07}
                   className="top-1/2 left-1/2 z-0"
                   style={{ transform: 'translate(-50%, -50%)' }}
@@ -91,7 +91,7 @@ export function StudyFoldersPage() {
                     <div className="group flex items-start gap-0 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] hover:border-[var(--accent)]/40 hover:bg-[var(--bg-elevated)] hover:-translate-y-px transition-all duration-200 cursor-pointer shadow-[var(--shadow-card)] overflow-hidden">
                       <div
                         className="w-0.5 self-stretch shrink-0"
-                        style={{ background: 'linear-gradient(180deg, #6366f1, #7C3AED)' }}
+                        style={{ background: 'linear-gradient(180deg, #38ABE4, #38ABE4)' }}
                       />
                       <div className="flex items-start gap-4 p-4 flex-1 min-w-0">
                         <div className="h-10 w-10 rounded-lg bg-[var(--accent)]/10 flex items-center justify-center shrink-0 mt-0.5">
