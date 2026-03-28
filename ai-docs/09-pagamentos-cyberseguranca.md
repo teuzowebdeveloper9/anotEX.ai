@@ -198,6 +198,163 @@ Riscos:
 
 ---
 
+## Ferramentas Provaveis
+
+Esta secao lista ferramentas realistas para uma primeira implementacao no `anotEX.ai`, priorizando reducao de risco, integracao simples com backend e boa operacao em producao.
+
+### 1. Gateway de pagamento
+
+Opcoes provaveis:
+
+- **Stripe**
+- **Asaas**
+- **Pagar.me**
+- **Mercado Pago**
+
+Leitura pratica:
+
+- **Stripe**: melhor opcao se a prioridade for DX forte, checkout hospedado maduro, boa documentacao, webhooks bem estruturados e suporte a Billing/Subscriptions.
+- **Asaas**: faz sentido se quisermos maior aderencia ao mercado brasileiro, Pix e boleto com operacao mais local.
+- **Pagar.me**: opcao forte para Brasil quando houver necessidade de ecossistema nacional e meios de pagamento locais.
+- **Mercado Pago**: util se a estrategia priorizar Pix/carteira/ecossistema local, mas exige cuidado para manter uma modelagem limpa do fluxo de eventos.
+
+Recomendacao inicial:
+
+- se a prioridade for **seguranca + maturidade tecnica**: `Stripe Checkout`
+- se a prioridade for **Brasil + Pix/Boleto logo no inicio**: `Asaas` ou `Pagar.me`
+
+### 2. Checkout e billing
+
+Ferramentas provaveis:
+
+- **Hosted Checkout do gateway**
+- **Portal de billing do proprio gateway**
+- **Webhook endpoint no NestJS**
+
+Direcao recomendada:
+
+- usar `Hosted Checkout` para primeira versao
+- usar o `customer portal` do provedor se ele resolver cancelamento, update de cartao e gestao de assinatura sem expor dados sensiveis ao nosso app
+- manter toda confirmacao de pagamento no backend NestJS
+
+### 3. Antifraude e protecao de abuse
+
+Ferramentas provaveis:
+
+- **Radar / antifraud nativo do gateway**
+- **Cloudflare WAF**
+- **Cloudflare Turnstile**
+- **rate limiting no NestJS**
+- **Upstash Redis** para contadores e chaves de idempotencia
+
+Direcao recomendada:
+
+- usar antifraude nativo do gateway antes de integrar uma solucao externa mais pesada
+- usar `Cloudflare WAF` para proteger rotas expostas de checkout e webhook
+- usar `Turnstile` se houver risco de automacao abusiva na criacao de sessoes de pagamento
+- usar `Redis` para rate limit, replay protection e locks curtos
+
+### 4. Segredos e credenciais
+
+Ferramentas provaveis:
+
+- **Railway Variables** ou secret store equivalente
+- **1Password** ou **Bitwarden** para operacao da equipe
+- **GitHub Secrets** para CI/CD
+
+Direcao recomendada:
+
+- segredos do gateway e webhook fora do repositorio
+- acesso compartilhado a segredos apenas via cofre/senha corporativa
+- rotacao documentada de `api_key`, `webhook_secret` e credenciais administrativas
+
+### 5. Observabilidade e auditoria
+
+Ferramentas provaveis:
+
+- **Sentry**
+- **New Relic**
+- **OpenTelemetry**
+- **Logtail** ou stack de logs centralizados
+- **Postgres** para trilha de auditoria de pagamentos
+
+Direcao recomendada:
+
+- `Sentry` para falhas de execucao e exceptions
+- `New Relic` se quisermos APM mais completo e correlacao operacional
+- `OpenTelemetry` se quisermos padronizar tracing entre backend, filas e integracoes
+- tabela propria de auditoria no banco para eventos financeiros e transicoes de estado
+
+### 6. Filas, retries e processamento assincrono
+
+Ferramentas provaveis:
+
+- **BullMQ**
+- **Redis**
+- **jobs internos no backend**
+
+Direcao recomendada:
+
+- processar webhook de forma rapida e segura
+- delegar reconciliacao, retries e tarefas nao criticas para fila
+- usar jobs para revalidar pagamentos pendentes, falhas temporarias e reconciliacao periodica
+
+### 7. Banco e persistencia
+
+Ferramentas provaveis:
+
+- **PostgreSQL**
+- **Supabase Postgres**
+
+Tabelas provaveis:
+
+- `billing_plans`
+- `payment_sessions`
+- `subscriptions`
+- `payment_events`
+- `charges`
+- `refunds`
+- `audit_logs`
+
+### 8. Protecao de pagina e superficie web
+
+Ferramentas provaveis:
+
+- **Cloudflare CDN/WAF**
+- **CSP headers**
+- **Subresource Integrity**, quando aplicavel
+- **monitoracao de alteracao de scripts**
+
+Direcao recomendada:
+
+- a pagina que inicia checkout deve ser minimalista
+- evitar trackers e scripts de terceiros nessa area
+- controlar rigidamente origem de script, frame e conexoes
+
+### 9. Stack recomendada para primeira versao
+
+Opcao mais pragmatica para o `anotEX.ai`:
+
+- gateway: `Stripe Checkout` ou `Asaas`
+- backend: `NestJS`
+- persistencia: `PostgreSQL / Supabase`
+- fila e retries: `BullMQ + Redis`
+- protecao web: `Cloudflare`
+- observabilidade: `Sentry` + logs estruturados
+- segredos: `Railway Secrets` + `GitHub Secrets`
+
+### 10. Stack recomendada se o foco for Brasil
+
+- gateway: `Asaas` ou `Pagar.me`
+- meios de pagamento: `Pix`, `boleto`, `cartao`
+- backend: `NestJS`
+- persistencia: `PostgreSQL / Supabase`
+- fila e retries: `BullMQ + Redis`
+- protecao web: `Cloudflare`
+- observabilidade: `Sentry` ou `New Relic`
+
+---
+
 ## Controles Obrigatorios
 
 ### 1. Fonte de verdade de preco no backend
