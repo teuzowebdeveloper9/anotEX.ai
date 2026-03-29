@@ -20,6 +20,14 @@ export const envValidationSchema = Joi.object({
   UPSTASH_REDIS_URL: Joi.string().required(),
   UPSTASH_REDIS_TOKEN: Joi.string().required(),
 
+  ABACATEPAY_API_KEY: Joi.string().optional(),
+  ABACATEPAY_API_BASE_URL: Joi.string().uri().default('https://api.abacatepay.com/v2'),
+  ABACATEPAY_WEBHOOK_SECRET: Joi.string().optional(),
+  ABACATEPAY_PUBLIC_HMAC_KEY: Joi.string().optional(),
+  ABACATEPAY_ALLOWED_PRODUCT_IDS: Joi.string().allow('').default(''),
+  ABACATEPAY_RETURN_URL: Joi.string().uri().optional(),
+  ABACATEPAY_COMPLETION_URL: Joi.string().uri().optional(),
+
   MAX_AUDIO_SIZE_MB: Joi.number().default(100),
   SIGNED_URL_EXPIRES_IN_SECONDS: Joi.number().default(900),
 
