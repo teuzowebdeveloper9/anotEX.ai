@@ -109,6 +109,12 @@ O backend foi construído com **NestJS e Clean Architecture** estrita com 9 mód
 - **Deletar conta** (`DELETE /user`) — elimina todos os dados do R2 e banco conforme LGPD Art. 18
 - Retenção automática: áudios com mais de 365 dias são deletados por cron mensal (pg_cron)
 
+### Subscription Guard — Verificação de Assinatura
+- Após login, o `SubscriptionGuard` verifica automaticamente se o usuário tem assinatura ativa
+- Se não tiver → abre modal pedindo dados (nome, CPF, celular, email)
+- Após preenchimento → cria checkout na AbacatePay e redireciona para pagamento PIX
+- Garante que usuários free acessem o app mas sejam incentivados a assinar
+
 ---
 
 ## Arquitetura
@@ -194,6 +200,37 @@ frontend/src/
 4. Frontend
         └─► TanStack Query polling a cada 5s → exibe resultado ao completar
 ```
+
+---
+
+### Fluxo de Assinatura e Pagamento
+
+O sistema de assinatura foi integrado com **AbacatePay** (gateway de pagamento brasileiro):
+
+1. **Novo usuário faz login** → `SubscriptionGuard` verifica se tem assinatura ativa
+2. **Se não tem** → Abre modal pedindo dados: nome, CPF, celular
+3. **Dados salvos** → Redireciona para checkout da AbacatePay
+4. **Pagamento via PIX** → Webhook atualiza status no banco
+
+**Endpoints de pagamento:**
+```
+POST   /api/v1/payments/abacatepay/checkout    # Cria sessão de checkout
+POST   /api/v1/payments/save-customer-data     # Salva dados do cliente
+GET    /api/v1/payments/subscription-status    # Verifica se tem assinatura ativa
+```
+
+### OpenCode — Skills de Segurança
+
+O projeto utiliza o **opencode** com skills especializadas para testes de segurança:
+
+| Skill | Uso |
+|---|---|
+| **SecLists Fuzzing** | SQL injection, command injection, special characters |
+| **SecLists Passwords** | Wordlists para teste de senhas |
+| **SecLists Pattern-Matching** | Detecção de dados sensíveis (API keys, CPFs, emails) |
+| **SecLists Payloads** | Arquivos de teste para exploração |
+| **SecLists Usernames** | Enumeração de usuários |
+| **SecLists Web-Shells** | Detecção e análise de web shells |
 
 ---
 
@@ -310,6 +347,8 @@ anotEX.ai/
 │
 ├── ai-docs/                         # Specs técnicas de features e roadmap
 ├── CLAUDE.md                        # Guia de desenvolvimento para o agente IA
+├── AGENTS.md                        # Regras operacionais para agents no repositório
+├── .opencode/skills/                # Skills especializadas (SecLists, motion design)
 └── README.md
 ```
 
@@ -529,13 +568,27 @@ O backend roda como **dois serviços separados** no Railway. O mesmo binário de
 
 ### Frontend — Cloudflare Workers
 
+O frontend é deployado como **Cloudflare Workers com Assets**:
+
 ```bash
 cd frontend
 npm run build
 npx wrangler deploy --assets ./dist
 ```
 
+**Configuração do `wrangler.toml`:**
+
+```toml
+name = "anoteexai"
+compatibility_date = "2025-09-27"
+
+[assets]
+not_found_handling = "single-page-application"
+```
+
 > **Importante:** sempre use `--assets ./dist`. Sem a flag, o Wrangler lê o projeto inteiro.
+> 
+> O `not_found_handling = "single-page-application"` garante que todas as rotas redirecionem para `index.html` (SPA routing).
 
 ---
 
