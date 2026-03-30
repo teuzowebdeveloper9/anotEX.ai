@@ -80,6 +80,7 @@ export class PaymentsController {
     });
 
     if (result.id) {
+      console.log(`[PaymentsController] Saving billingId ${result.id} for user ${req.user.id}`);
       await this.subscriptionRepository.updateBillingId(req.user.id, result.id);
     }
 
