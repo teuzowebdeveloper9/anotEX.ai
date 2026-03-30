@@ -20,32 +20,21 @@ export class ProcessWebhookUseCase {
       
       const billing = command.data?.billing as { 
         id?: string;
-        externalId?: string;
       } | undefined;
       const billingId = billing?.id;
-      const externalId = billing?.externalId;
 
-      this.logger.log(`Billing ID: ${billingId}, externalId: ${externalId}`);
+      this.logger.log(`Billing ID from webhook: ${billingId}`);
 
-      let userId: string | undefined;
-      if (externalId && externalId.startsWith('anotex:')) {
-        const parts = externalId.split(':');
-        userId = parts[1];
-        this.logger.log(`Extracted userId from externalId: ${userId}`);
-      }
-
-      if (userId) {
-        const subscription = await this.subscriptionRepository.findByUserId(userId);
-        this.logger.log(`Found subscription by userId: ${JSON.stringify(subscription)}`);
+      if (billingId) {
+        const subscription = await this.subscriptionRepository.findByBillingId(billingId);
+        this.logger.log(`Found subscription by billingId: ${JSON.stringify(subscription)}`);
         
         if (subscription) {
-          if (billingId) {
-            await this.subscriptionRepository.updateBillingId(subscription.userId, billingId);
-          }
           await this.subscriptionRepository.updateStatus(subscription.userId, 'active');
-          this.logger.log(`Subscription activated for user: ${userId}`);
+          this.logger.log(`Subscription activated for user: ${subscription.userId}`);
           return;
         }
+        this.logger.warn(`Subscription not found for billingId: ${billingId}`);
       }
 
       const customer = command.data?.billing as { 
@@ -68,7 +57,7 @@ export class ProcessWebhookUseCase {
           this.logger.warn(`Subscription not found for email: ${customerEmail}`);
         }
       } else {
-        this.logger.warn('Webhook billing.paid without userId or customer email');
+        this.logger.warn('Webhook billing.paid without billingId or customer email');
       }
     }
 
