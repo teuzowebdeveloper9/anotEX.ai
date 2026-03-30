@@ -20,30 +20,49 @@ export class ProcessWebhookUseCase {
       
       const billing = command.data?.billing as { 
         id?: string;
-        customer?: { metadata?: { email?: string } };
       } | undefined;
       const billingId = billing?.id;
-      const rawEmail = billing?.customer?.metadata?.email;
-      const customerEmail = rawEmail?.toLowerCase();
 
-      this.logger.log(`Billing ID: ${billingId}, Raw email: ${rawEmail}, Lower email: ${customerEmail}`);
+      const metadata = command.data?.metadata as { userId?: string } | undefined;
+      const userId = metadata?.userId;
 
-      if (!customerEmail) {
-        this.logger.warn('Webhook billing.paid without customer email');
-        return;
+      this.logger.log(`Billing ID: ${billingId}, userId from metadata: ${userId}`);
+
+      if (userId) {
+        const subscription = await this.subscriptionRepository.findByUserId(userId);
+        this.logger.log(`Found subscription by userId: ${JSON.stringify(subscription)}`);
+        
+        if (subscription) {
+          if (billingId) {
+            await this.subscriptionRepository.updateBillingId(subscription.userId, billingId);
+          }
+          await this.subscriptionRepository.updateStatus(subscription.userId, 'active');
+          this.logger.log(`Subscription activated for user: ${userId}`);
+          return;
+        }
       }
 
-      const subscription = await this.subscriptionRepository.findByEmail(customerEmail);
-      this.logger.log(`Found subscription: ${JSON.stringify(subscription)}`);
-      
-      if (subscription) {
-        if (billingId) {
-          await this.subscriptionRepository.updateBillingId(subscription.userId, billingId);
+      const customer = command.data?.billing as { 
+        customer?: { metadata?: { email?: string } };
+      } | undefined;
+      const rawEmail = customer?.customer?.metadata?.email;
+      const customerEmail = rawEmail?.toLowerCase();
+
+      if (customerEmail) {
+        const subscription = await this.subscriptionRepository.findByEmail(customerEmail);
+        this.logger.log(`Found subscription by email: ${JSON.stringify(subscription)}`);
+        
+        if (subscription) {
+          if (billingId) {
+            await this.subscriptionRepository.updateBillingId(subscription.userId, billingId);
+          }
+          await this.subscriptionRepository.updateStatus(subscription.userId, 'active');
+          this.logger.log(`Subscription activated for user: ${subscription.userId} (email: ${customerEmail})`);
+        } else {
+          this.logger.warn(`Subscription not found for email: ${customerEmail}`);
         }
-        await this.subscriptionRepository.updateStatus(subscription.userId, 'active');
-        this.logger.log(`Subscription activated for user: ${subscription.userId} (email: ${customerEmail})`);
       } else {
-        this.logger.warn(`Subscription not found for email: ${customerEmail}`);
+        this.logger.warn('Webhook billing.paid without userId or customer email');
       }
     }
 
