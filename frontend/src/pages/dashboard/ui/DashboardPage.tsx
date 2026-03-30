@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
-import { Mic, Inbox, CheckCircle, Clock, Layers } from 'lucide-react'
+import { Mic, Inbox, CheckCircle, Clock, Layers, LogOut } from 'lucide-react'
 import { Sidebar } from '@/widgets/sidebar/ui/Sidebar'
+import { supabase } from '@/shared/auth/supabase'
 import { AudioCard } from '@/entities/audio/ui/AudioCard'
 import { Button } from '@/shared/ui/Button/Button'
 import { Skeleton } from '@/shared/ui/Skeleton/Skeleton'
@@ -41,6 +42,11 @@ function StatCard({ icon: Icon, label, value, color, gradientFrom, gradientTo }:
 export function DashboardPage() {
   const { data: audios, isLoading } = useAudioList()
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+    window.location.href = '/login'
+  }
+
   const visible = audios?.filter((a) => a.status !== 'FAILED') ?? []
   const completed  = visible.filter((a) => a.status === 'COMPLETED').length
   const processing = visible.filter((a) => a.status === 'PENDING' || a.status === 'PROCESSING').length
@@ -60,12 +66,21 @@ export function DashboardPage() {
                 Você tem conteúdo novo e revisões para acompanhar hoje.
               </p>
             </div>
-            <Link to="/record">
-              <Button>
-                <Mic size={14} />
-                Nova gravação
-              </Button>
-            </Link>
+            <div className="flex items-center gap-2">
+              <Link to="/record">
+                <Button>
+                  <Mic size={14} />
+                  Nova gravação
+                </Button>
+              </Link>
+              <button
+                onClick={handleLogout}
+                className="flex h-9 w-9 items-center justify-center rounded-lg text-[var(--text-tertiary)] hover:bg-[var(--danger-bg)] hover:text-[var(--danger)]"
+                title="Sair"
+              >
+                <LogOut size={16} />
+              </button>
+            </div>
           </div>
 
           <div className="mb-6">
