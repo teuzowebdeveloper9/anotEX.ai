@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import { QueryProvider } from './providers/QueryProvider'
+import { SubscriptionGuard } from '@/shared/auth/SubscriptionGuard'
 import { LandingPage } from '@/pages/landing/ui/LandingPage'
 import { LoginPage } from '@/pages/login/ui/LoginPage'
 import { AuthCallbackPage } from '@/pages/auth-callback/ui/AuthCallbackPage'
@@ -29,6 +30,7 @@ export function App() {
   return (
     <QueryProvider>
       <BrowserRouter>
+        <SubscriptionGuard />
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
