@@ -5,7 +5,7 @@ import { getSubscriptionStatus, saveCustomerData } from '@/features/billing/api/
 import { CustomerFormModal } from '@/features/billing/ui/CustomerFormModal'
 import { toast } from 'sonner'
 
-const PLAN_ID = 'prod_ZzRqAYsduDYFKpfF1zwBbNzD'
+const PLAN_ID = 'prod_uFHtgP3NQARHx35LtuFqRTT5'
 const PLAN_PRICE_CENTS = 3990
 
 export function SubscriptionGuard() {
@@ -62,17 +62,12 @@ export function SubscriptionGuard() {
     }
   }
 
-  const handleClose = () => {
-    setShowCustomerForm(false)
-    navigate('/dashboard')
-  }
-
   if (!user || !showCustomerForm) return null
 
   return (
     <CustomerFormModal
       isOpen={showCustomerForm}
-      onClose={handleClose}
+      onClose={() => {}}
       onSubmit={handleCustomerSubmit}
       isLoading={isLoading}
     />
