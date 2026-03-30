@@ -71,7 +71,7 @@ export class SubscriptionRepository {
       .insert({
         user_id: input.userId,
         customer_name: input.customerName,
-        customer_email: input.customerEmail,
+        customer_email: input.customerEmail.toLowerCase(),
         customer_cellphone: input.customerCellphone,
         customer_tax_id: input.customerTaxId,
         status: 'pending',
@@ -187,7 +187,7 @@ export class SubscriptionRepository {
         .from('user_subscriptions')
         .update({
           customer_name: input.customerName,
-          customer_email: input.customerEmail,
+          customer_email: input.customerEmail.toLowerCase(),
           customer_cellphone: input.customerCellphone,
           customer_tax_id: input.customerTaxId,
           updated_at: new Date().toISOString(),
