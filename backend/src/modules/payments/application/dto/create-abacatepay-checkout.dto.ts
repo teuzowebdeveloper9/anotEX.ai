@@ -16,6 +16,12 @@ export class CreateAbacatepayCheckoutDto {
 
   @Type(() => Number)
   @IsInt()
+  @Min(100)
+  @IsOptional()
+  priceInCents?: number;
+
+  @Type(() => Number)
+  @IsInt()
   @Min(1)
   quantity: number = 1;
 
@@ -48,4 +54,13 @@ export class CreateAbacatepayCheckoutDto {
   @IsOptional()
   @IsObject()
   metadata?: Record<string, string>;
+
+  @IsOptional()
+  @IsObject()
+  customer?: {
+    name: string;
+    email: string;
+    cellphone: string;
+    taxId: string;
+  };
 }
