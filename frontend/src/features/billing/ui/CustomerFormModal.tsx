@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { User, Mail, Phone, CreditCard, X, Lock } from 'lucide-react'
+import { User, Mail, Phone, CreditCard, Lock } from 'lucide-react'
 import { Button } from '@/shared/ui/Button/Button'
 import { Input } from '@/shared/ui/Input/Input'
 
@@ -12,12 +12,12 @@ interface CustomerData {
 
 interface CustomerFormModalProps {
   isOpen: boolean
-  onClose: () => void
+  onClose?: () => void
   onSubmit: (customer: CustomerData) => void
   isLoading: boolean
 }
 
-export function CustomerFormModal({ isOpen, onClose, onSubmit, isLoading }: CustomerFormModalProps) {
+export function CustomerFormModal({ isOpen, onSubmit, isLoading }: CustomerFormModalProps) {
   const [formData, setFormData] = useState<CustomerData>({
     name: '',
     email: '',
@@ -37,22 +37,12 @@ export function CustomerFormModal({ isOpen, onClose, onSubmit, isLoading }: Cust
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div 
-        className="absolute inset-0 bg-gradient-to-br from-[#0A2540]/60 via-[#0A2540]/40 to-[#38ABE4]/20 backdrop-blur-sm"
-        onClick={onClose} 
-      />
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-gradient-to-br from-[#0A2540]/90 via-[#0A2540]/70 to-[#38ABE4]/40 backdrop-blur-md" />
       
       <div className="relative z-10 w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
         <div className="overflow-hidden rounded-3xl bg-white/95 shadow-2xl ring-1 ring-white/20">
-          <div className="relative bg-gradient-to-r from-[#38ABE4] to-[#00C4CC] px-6 py-5">
-            <button
-              onClick={onClose}
-              className="absolute right-3 top-3 rounded-full bg-white/20 p-1.5 text-white/80 transition-colors hover:bg-white/30 hover:text-white"
-            >
-              <X size={18} />
-            </button>
-            
+          <div className="bg-gradient-to-r from-[#38ABE4] to-[#00C4CC] px-6 py-5">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20">
                 <Lock className="h-5 w-5 text-white" />
@@ -62,7 +52,7 @@ export function CustomerFormModal({ isOpen, onClose, onSubmit, isLoading }: Cust
                   Dados para pagamento
                 </h3>
                 <p className="text-sm text-white/80">
-                  Suas informações estão seguras
+                  Complete para acessar a plataforma
                 </p>
               </div>
             </div>
@@ -128,27 +118,19 @@ export function CustomerFormModal({ isOpen, onClose, onSubmit, isLoading }: Cust
               />
             </div>
 
-            <div className="flex gap-3 pt-2">
-              <Button 
-                type="button" 
-                variant="outline" 
-                className="h-12 flex-1 border-[#0A2540]/20 text-[#0A2540]" 
-                onClick={onClose}
-              >
-                Cancelar
-              </Button>
+            <div className="pt-2">
               <Button 
                 type="submit" 
                 variant="primary" 
-                className="h-12 flex-1 bg-gradient-to-r from-[#38ABE4] to-[#00C4CC] hover:from-[#2d9ad4] hover:to-[#00b3bb]" 
+                className="h-12 w-full bg-gradient-to-r from-[#38ABE4] to-[#00C4CC] hover:from-[#2d9ad4] hover:to-[#00b3bb]" 
                 loading={isLoading}
               >
-                Continuar
+                Continuar para Pagamento
               </Button>
             </div>
 
             <p className="text-center text-xs text-[#0A2540]/50">
-              Pagamento processado com segurança pela AbacatePay
+              Pagamento processado com segurança pela AbacatePay via PIX
             </p>
           </form>
         </div>

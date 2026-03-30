@@ -150,6 +150,35 @@ export class SubscriptionRepository {
     };
   }
 
+  async findByEmail(email: string): Promise<UserSubscription | null> {
+    const { data, error } = await this.supabase
+      .from('user_subscriptions')
+      .select('*')
+      .eq('customer_email', email.toLowerCase())
+      .single();
+
+    if (error && error.code !== 'PGRST116') {
+      throw new Error(error.message);
+    }
+
+    if (!data) return null;
+
+    return {
+      id: data.id,
+      userId: data.user_id,
+      customerName: data.customer_name,
+      customerEmail: data.customer_email,
+      customerCellphone: data.customer_cellphone,
+      customerTaxId: data.customer_tax_id,
+      abacatepayCustomerId: data.abacatepay_customer_id,
+      abacatepayBillingId: data.abacatepay_billing_id,
+      status: data.status,
+      planId: data.plan_id,
+      createdAt: data.created_at,
+      updatedAt: data.updated_at,
+    };
+  }
+
   async upsert(input: CreateSubscriptionInput): Promise<UserSubscription> {
     const existing = await this.findByUserId(input.userId);
 

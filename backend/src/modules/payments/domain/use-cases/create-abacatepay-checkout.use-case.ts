@@ -61,7 +61,18 @@ export class CreateAbacatepayCheckoutUseCase {
   }
 
   private ensureProductAllowed(productId: string): void {
-    // Allow all products for now - remove restriction
-    return;
+    const rawAllowedIds = this.configService.get<string>('ABACATEPAY_ALLOWED_PRODUCT_IDS', '');
+    const allowedIds = rawAllowedIds
+      .split(',')
+      .map((value) => value.trim())
+      .filter(Boolean);
+
+    if (allowedIds.length === 0) {
+      return;
+    }
+
+    if (!allowedIds.includes(productId)) {
+      throw new BadRequestException('Product is not allowed for checkout');
+    }
   }
 }
