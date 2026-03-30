@@ -16,10 +16,12 @@ export class ProcessWebhookUseCase {
     this.logger.log(`Processing webhook event: ${command.event}`);
 
     if (command.event === 'billing.paid') {
-      const billing = command.data?.billing as { id?: string } | undefined;
-      const customer = command.data?.customer as { metadata?: { email?: string } } | undefined;
+      const billing = command.data?.billing as { 
+        id?: string;
+        customer?: { metadata?: { email?: string } };
+      } | undefined;
       const billingId = billing?.id;
-      const customerEmail = customer?.metadata?.email;
+      const customerEmail = billing?.customer?.metadata?.email;
 
       if (!customerEmail) {
         this.logger.warn('Webhook billing.paid without customer email');
@@ -39,8 +41,10 @@ export class ProcessWebhookUseCase {
     }
 
     if (command.event === 'billing.expired' || command.event === 'billing.cancelled') {
-      const customer = command.data?.customer as { metadata?: { email?: string } } | undefined;
-      const customerEmail = customer?.metadata?.email;
+      const billing = command.data?.billing as { 
+        customer?: { metadata?: { email?: string } };
+      } | undefined;
+      const customerEmail = billing?.customer?.metadata?.email;
 
       if (!customerEmail) {
         this.logger.warn(`Webhook ${command.event} without customer email`);
