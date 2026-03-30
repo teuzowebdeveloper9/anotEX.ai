@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Check, Zap, Shield, Crown } from 'lucide-react'
 import { Button } from '@/shared/ui/Button/Button'
