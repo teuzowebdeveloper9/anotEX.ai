@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { ArrowRight, Play, Sparkles, BookOpen, BrainCircuit, Clock3, CheckCircle2, FolderOpen, Users, MessageSquareQuote } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Button } from '@/shared/ui/Button/Button'
+import { PricingSection } from '@/features/billing/ui/PricingSection'
 import logoAnotex from '@/shared/assets/logo-anotex.png'
 import heroMock from '../../../../images/generated-1774426507249.png'
 
@@ -108,6 +109,9 @@ export function LandingPage() {
             </a>
             <a href="#produto" className="text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--accent-5)]">
               Produto
+            </a>
+            <a href="#pricing" className="text-sm font-semibold text-[var(--accent)] transition-colors hover:text-[var(--accent-5)]">
+              Planos
             </a>
           </div>
 
@@ -323,6 +327,8 @@ export function LandingPage() {
             ))}
           </div>
         </section>
+
+        <PricingSection />
 
         <section className="mx-auto w-full max-w-[1440px] px-6 pb-24 md:px-[100px]">
           <div className="pen-surface rounded-[34px] px-8 py-12 text-center md:px-14">
