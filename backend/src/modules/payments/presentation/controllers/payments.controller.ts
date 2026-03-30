@@ -1,4 +1,4 @@
-import { Body, Controller, Headers, HttpCode, Post, Get, Query, Req } from '@nestjs/common';
+import { Body, Controller, HttpCode, Post, Get, Query, Req } from '@nestjs/common';
 import type { Request } from 'express';
 import type { AuthenticatedRequest } from '../../../audio/presentation/guards/auth.guard.js';
 import { Public } from '../../../../shared/presentation/decorators/public.decorator.js';
@@ -92,12 +92,10 @@ export class PaymentsController {
   async handleAbacatepayWebhook(
     @Req() req: RawBodyRequest,
     @Query('webhookSecret') webhookSecret?: string,
-    @Headers('x-webhook-signature') signature?: string,
   ): Promise<{ received: true; event: string; logId: string | null }> {
     const rawBody = req.rawBody?.toString('utf8') ?? JSON.stringify(req.body ?? {});
     const event = this.verifyAbacatepayWebhookUseCase.execute({
       webhookSecret,
-      signature,
       rawBody,
     });
 
