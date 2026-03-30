@@ -20,13 +20,19 @@ export class ProcessWebhookUseCase {
       
       const billing = command.data?.billing as { 
         id?: string;
+        externalId?: string;
       } | undefined;
       const billingId = billing?.id;
+      const externalId = billing?.externalId;
 
-      const metadata = command.data?.metadata as { userId?: string } | undefined;
-      const userId = metadata?.userId;
+      this.logger.log(`Billing ID: ${billingId}, externalId: ${externalId}`);
 
-      this.logger.log(`Billing ID: ${billingId}, userId from metadata: ${userId}`);
+      let userId: string | undefined;
+      if (externalId && externalId.startsWith('anotex:')) {
+        const parts = externalId.split(':');
+        userId = parts[1];
+        this.logger.log(`Extracted userId from externalId: ${userId}`);
+      }
 
       if (userId) {
         const subscription = await this.subscriptionRepository.findByUserId(userId);
