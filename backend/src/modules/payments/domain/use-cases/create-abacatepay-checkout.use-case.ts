@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Inject,
   Injectable,
   InternalServerErrorException,
@@ -26,8 +25,6 @@ export class CreateAbacatepayCheckoutUseCase {
   ) {}
 
   async execute(command: CreateAbacatepayCheckoutCommand): Promise<AbacatepayCheckoutResponse> {
-    this.ensureProductAllowed(command.dto.productId);
-
     const externalId =
       command.dto.externalId ??
       `anotex:${command.userId}:${command.dto.productId}:${Date.now().toString()}`;
@@ -60,19 +57,4 @@ export class CreateAbacatepayCheckoutUseCase {
     }
   }
 
-  private ensureProductAllowed(productId: string): void {
-    const rawAllowedIds = this.configService.get<string>('ABACATEPAY_ALLOWED_PRODUCT_IDS', '');
-    const allowedIds = rawAllowedIds
-      .split(',')
-      .map((value) => value.trim())
-      .filter(Boolean);
-
-    if (allowedIds.length === 0) {
-      return;
-    }
-
-    if (!allowedIds.includes(productId)) {
-      throw new BadRequestException('Product is not allowed for checkout');
-    }
-  }
 }
