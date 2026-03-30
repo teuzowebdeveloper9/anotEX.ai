@@ -21,7 +21,7 @@ export class ProcessWebhookUseCase {
         customer?: { metadata?: { email?: string } };
       } | undefined;
       const billingId = billing?.id;
-      const customerEmail = billing?.customer?.metadata?.email;
+      const customerEmail = billing?.customer?.metadata?.email?.toLowerCase();
 
       if (!customerEmail) {
         this.logger.warn('Webhook billing.paid without customer email');
@@ -44,7 +44,7 @@ export class ProcessWebhookUseCase {
       const billing = command.data?.billing as { 
         customer?: { metadata?: { email?: string } };
       } | undefined;
-      const customerEmail = billing?.customer?.metadata?.email;
+      const customerEmail = billing?.customer?.metadata?.email?.toLowerCase();
 
       if (!customerEmail) {
         this.logger.warn(`Webhook ${command.event} without customer email`);
