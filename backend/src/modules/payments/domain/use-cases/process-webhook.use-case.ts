@@ -16,7 +16,8 @@ export class ProcessWebhookUseCase {
     this.logger.log(`Processing webhook event: ${command.event}`);
 
     if (command.event === 'billing.paid') {
-      const billingId = command.data?.id as string | undefined;
+      const billing = command.data?.billing as { id?: string } | undefined;
+      const billingId = billing?.id;
       if (!billingId) {
         this.logger.warn('Webhook billing.paid without billing id');
         return;
@@ -32,7 +33,8 @@ export class ProcessWebhookUseCase {
     }
 
     if (command.event === 'billing.expired' || command.event === 'billing.cancelled') {
-      const billingId = command.data?.id as string | undefined;
+      const billing = command.data?.billing as { id?: string } | undefined;
+      const billingId = billing?.id;
       if (!billingId) {
         this.logger.warn(`Webhook ${command.event} without billing id`);
         return;
