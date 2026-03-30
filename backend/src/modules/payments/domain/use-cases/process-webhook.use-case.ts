@@ -16,12 +16,17 @@ export class ProcessWebhookUseCase {
     this.logger.log(`Processing webhook event: ${command.event}`);
 
     if (command.event === 'billing.paid') {
+      this.logger.log(`Raw webhook data: ${JSON.stringify(command.data)}`);
+      
       const billing = command.data?.billing as { 
         id?: string;
         customer?: { metadata?: { email?: string } };
       } | undefined;
       const billingId = billing?.id;
-      const customerEmail = billing?.customer?.metadata?.email?.toLowerCase();
+      const rawEmail = billing?.customer?.metadata?.email;
+      const customerEmail = rawEmail?.toLowerCase();
+
+      this.logger.log(`Billing ID: ${billingId}, Raw email: ${rawEmail}, Lower email: ${customerEmail}`);
 
       if (!customerEmail) {
         this.logger.warn('Webhook billing.paid without customer email');
@@ -29,6 +34,8 @@ export class ProcessWebhookUseCase {
       }
 
       const subscription = await this.subscriptionRepository.findByEmail(customerEmail);
+      this.logger.log(`Found subscription: ${JSON.stringify(subscription)}`);
+      
       if (subscription) {
         if (billingId) {
           await this.subscriptionRepository.updateBillingId(subscription.userId, billingId);
