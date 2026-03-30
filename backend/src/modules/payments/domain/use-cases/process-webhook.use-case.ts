@@ -17,30 +17,37 @@ export class ProcessWebhookUseCase {
 
     if (command.event === 'billing.paid') {
       const billing = command.data?.billing as { id?: string } | undefined;
+      const customer = command.data?.customer as { metadata?: { email?: string } } | undefined;
       const billingId = billing?.id;
-      if (!billingId) {
-        this.logger.warn('Webhook billing.paid without billing id');
+      const customerEmail = customer?.metadata?.email;
+
+      if (!customerEmail) {
+        this.logger.warn('Webhook billing.paid without customer email');
         return;
       }
 
-      const subscription = await this.subscriptionRepository.findByBillingId(billingId);
+      const subscription = await this.subscriptionRepository.findByEmail(customerEmail);
       if (subscription) {
+        if (billingId) {
+          await this.subscriptionRepository.updateBillingId(subscription.userId, billingId);
+        }
         await this.subscriptionRepository.updateStatus(subscription.userId, 'active');
-        this.logger.log(`Subscription activated for user: ${subscription.userId}`);
+        this.logger.log(`Subscription activated for user: ${subscription.userId} (email: ${customerEmail})`);
       } else {
-        this.logger.warn(`Subscription not found for billing id: ${billingId}`);
+        this.logger.warn(`Subscription not found for email: ${customerEmail}`);
       }
     }
 
     if (command.event === 'billing.expired' || command.event === 'billing.cancelled') {
-      const billing = command.data?.billing as { id?: string } | undefined;
-      const billingId = billing?.id;
-      if (!billingId) {
-        this.logger.warn(`Webhook ${command.event} without billing id`);
+      const customer = command.data?.customer as { metadata?: { email?: string } } | undefined;
+      const customerEmail = customer?.metadata?.email;
+
+      if (!customerEmail) {
+        this.logger.warn(`Webhook ${command.event} without customer email`);
         return;
       }
 
-      const subscription = await this.subscriptionRepository.findByBillingId(billingId);
+      const subscription = await this.subscriptionRepository.findByEmail(customerEmail);
       if (subscription) {
         await this.subscriptionRepository.updateStatus(subscription.userId, 
           command.event === 'billing.expired' ? 'expired' : 'cancelled'
