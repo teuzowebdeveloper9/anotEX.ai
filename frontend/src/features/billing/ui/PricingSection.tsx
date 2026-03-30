@@ -7,7 +7,7 @@ import { useCreateCheckout, useSubscriptionStatus } from '../hooks/useCheckout'
 import { useAuth } from '@/shared/auth/useAuth'
 import { CustomerFormModal } from './CustomerFormModal'
 
-const PLAN_ID = 'prod_ZzRqAYsduDYFKpfF1zwBbNzD'
+const PLAN_ID = 'prod_uFHtgP3NQARHx35LtuFqRTT5'
 const PLAN_PRICE_CENTS = 3990
 
 const plans = [
