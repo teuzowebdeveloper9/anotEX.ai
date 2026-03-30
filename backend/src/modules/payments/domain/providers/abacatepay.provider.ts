@@ -2,6 +2,7 @@ export interface CreateAbacatepayCheckoutInput {
   items: Array<{
     id: string;
     quantity: number;
+    priceInCents?: number;
   }>;
   externalId: string;
   frequency?: 'ONE_TIME' | 'SUBSCRIPTION';
@@ -9,6 +10,12 @@ export interface CreateAbacatepayCheckoutInput {
   completionUrl?: string;
   methods?: string[];
   metadata?: Record<string, string>;
+  customer?: {
+    name: string;
+    email: string;
+    cellphone: string;
+    taxId: string;
+  };
 }
 
 export interface AbacatepayCheckoutResponse {

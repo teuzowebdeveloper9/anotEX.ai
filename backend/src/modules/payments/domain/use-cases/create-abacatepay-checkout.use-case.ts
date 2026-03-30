@@ -38,6 +38,7 @@ export class CreateAbacatepayCheckoutUseCase {
           {
             id: command.dto.productId,
             quantity: command.dto.quantity,
+            priceInCents: command.dto.priceInCents,
           },
         ],
         externalId,
@@ -50,6 +51,7 @@ export class CreateAbacatepayCheckoutUseCase {
           userId: command.userId,
           ...(command.dto.metadata ?? {}),
         },
+        customer: command.dto.customer,
       });
     } catch (error) {
       throw new InternalServerErrorException(
