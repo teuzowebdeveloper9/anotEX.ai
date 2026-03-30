@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/shared/auth/supabase'
 import { toast } from 'sonner'
+import { getSubscriptionStatus } from '@/features/billing/api/createCheckout'
 
 type AuthMode = 'login' | 'register'
 
@@ -56,9 +57,14 @@ export function useAuth(): UseAuthReturn {
         }
         return
       }
-      const returnTo = sessionStorage.getItem('returnTo') ?? '/dashboard'
-      sessionStorage.removeItem('returnTo')
-      navigate(returnTo, { replace: true })
+      try {
+        const { hasSubscription } = await getSubscriptionStatus()
+        const returnTo = sessionStorage.getItem('returnTo') ?? (hasSubscription ? '/dashboard' : '/pricing')
+        sessionStorage.removeItem('returnTo')
+        navigate(returnTo, { replace: true })
+      } catch {
+        navigate('/dashboard', { replace: true })
+      }
     } else {
       const { data, error } = await supabase.auth.signUp({
         email: email.trim(),
