@@ -47,17 +47,17 @@ export function ChatPage() {
 
       <main className="relative z-10 h-screen overflow-hidden md:pl-56">
         <div className="flex h-full min-h-0 flex-col bg-[linear-gradient(180deg,#eef8ff_0%,#e8f4ff_100%)]">
-          <div className="flex h-12 items-center justify-between border-b border-[rgba(56,171,228,0.14)] bg-[rgba(255,255,255,0.74)] px-5 shrink-0 backdrop-blur-sm">
-            <div className="flex items-center gap-3">
+          <div className="flex min-h-12 flex-wrap items-center justify-between gap-3 border-b border-[rgba(56,171,228,0.14)] bg-[rgba(255,255,255,0.74)] px-4 py-2 backdrop-blur-sm sm:px-5">
+            <div className="flex min-w-0 items-center gap-3">
               <Link
                 to={`/transcription/${id}`}
                 className="flex h-7 w-7 items-center justify-center rounded-lg text-[#7b9aba] transition-colors hover:bg-[rgba(56,171,228,0.08)] hover:text-[var(--text-primary)]"
               >
                 <ArrowLeft size={15} />
               </Link>
-              <div className="flex items-center gap-2">
+              <div className="flex min-w-0 items-center gap-2">
                 <MessageSquare size={13} className="text-[#4c94ea]" />
-                <h1 className="text-[13px] font-semibold leading-tight text-[var(--text-primary)]">
+                <h1 className="truncate text-[13px] font-semibold leading-tight text-[var(--text-primary)]">
                   Chat — {title}
                 </h1>
               </div>
@@ -75,8 +75,8 @@ export function ChatPage() {
             )}
           </div>
 
-          <div className="mx-auto flex w-full max-w-[920px] min-h-0 flex-1 flex-col px-10 pb-6 pt-4">
-            <div className="min-h-0 flex-1 overflow-y-auto px-2 py-2">
+          <div className="mx-auto flex min-h-0 w-full max-w-[920px] flex-1 flex-col px-3 pb-4 pt-4 sm:px-6 sm:pb-6 lg:px-10">
+            <div className="min-h-0 flex-1 overflow-y-auto px-1 py-2 sm:px-2">
               {allMessages.length === 0 && !isStreaming && (
                 <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
                   <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-[rgba(56,171,228,0.16)] bg-white/55">
@@ -109,7 +109,7 @@ export function ChatPage() {
               </div>
             </div>
 
-            <div className="mt-5 px-8">
+            <div className="mt-4 px-0 sm:mt-5 sm:px-2 lg:px-8">
               <ChatInput onSend={sendMessage} disabled={isStreaming} />
             </div>
           </div>

@@ -313,6 +313,30 @@
   font-weight: 600;
 }
 
+@media (max-width: 767px) {
+  .pen-main {
+    padding-top: 3.5rem;
+  }
+
+  .pen-content {
+    padding: 1.25rem 1rem 2rem;
+  }
+
+  .pen-page-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .pen-page-title {
+    font-size: 1.35rem;
+    line-height: 1.15;
+  }
+
+  .pen-page-subtitle {
+    max-width: 36rem;
+  }
+}
+
 /* ─── Markdown ──────────────────────────────────────────── */
 .markdown-body {
   color: var(--text-secondary);

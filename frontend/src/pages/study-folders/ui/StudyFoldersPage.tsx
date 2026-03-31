@@ -20,8 +20,8 @@ export function StudyFoldersPage() {
       <Sidebar withTopBar={false} />
 
       <main className="relative z-10 md:pl-56">
-        <div className="pen-content max-w-5xl">
-          <div className="flex items-start justify-between mb-8">
+        <div className="pen-content max-w-5xl pt-20 md:pt-8">
+          <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <div className="flex items-center gap-3 mb-1">
                 <div className="h-8 w-8 rounded-lg bg-[var(--accent)]/10 flex items-center justify-center">
@@ -33,7 +33,7 @@ export function StudyFoldersPage() {
                 {folders?.length ?? 0} pasta{folders?.length !== 1 ? 's' : ''} criada{folders?.length !== 1 ? 's' : ''}
               </p>
             </div>
-            <Button onClick={() => setShowCreateModal(true)} size="sm">
+            <Button onClick={() => setShowCreateModal(true)} size="sm" className="w-full sm:w-auto">
               <Plus size={14} />
               Nova Pasta
             </Button>
@@ -72,12 +72,12 @@ export function StudyFoldersPage() {
 
                 return (
                   <Link key={folder.id} to={`/study-folders/${folder.id}`}>
-                    <div className="pen-list-card group flex items-start gap-0 rounded-[20px] hover:border-[var(--accent)]/40 hover:-translate-y-px transition-all duration-200 cursor-pointer overflow-hidden">
+                    <div className="pen-list-card group flex items-start gap-0 overflow-hidden rounded-[20px] transition-all duration-200 cursor-pointer hover:-translate-y-px hover:border-[var(--accent)]/40">
                       <div
                         className="w-0.5 self-stretch shrink-0"
                         style={{ background: 'linear-gradient(180deg, #38ABE4, #38ABE4)' }}
                       />
-                      <div className="flex items-start gap-4 p-4 flex-1 min-w-0">
+                      <div className="flex min-w-0 flex-1 flex-col gap-3 p-4 sm:flex-row sm:items-start sm:gap-4">
                         <div className="h-10 w-10 rounded-lg bg-[var(--accent)]/10 flex items-center justify-center shrink-0 mt-0.5">
                           <FolderOpen size={18} className="text-[var(--accent)]" />
                         </div>
@@ -92,7 +92,7 @@ export function StudyFoldersPage() {
                             </p>
                           )}
 
-                          <div className="mt-2 flex items-center gap-3">
+                          <div className="mt-2 flex flex-wrap items-center gap-3">
                             <span className="text-xs text-[var(--text-secondary)]">
                               {folder.itemCount} material{folder.itemCount !== 1 ? 'is' : ''}
                             </span>
@@ -123,7 +123,7 @@ export function StudyFoldersPage() {
 
                         <ChevronRight
                           size={16}
-                          className="text-[var(--text-secondary)] group-hover:text-[var(--accent)] transition-colors mt-1 shrink-0"
+                          className="mt-1 shrink-0 self-end text-[var(--text-secondary)] transition-colors group-hover:text-[var(--accent)] sm:self-auto"
                         />
                       </div>
                     </div>

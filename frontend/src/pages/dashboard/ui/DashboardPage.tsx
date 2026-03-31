@@ -56,8 +56,8 @@ export function DashboardPage() {
     <div className="pen-page relative min-h-screen overflow-hidden">
       <Sidebar withTopBar={false} />
       <main className="relative z-10 md:pl-56">
-        <div className="mx-auto max-w-6xl px-6 pb-16 pt-9 md:px-10">
-          <div className="mb-8 flex items-center justify-between gap-4">
+        <div className="mx-auto max-w-6xl px-4 pb-16 pt-20 sm:px-6 md:px-10 md:pt-9">
+          <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h1 className="text-[1.75rem] font-bold tracking-[-0.03em] text-[var(--text-primary)]">
                 Bom dia!
@@ -66,9 +66,9 @@ export function DashboardPage() {
                 Você tem conteúdo novo e revisões para acompanhar hoje.
               </p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Link to="/record">
-                <Button>
+                <Button className="w-full sm:w-auto">
                   <Mic size={14} />
                   Nova gravação
                 </Button>
@@ -88,7 +88,7 @@ export function DashboardPage() {
           </div>
 
           {!isLoading && visible.length > 0 && (
-            <div className="mb-8 grid gap-4 md:grid-cols-4">
+            <div className="mb-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
               <StatCard
                 icon={Layers}
                 label="Aulas gravadas"

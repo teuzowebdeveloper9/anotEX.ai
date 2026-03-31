@@ -44,7 +44,7 @@ export function ConversationsPage() {
       <Sidebar withTopBar={false} />
 
       <main className="relative z-10 md:pl-56">
-        <div className="pen-content max-w-5xl">
+        <div className="pen-content max-w-5xl pt-20 md:pt-8">
           <div className="flex items-center gap-3 mb-8">
             <div className="w-9 h-9 rounded-xl bg-[var(--accent-bg)] border border-[var(--accent)]/20 flex items-center justify-center">
               <MessageSquare size={16} className="text-[var(--accent)]" />
@@ -90,7 +90,7 @@ export function ConversationsPage() {
                 <Link
                   key={conv.transcriptionId}
                   to={`/transcription/${conv.audioId}/chat`}
-                  className="pen-list-card group flex items-center gap-4 rounded-[18px] p-4 hover:border-[var(--accent)]/30 transition-all"
+                  className="pen-list-card group flex flex-col gap-3 rounded-[18px] p-4 transition-all hover:border-[var(--accent)]/30 sm:flex-row sm:items-center sm:gap-4"
                 >
                   <div className="w-9 h-9 rounded-lg bg-[var(--accent-bg)] border border-[var(--accent)]/20 flex items-center justify-center shrink-0">
                     <MessageSquare size={15} className="text-[var(--accent)]" />
@@ -106,7 +106,7 @@ export function ConversationsPage() {
                     </p>
                   </div>
 
-                  <div className="flex flex-col items-end gap-1 shrink-0">
+                  <div className="flex flex-wrap items-center gap-2 sm:ml-auto sm:flex-col sm:items-end sm:gap-1 sm:shrink-0">
                     <div className="flex items-center gap-1 text-[10px] text-[var(--text-secondary)]">
                       <Clock size={10} />
                       {timeAgo(conv.lastMessageAt)}
@@ -118,7 +118,7 @@ export function ConversationsPage() {
 
                   <ChevronRight
                     size={14}
-                    className="text-[var(--text-secondary)] group-hover:text-[var(--accent)] transition-colors shrink-0"
+                    className="shrink-0 self-end text-[var(--text-secondary)] transition-colors group-hover:text-[var(--accent)] sm:self-auto"
                   />
                 </Link>
               ))}

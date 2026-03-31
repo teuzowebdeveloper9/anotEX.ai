@@ -251,7 +251,7 @@ export function StudyFolderPage() {
         <Navbar />
         <Sidebar />
         <main className="relative z-10 pt-14 md:pl-56">
-          <div className="max-w-3xl mx-auto px-8 pt-10">
+        <div className="mx-auto max-w-3xl px-4 pt-10 sm:px-6 md:px-8">
             <Skeleton className="h-8 w-64 mb-3" />
             <Skeleton className="h-4 w-96 mb-8" />
             <div className="flex flex-col gap-3">
@@ -269,7 +269,7 @@ export function StudyFolderPage() {
         <Navbar />
         <Sidebar />
         <main className="relative z-10 pt-14 md:pl-56">
-          <div className="max-w-3xl mx-auto px-8 pt-10">
+          <div className="mx-auto max-w-3xl px-4 pt-10 sm:px-6 md:px-8">
             <p className="text-[var(--text-secondary)]">Pasta não encontrada.</p>
           </div>
         </main>
@@ -291,7 +291,7 @@ export function StudyFolderPage() {
       <Sidebar />
 
       <main className="relative z-10 pt-14 md:pl-56">
-        <div className="max-w-3xl mx-auto px-8 pt-8 pb-12">
+        <div className="mx-auto max-w-3xl px-4 pb-12 pt-8 sm:px-6 md:px-8">
 
           {/* Breadcrumb */}
           <Link
@@ -303,8 +303,8 @@ export function StudyFolderPage() {
           </Link>
 
           {/* Header */}
-          <div className="flex items-start justify-between mb-2">
-            <div className="flex items-start gap-3 min-w-0">
+          <div className="mb-2 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="flex min-w-0 items-start gap-3">
               <div className="h-10 w-10 rounded-xl bg-[var(--accent)]/10 flex items-center justify-center shrink-0 mt-0.5">
                 <FolderOpen size={20} className="text-[var(--accent)]" />
               </div>
@@ -317,10 +317,10 @@ export function StudyFolderPage() {
                 )}
               </div>
             </div>
-            <div className="flex items-center gap-2 mt-1 ml-4 shrink-0">
+            <div className="flex flex-wrap items-center gap-2 sm:mt-1 sm:ml-4 sm:shrink-0">
               <button
                 onClick={() => setShowShareModal(true)}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--accent-bg)] border border-[var(--border)] hover:border-[var(--accent)]/30 transition-colors"
+                className="flex items-center gap-1.5 rounded-lg border border-[var(--border)] px-2.5 py-1.5 text-xs font-medium text-[var(--text-secondary)] transition-colors hover:border-[var(--accent)]/30 hover:bg-[var(--accent-bg)] hover:text-[var(--accent)]"
                 title="Compartilhar pasta"
               >
                 <Share2 size={12} />
@@ -361,11 +361,11 @@ export function StudyFolderPage() {
 
           {/* Materials section */}
           <div className="mt-6">
-            <div className="flex items-center justify-between mb-4">
+            <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <h2 className="text-sm font-semibold text-[var(--text-primary)]">
                 Materiais ({items.length})
               </h2>
-              <Button size="sm" variant="outline" onClick={() => setShowAddModal(true)}>
+              <Button size="sm" variant="outline" className="w-full sm:w-auto" onClick={() => setShowAddModal(true)}>
                 <Plus size={13} />
                 Adicionar
               </Button>
@@ -397,7 +397,7 @@ export function StudyFolderPage() {
           {/* Recommendations section */}
           {folder.recommendationsUnlocked && (
             <div className="mt-8">
-              <div className="flex items-center justify-between mb-4">
+              <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-2">
                   <Sparkles size={16} className="text-[var(--accent)]" />
                   <h2 className="text-sm font-semibold text-[var(--text-primary)]">
@@ -405,13 +405,13 @@ export function StudyFolderPage() {
                   </h2>
                 </div>
                 {!recommendations && !loadingRecs && (
-                  <Button size="sm" onClick={handleLoadRecommendations}>
+                  <Button size="sm" className="w-full sm:w-auto" onClick={handleLoadRecommendations}>
                     <Sparkles size={13} />
                     Buscar Recomendações
                   </Button>
                 )}
                 {recommendations && (
-                  <Button size="sm" variant="ghost" onClick={handleLoadRecommendations} loading={loadingRecs}>
+                  <Button size="sm" variant="ghost" className="w-full sm:w-auto" onClick={handleLoadRecommendations} loading={loadingRecs}>
                     Atualizar
                   </Button>
                 )}

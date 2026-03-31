@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from 'react-router-dom'
-import { LayoutDashboard, Mic, FileText, Map, BookOpen, Sparkles, FolderOpen, Users, CircleHelp, MessageSquare, Brain } from 'lucide-react'
+import { LayoutDashboard, Mic, FileText, Map, BookOpen, Sparkles, FolderOpen, Users, CircleHelp, MessageSquare, Brain, Menu, X } from 'lucide-react'
 import { useEffect } from 'react'
 import { useSidebarStore } from '@/shared/hooks/useSidebarStore'
 import logoAnotex from '@/shared/assets/logo-anotex.png'
@@ -80,7 +80,7 @@ function SideNavItem({ item, onClick }: { item: NavItem; onClick?: () => void })
 }
 
 export function Sidebar({ withTopBar = true }: { withTopBar?: boolean }) {
-  const { isOpen, close } = useSidebarStore()
+  const { isOpen, open, close } = useSidebarStore()
   const location = useLocation()
 
   useEffect(() => {
@@ -90,7 +90,7 @@ export function Sidebar({ withTopBar = true }: { withTopBar?: boolean }) {
   const sidebarContent = (
     <aside
       className={[
-        'fixed bottom-0 left-0 z-40 flex w-56 flex-col overflow-hidden border-r border-[var(--border)] px-3 py-5',
+        'fixed bottom-0 left-0 z-40 flex w-[min(18rem,calc(100vw-1rem))] max-w-[18rem] flex-col overflow-y-auto border-r border-[var(--border)] px-3 py-4 md:w-56 md:max-w-none md:py-5',
         'transition-transform duration-300 ease-in-out',
         'md:translate-x-0',
         withTopBar ? 'top-14' : 'top-0',
@@ -103,8 +103,16 @@ export function Sidebar({ withTopBar = true }: { withTopBar?: boolean }) {
         boxShadow: '1px 0 0 rgba(56,171,228,0.1)',
       }}
     >
-      <div className="mb-4 px-2 pb-4">
+      <div className="mb-4 flex items-center justify-between px-2 pb-4">
         <img src={logoAnotex} alt="anotEX.ai" className="h-[30px] w-auto" />
+        <button
+          type="button"
+          onClick={close}
+          aria-label="Fechar menu"
+          className="flex h-9 w-9 items-center justify-center rounded-xl text-[var(--text-secondary)] transition-colors hover:bg-[var(--accent-bg)] hover:text-[var(--accent-5)] md:hidden"
+        >
+          <X size={17} />
+        </button>
       </div>
 
       <div className="relative z-10 flex flex-col gap-1">
@@ -125,6 +133,16 @@ export function Sidebar({ withTopBar = true }: { withTopBar?: boolean }) {
 
   return (
     <>
+      {!withTopBar && !isOpen && (
+        <button
+          type="button"
+          onClick={open}
+          aria-label="Abrir menu"
+          className="fixed left-4 top-4 z-30 flex h-11 w-11 items-center justify-center rounded-2xl border border-[var(--border)] bg-[rgba(255,255,255,0.82)] text-[var(--text-secondary)] shadow-[0_8px_28px_rgba(56,171,228,0.18)] backdrop-blur-md transition-colors hover:text-[var(--accent-5)] md:hidden"
+        >
+          <Menu size={18} />
+        </button>
+      )}
       {isOpen && (
         <div
           className="fixed inset-0 z-30 bg-black/30 backdrop-blur-sm md:hidden"

@@ -17,7 +17,7 @@ export function TranscriptionsPage() {
       <GradientOrb size={500} color="#38ABE4" opacity={0.08} className="top-0 right-0 z-0" style={{ transform: 'translate(30%, -30%)' }} />
       <Sidebar withTopBar={false} />
       <main className="relative z-10 md:pl-56">
-        <div className="pen-content max-w-5xl">
+        <div className="pen-content max-w-5xl pt-20 md:pt-8">
           <div className="pen-page-header">
             <div>
               <h1 className="pen-page-title">Transcrições</h1>
@@ -67,7 +67,7 @@ export function TranscriptionsPage() {
                 })
                 return (
                   <Link key={t.id} to={`/transcription/${t.audioId}`}>
-                    <Card className="pen-list-card p-4 flex items-center gap-4 hover:border-[var(--accent)]/40 hover:-translate-y-px transition-all duration-200 cursor-pointer group">
+                    <Card className="pen-list-card flex flex-col gap-3 p-4 transition-all duration-200 cursor-pointer group hover:-translate-y-px hover:border-[var(--accent)]/40 sm:flex-row sm:items-center sm:gap-4">
                       <div className="h-10 w-10 rounded-lg bg-[var(--accent)]/10 flex items-center justify-center shrink-0">
                         <FileText size={18} className="text-[var(--accent)]" />
                       </div>
@@ -84,7 +84,7 @@ export function TranscriptionsPage() {
                         <p className="text-xs text-[var(--text-secondary)]/60 mt-0.5">{date}</p>
                       </div>
 
-                      <div className="flex items-center gap-3 shrink-0">
+                      <div className="flex items-center justify-between gap-3 sm:justify-start sm:shrink-0">
                         <Badge status={t.status} />
                         <ChevronRight size={16} className="text-[var(--text-secondary)] group-hover:text-[var(--accent)] transition-colors" />
                       </div>
