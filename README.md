@@ -529,6 +529,35 @@ Um cron mensal via **pg_cron** executa `delete_old_user_data()` todo dia 1 do m�
 
 O projeto foi auditado contra **OWASP API Security Top 10 (2023)**, **OWASP Top 10 Web** e **LGPD**. Veja o relatório completo em `ai-docs/08-cybersecurity-audit.md`.
 
+### Testes de Segurança Automatizados
+
+O projeto utiliza **OpenCode** com skills especializadas para testes de segurança:
+
+| Skill | Uso |
+|---|---|
+| **SecLists Fuzzing** | SQL injection, command injection, special characters |
+| **SecLists Passwords** | Wordlists para teste de senhas |
+| **SecLists Pattern-Matching** | Detecção de dados sensíveis (API keys, CPFs, emails) |
+| **SecLists Payloads** | Arquivos de teste para exploração |
+| **SecLists Usernames** | Enumeração de usuários |
+| **SecLists Web-Shells** | Detecção e análise de web shells |
+| **Playwright** | Testes automatizados no navegador |
+
+### Resultados dos Testes
+
+Veja o relatório completo em `ai-docs/security-test-report.md`.
+
+| Teste | Resultado | Status |
+|---|---|---|
+| SQL Injection | ✅ Bloqueado | PASS |
+| XSS | ✅ Protegido | PASS |
+| Command Injection | ✅ Bloqueado | PASS |
+| Path Traversal | ✅ Bloqueado | PASS |
+| Web Shells | ✅ Não detectado | PASS |
+| Rate Limiting | ✅ 100 req/min | PASS |
+| Security Headers | ✅ Presentes | PASS |
+| Cloudflare Protection | ✅ Ativo (403 para bots) | PASS |
+
 ### Medidas implementadas
 
 | Camada | Medida |
