@@ -105,7 +105,7 @@ export function PricingSection() {
           Invista no seu estudo
         </h2>
         <p className="mt-4 text-[1.05rem] leading-8 text-[var(--text-secondary)]">
-          Comece grátis e escale conforme sua rotina. Cancele quando quiser, sem burocracia.
+          Estude com estratégia. Cancele quando quiser, sem burocracia.
         </p>
       </div>
 
@@ -116,10 +116,19 @@ export function PricingSection() {
             className={cn(
               'relative flex flex-col rounded-[28px] p-8 transition-all duration-300',
               plan.id === 'pro'
-                ? 'border-2 border-[var(--accent)] bg-gradient-to-b from-[var(--accent)]/8 to-white shadow-[0_20px_60px_rgba(56,171,228,0.18)]'
+                ? 'cursor-pointer border-2 border-[var(--accent)] bg-gradient-to-b from-[var(--accent)]/8 to-white shadow-[0_20px_60px_rgba(56,171,228,0.18)] hover:shadow-[0_25px_70px_rgba(56,171,228,0.25)] hover:scale-[1.02]'
                 : 'border border-[var(--border)] bg-white/55 backdrop-blur-sm'
             )}
+            onClick={() => plan.productId && handleSubscribe(plan.productId)}
           >
+            {plan.id === 'pro' && (
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--accent)] px-4 py-1.5 text-xs font-semibold text-white shadow-lg">
+                  <Zap size={12} />
+                  Mais popular
+                </span>
+              </div>
+            )}
             {plan.id === 'pro' && (
               <div className="absolute -top-4 left-1/2 -translate-x-1/2">
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--accent)] px-4 py-1.5 text-xs font-semibold text-white shadow-lg">

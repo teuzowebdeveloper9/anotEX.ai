@@ -185,19 +185,6 @@ export function LandingPage() {
                 Ver como funciona
               </a>
             </div>
-
-            <div className="mt-10 flex items-center gap-6 text-sm text-[var(--text-secondary)]">
-              <div className="flex -space-x-2">
-                {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-gradient-to-br from-[var(--accent)]/80 to-[var(--accent-3)]/80 text-xs font-bold text-white">
-                    {i}
-                  </div>
-                ))}
-              </div>
-              <p>
-                <span className="font-semibold text-[var(--text-primary)]">+500 estudantes</span> usando agora
-              </p>
-            </div>
           </motion.div>
 
           <motion.div
@@ -263,7 +250,7 @@ export function LandingPage() {
         <section id="valor" className="mx-auto w-full max-w-[1440px] px-6 py-10 md:px-[100px]">
           <div className="mx-auto max-w-[860px] text-center">
             <h2 className="text-[2.2rem] font-extrabold tracking-[-0.04em] text-[var(--text-primary)] md:text-[3rem]">
-              O problema não é estudiar.
+              O problema não é estudar.
             </h2>
             <p className="mt-3 text-[1.06rem] leading-8 text-[var(--text-secondary)]">
               O problema é lembrar depois. O anotEX.ai resolve isso — do momento que você grava até o dia da prova.
@@ -404,10 +391,6 @@ export function LandingPage() {
                 <Button variant="outline" size="lg" className="min-w-[180px]">Já tenho conta</Button>
               </Link>
             </div>
-            
-            <p className="mt-6 text-sm text-[var(--text-secondary)]">
-              ✨ Grátis para sempre • Sem necessidade de cartão
-            </p>
           </div>
         </section>
       </main>
