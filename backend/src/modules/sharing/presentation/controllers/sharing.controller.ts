@@ -10,6 +10,7 @@ import {
   HttpCode,
   HttpStatus,
   ParseUUIDPipe,
+  Query,
 } from '@nestjs/common';
 import type { AuthenticatedRequest } from '../../../audio/presentation/guards/auth.guard.js';
 import { Public } from '../../../../shared/presentation/decorators/public.decorator.js';
@@ -56,8 +57,11 @@ export class SharingController {
 
   @Public()
   @Get('public/:token')
-  async getSharedResource(@Param('token') token: string) {
-    const result = await this.getSharedResourceUseCase.execute(token);
+  async getSharedResource(
+    @Param('token') token: string,
+    @Query('itemId') itemId?: string,
+  ) {
+    const result = await this.getSharedResourceUseCase.execute(token, itemId);
     if (!result.success) throw result.error;
     return result.data;
   }

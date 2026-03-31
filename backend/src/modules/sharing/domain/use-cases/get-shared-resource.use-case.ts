@@ -22,10 +22,26 @@ export interface SharedResourceData {
   readonly studyMaterials: {
     readonly mindmap: StudyMaterialEntity | null;
     readonly flashcards: StudyMaterialEntity | null;
+    readonly quiz: StudyMaterialEntity | null;
   };
   // folder view
   readonly folder: Pick<StudyFolderEntity, 'id' | 'name' | 'description' | 'itemCount'> | null;
   readonly folderItems: readonly StudyFolderItemEntity[];
+  readonly selectedFolderItem: SharedFolderItemData | null;
+}
+
+export interface SharedFolderItemData {
+  readonly item: StudyFolderItemEntity;
+  readonly audio: Pick<AudioEntity, 'id' | 'status' | 'fileName'> | null;
+  readonly transcription: Pick<
+    TranscriptionEntity,
+    'id' | 'title' | 'transcriptionText' | 'summaryText' | 'segments' | 'status' | 'errorMessage'
+  > | null;
+  readonly studyMaterials: {
+    readonly mindmap: StudyMaterialEntity | null;
+    readonly flashcards: StudyMaterialEntity | null;
+    readonly quiz: StudyMaterialEntity | null;
+  };
 }
 
 @Injectable()
@@ -43,7 +59,43 @@ export class GetSharedResourceUseCase {
     private readonly studyFolderRepository: IStudyFolderRepository,
   ) {}
 
-  async execute(token: string): Promise<Result<SharedResourceData>> {
+  private async buildSharedFolderItemData(item: StudyFolderItemEntity): Promise<SharedFolderItemData> {
+    const [audio, transcription] = await Promise.all([
+      this.audioRepository.findById(item.audioId),
+      this.transcriptionRepository.findById(item.transcriptionId),
+    ]);
+
+    let mindmap: StudyMaterialEntity | null = null;
+    let flashcards: StudyMaterialEntity | null = null;
+    let quiz: StudyMaterialEntity | null = null;
+
+    if (transcription?.status === 'COMPLETED') {
+      [mindmap, flashcards, quiz] = await Promise.all([
+        this.studyMaterialRepository.findByTranscriptionIdAndType(transcription.id, StudyMaterialType.MINDMAP),
+        this.studyMaterialRepository.findByTranscriptionIdAndType(transcription.id, StudyMaterialType.FLASHCARDS),
+        this.studyMaterialRepository.findByTranscriptionIdAndType(transcription.id, StudyMaterialType.QUIZ),
+      ]);
+    }
+
+    return {
+      item,
+      audio: audio ? { id: audio.id, status: audio.status, fileName: audio.fileName } : null,
+      transcription: transcription
+        ? {
+            id: transcription.id,
+            title: transcription.title,
+            transcriptionText: transcription.transcriptionText,
+            summaryText: transcription.summaryText,
+            segments: transcription.segments,
+            status: transcription.status,
+            errorMessage: transcription.errorMessage,
+          }
+        : null,
+      studyMaterials: { mindmap, flashcards, quiz },
+    };
+  }
+
+  async execute(token: string, itemId?: string): Promise<Result<SharedResourceData>> {
     const shareLink = await this.shareLinkRepository.findByToken(token);
 
     if (!shareLink) {
@@ -62,9 +114,10 @@ export class GetSharedResourceUseCase {
       },
       audio: null,
       transcription: null,
-      studyMaterials: { mindmap: null, flashcards: null },
+      studyMaterials: { mindmap: null, flashcards: null, quiz: null },
       folder: null,
       folderItems: [],
+      selectedFolderItem: null,
     } as const;
 
     if (shareLink.resourceType === 'transcription') {
@@ -75,11 +128,13 @@ export class GetSharedResourceUseCase {
 
       let mindmap: StudyMaterialEntity | null = null;
       let flashcards: StudyMaterialEntity | null = null;
+      let quiz: StudyMaterialEntity | null = null;
 
       if (transcription?.id && transcription.status === 'COMPLETED') {
-        [mindmap, flashcards] = await Promise.all([
+        [mindmap, flashcards, quiz] = await Promise.all([
           this.studyMaterialRepository.findByTranscriptionIdAndType(transcription.id, StudyMaterialType.MINDMAP),
           this.studyMaterialRepository.findByTranscriptionIdAndType(transcription.id, StudyMaterialType.FLASHCARDS),
+          this.studyMaterialRepository.findByTranscriptionIdAndType(transcription.id, StudyMaterialType.QUIZ),
         ]);
       }
 
@@ -96,7 +151,7 @@ export class GetSharedResourceUseCase {
               errorMessage: transcription.errorMessage,
             }
           : null,
-        studyMaterials: { mindmap, flashcards },
+        studyMaterials: { mindmap, flashcards, quiz },
       });
     }
 
@@ -105,6 +160,15 @@ export class GetSharedResourceUseCase {
       if (!folder) return fail(new NotFoundException('Folder not found'));
 
       const items = await this.studyFolderRepository.findItemsByFolderId(shareLink.resourceId);
+      let selectedFolderItem: SharedFolderItemData | null = null;
+
+      if (itemId) {
+        const item = await this.studyFolderRepository.findItemById(itemId);
+        if (!item || item.folderId !== shareLink.resourceId) {
+          return fail(new NotFoundException('Folder item not found'));
+        }
+        selectedFolderItem = await this.buildSharedFolderItemData(item);
+      }
 
       return ok({
         ...base,
@@ -115,6 +179,7 @@ export class GetSharedResourceUseCase {
           itemCount: folder.itemCount,
         },
         folderItems: items,
+        selectedFolderItem,
       });
     }
 
