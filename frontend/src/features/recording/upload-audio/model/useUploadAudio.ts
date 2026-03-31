@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { api } from '@/shared/api/axios'
 import { ENDPOINTS } from '@/shared/api/endpoints'
@@ -7,14 +6,13 @@ import type { UploadAudioResponse } from '@/shared/types/api.types'
 
 interface UseUploadAudioReturn {
   uploading: boolean
-  upload: (file: Blob | File, language?: string) => Promise<void>
+  upload: (file: Blob | File, language?: string) => Promise<UploadAudioResponse | null>
 }
 
 export function useUploadAudio(): UseUploadAudioReturn {
   const [uploading, setUploading] = useState(false)
-  const navigate = useNavigate()
 
-  const upload = async (file: Blob | File, language = 'pt'): Promise<void> => {
+  const upload = async (file: Blob | File, language = 'pt'): Promise<UploadAudioResponse | null> => {
     setUploading(true)
     try {
       const fileName = file instanceof File
@@ -30,9 +28,10 @@ export function useUploadAudio(): UseUploadAudioReturn {
       })
 
       toast.success('Áudio enviado! Processando transcrição...')
-      navigate(`/transcription/${data.audioId}`)
+      return data
     } catch {
       toast.error('Erro ao enviar áudio. Tente novamente.')
+      return null
     } finally {
       setUploading(false)
     }

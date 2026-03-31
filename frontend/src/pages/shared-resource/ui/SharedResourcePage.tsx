@@ -1,6 +1,6 @@
 import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { AlertCircle, Loader2, FileText, Sparkles, Map, BookOpen, Lock, FolderOpen, LayoutDashboard, CircleHelp } from 'lucide-react'
+import { AlertCircle, Loader2, FileText, Sparkles, Map, BookOpen, Lock, FolderOpen, LayoutDashboard, CircleHelp, ArrowUpRight, Pointer } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { axiosPublic } from '@/shared/api/axios'
 import { ENDPOINTS } from '@/shared/api/endpoints'
@@ -265,26 +265,38 @@ export function SharedResourcePage() {
                         </div>
                         <div className="flex flex-col gap-1.5">
                           {itemsOfType.map((item) => (
-                            <div
+                            <button
                               key={item.id}
-                              className="flex items-center gap-3 px-4 py-3 rounded-lg border border-[var(--border)] bg-[var(--bg-surface)]"
-                            >
-                              {isLoggedIn ? (
-                                <button
-                                  onClick={() => openFolderItem(item)}
-                                  className="text-left text-sm text-[var(--accent)] hover:underline flex-1 truncate"
-                                >
-                                  {item.title}
-                                </button>
-                              ) : (
-                                <button
-                                  onClick={() => openFolderItem(item)}
-                                  className="text-left text-sm text-[var(--accent)] hover:underline flex-1 truncate"
-                                >
-                                  {item.title}
-                                </button>
+                              onClick={() => openFolderItem(item)}
+                              className={cn(
+                                'group flex items-center gap-3 px-4 py-3 rounded-lg border text-left transition-all duration-200',
+                                selectedFolderItem?.item.id === item.id
+                                  ? 'border-[var(--accent)]/35 bg-[var(--accent-bg)] shadow-[0_12px_32px_rgba(56,171,228,0.12)]'
+                                  : 'border-[var(--border)] bg-[var(--bg-surface)] hover:-translate-y-0.5 hover:border-[var(--accent)]/28 hover:bg-[var(--accent-bg)]/60'
                               )}
-                            </div>
+                            >
+                              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[var(--bg-elevated)] text-[var(--accent)]">
+                                <Icon size={15} />
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <p className="text-sm font-medium text-[var(--text-primary)] truncate">{item.title}</p>
+                                <p className="mt-1 flex items-center gap-1 text-[11px] text-[var(--accent)]">
+                                  <Pointer size={11} />
+                                  Clique para abrir aqui
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-2 shrink-0">
+                                {!isLoggedIn && (
+                                  <span className="rounded-full border border-[var(--accent)]/20 bg-[var(--accent-bg)] px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--accent)]">
+                                    Publico
+                                  </span>
+                                )}
+                                <ArrowUpRight
+                                  size={14}
+                                  className="text-[var(--text-secondary)] transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                                />
+                              </div>
+                            </button>
                           ))}
                         </div>
                       </div>
