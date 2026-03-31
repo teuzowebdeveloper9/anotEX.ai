@@ -30,7 +30,7 @@ export function SummariesPage() {
       <GradientOrb size={500} color="#38ABE4" opacity={0.08} className="top-0 right-0 z-0" style={{ transform: 'translate(30%, -30%)' }} />
       <Sidebar withTopBar={false} />
       <main className="relative z-10 md:pl-56">
-        <div className="pen-content max-w-5xl pt-20 md:pt-8">
+        <div className="pen-content max-w-5xl pt-24 md:pt-8">
           <div className="mb-8">
             <div className="flex items-center gap-3 mb-1">
               <div className="h-8 w-8 rounded-lg bg-[var(--accent)]/10 flex items-center justify-center">
