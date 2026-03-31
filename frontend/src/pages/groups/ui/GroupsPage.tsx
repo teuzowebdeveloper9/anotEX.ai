@@ -86,7 +86,7 @@ export function GroupsPage() {
         <div className="pen-content max-w-5xl pt-24 md:pt-8">
 
           {/* Header */}
-          <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="mb-8 flex flex-col gap-4 pl-14 sm:pl-0 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h1 className="pen-page-title">Grupos de estudo</h1>
               <p className="pen-page-subtitle">
