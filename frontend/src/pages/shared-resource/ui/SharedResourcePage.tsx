@@ -1,6 +1,6 @@
-import { useParams, Link, useNavigate } from 'react-router-dom'
+import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { AlertCircle, Loader2, FileText, Sparkles, Map, BookOpen, Lock, FolderOpen, LayoutDashboard } from 'lucide-react'
+import { AlertCircle, Loader2, FileText, Sparkles, Map, BookOpen, Lock, FolderOpen, LayoutDashboard, CircleHelp } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { axiosPublic } from '@/shared/api/axios'
 import { ENDPOINTS } from '@/shared/api/endpoints'
@@ -9,25 +9,29 @@ import type { AudioStatus } from '@/shared/types/api.types'
 import { MarkdownRenderer } from '@/shared/ui/MarkdownRenderer/MarkdownRenderer'
 import { MindMapViewer } from '@/widgets/mindmap/ui/MindMapViewer'
 import { FlashcardDeck } from '@/widgets/flashcard-deck/ui/FlashcardDeck'
+import { QuizPlayer } from '@/widgets/quiz-player/ui/QuizPlayer'
+import { TranscriptionViewer } from '@/widgets/transcription-viewer/ui/TranscriptionViewer'
 import { GradientOrb } from '@/shared/ui/decorative/GradientOrb'
 import { supabase } from '@/shared/auth/supabase'
 import { cn } from '@/shared/lib/cn'
-import type { FlashcardItem, MindmapContent } from '@/shared/types/api.types'
+import type { FlashcardItem, MindmapContent, QuizItem, TranscriptionSegment } from '@/shared/types/api.types'
 
-type Tab = 'resumo' | 'transcricao' | 'mindmap' | 'flashcards'
+type Tab = 'resumo' | 'transcricao' | 'mindmap' | 'flashcards' | 'quiz'
 
 const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
   { id: 'resumo',      label: 'Resumo',       icon: Sparkles  },
   { id: 'transcricao', label: 'Transcrição',  icon: FileText  },
   { id: 'mindmap',     label: 'Mapa Mental',  icon: Map       },
   { id: 'flashcards',  label: 'Flashcards',   icon: BookOpen  },
+  { id: 'quiz',        label: 'Quiz',         icon: CircleHelp },
 ]
 
-const ITEM_TYPE_TAB: Record<string, string> = {
+const ITEM_TYPE_TAB: Record<string, Tab> = {
   SUMMARY: 'resumo',
   TRANSCRIPTION: 'transcricao',
   FLASHCARDS: 'flashcards',
-  MINDMAP: 'mapa-mental',
+  MINDMAP: 'mindmap',
+  QUIZ: 'quiz',
 }
 
 const ITEM_TYPE_LABELS: Record<string, string> = {
@@ -35,6 +39,7 @@ const ITEM_TYPE_LABELS: Record<string, string> = {
   TRANSCRIPTION: 'Transcrições',
   FLASHCARDS: 'Flashcards',
   MINDMAP: 'Mapas Mentais',
+  QUIZ: 'Quiz',
 }
 
 const ITEM_TYPE_ICONS: Record<string, React.ElementType> = {
@@ -42,6 +47,7 @@ const ITEM_TYPE_ICONS: Record<string, React.ElementType> = {
   TRANSCRIPTION: FileText,
   FLASHCARDS: BookOpen,
   MINDMAP: Map,
+  QUIZ: CircleHelp,
 }
 
 interface FolderItem {
@@ -65,14 +71,35 @@ interface SharedResource {
   studyMaterials: {
     mindmap: { status: string; content: unknown } | null
     flashcards: { status: string; content: unknown } | null
+    quiz: { status: string; content: unknown } | null
   }
   folder: { id: string; name: string; description: string | null; itemCount: number } | null
   folderItems: FolderItem[]
+  selectedFolderItem: {
+    item: FolderItem
+    audio: { id: string; status: string; fileName: string } | null
+    transcription: {
+      id: string
+      title: string | null
+      transcriptionText: string | null
+      summaryText: string | null
+      segments: TranscriptionSegment[] | null
+      status: string
+      errorMessage: string | null
+    } | null
+    studyMaterials: {
+      mindmap: { status: string; content: unknown } | null
+      flashcards: { status: string; content: unknown } | null
+      quiz: { status: string; content: unknown } | null
+    }
+  } | null
 }
 
 export function SharedResourcePage() {
   const { token } = useParams<{ token: string }>()
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const selectedItemId = searchParams.get('item')
   const [activeTab, setActiveTab] = useState<Tab>('resumo')
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null)
 
@@ -87,21 +114,48 @@ export function SharedResourcePage() {
   }, [])
 
   const { data, isLoading, error } = useQuery<SharedResource>({
-    queryKey: ['shared-resource', token],
+    queryKey: ['shared-resource', token, selectedItemId],
     queryFn: async () => {
-      const { data } = await axiosPublic.get<SharedResource>(ENDPOINTS.sharing.public(token!))
+      const { data } = await axiosPublic.get<SharedResource>(ENDPOINTS.sharing.public(token!), {
+        params: selectedItemId ? { itemId: selectedItemId } : undefined,
+      })
       return data
     },
     enabled: !!token,
     retry: false,
   })
 
-  const transcription = data?.transcription
+  const selectedFolderItem = data?.selectedFolderItem
+  const folderTranscription = selectedFolderItem?.transcription
+  const folderAudio = selectedFolderItem?.audio
+  const folderMaterials = selectedFolderItem?.studyMaterials
+  const transcription =
+    data?.shareLink.resourceType === 'study_folder' && selectedFolderItem
+      ? folderTranscription
+      : data?.transcription
+
+  useEffect(() => {
+    if (!selectedFolderItem) return
+    setActiveTab(ITEM_TYPE_TAB[selectedFolderItem.item.itemType] ?? 'resumo')
+  }, [selectedFolderItem])
 
   const handleLoginClick = () => {
     // Don't save returnTo for public shared pages — avoid the loop
     // Just go to login which will redirect to dashboard
     navigate('/login')
+  }
+
+  const openFolderItem = (item: FolderItem) => {
+    const next = new URLSearchParams(searchParams)
+    next.set('item', item.id)
+    setSearchParams(next)
+  }
+
+  const closeFolderItem = () => {
+    const next = new URLSearchParams(searchParams)
+    next.delete('item')
+    next.delete('tab')
+    setSearchParams(next)
   }
 
   return (
@@ -197,7 +251,7 @@ export function SharedResourcePage() {
                 <p className="text-sm text-[var(--text-secondary)] text-center py-10">Nenhum material nesta pasta.</p>
               ) : (
                 <div className="flex flex-col gap-5">
-                  {(['SUMMARY', 'TRANSCRIPTION', 'FLASHCARDS', 'MINDMAP'] as const).map((type) => {
+                  {(['SUMMARY', 'TRANSCRIPTION', 'FLASHCARDS', 'MINDMAP', 'QUIZ'] as const).map((type) => {
                     const itemsOfType = data.folderItems.filter((i) => i.itemType === type)
                     if (itemsOfType.length === 0) return null
                     const Icon = ITEM_TYPE_ICONS[type]
@@ -216,21 +270,18 @@ export function SharedResourcePage() {
                               className="flex items-center gap-3 px-4 py-3 rounded-lg border border-[var(--border)] bg-[var(--bg-surface)]"
                             >
                               {isLoggedIn ? (
-                                <Link
-                                  to={`/transcription/${item.audioId}?tab=${ITEM_TYPE_TAB[item.itemType]}`}
-                                  className="text-sm text-[var(--accent)] hover:underline flex-1 truncate"
+                                <button
+                                  onClick={() => openFolderItem(item)}
+                                  className="text-left text-sm text-[var(--accent)] hover:underline flex-1 truncate"
                                 >
                                   {item.title}
-                                </Link>
+                                </button>
                               ) : (
-                                <p className="text-sm text-[var(--text-primary)] truncate flex-1">{item.title}</p>
-                              )}
-                              {!isLoggedIn && (
                                 <button
-                                  onClick={handleLoginClick}
-                                  className="text-xs text-[var(--accent)] hover:underline shrink-0"
+                                  onClick={() => openFolderItem(item)}
+                                  className="text-left text-sm text-[var(--accent)] hover:underline flex-1 truncate"
                                 >
-                                  Fazer login para abrir
+                                  {item.title}
                                 </button>
                               )}
                             </div>
@@ -239,6 +290,113 @@ export function SharedResourcePage() {
                       </div>
                     )
                   })}
+                </div>
+              )}
+
+              {selectedFolderItem && (
+                <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] shadow-[var(--shadow-card)] overflow-hidden">
+                  <div className="flex items-center justify-between gap-3 border-b border-[var(--border)] px-5 py-4">
+                    <div className="min-w-0">
+                      <p className="text-xs uppercase tracking-widest text-[var(--text-secondary)]">
+                        {ITEM_TYPE_LABELS[selectedFolderItem.item.itemType]}
+                      </p>
+                      <h2 className="text-base font-semibold text-[var(--text-primary)] truncate">
+                        {folderTranscription?.title ?? selectedFolderItem.item.title}
+                      </h2>
+                      {folderAudio?.fileName && (
+                        <p className="text-xs text-[var(--text-secondary)] truncate mt-1">{folderAudio.fileName}</p>
+                      )}
+                    </div>
+                    <button
+                      onClick={closeFolderItem}
+                      className="text-xs text-[var(--accent)] hover:underline shrink-0"
+                    >
+                      Fechar
+                    </button>
+                  </div>
+
+                  <div className="flex gap-1 p-1 m-4 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border)]">
+                    {TABS.map((tab) => {
+                      const Icon = tab.icon
+                      const isActive = activeTab === tab.id
+                      return (
+                        <button
+                          key={tab.id}
+                          onClick={() => setActiveTab(tab.id)}
+                          className={cn(
+                            'flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg transition-all duration-200',
+                            isActive
+                              ? 'bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[var(--shadow-card)]'
+                              : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                          )}
+                        >
+                          <span style={isActive ? { background: 'var(--gradient-primary)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' } : undefined}>
+                            <Icon size={12} />
+                          </span>
+                          <span className="hidden sm:inline">{tab.label}</span>
+                        </button>
+                      )
+                    })}
+                  </div>
+
+                  <div className="px-6 pb-6">
+                    {folderTranscription?.status === 'FAILED' && (
+                      <div className="flex items-center gap-4 p-5 rounded-xl border border-[var(--danger)]/25 bg-[var(--danger-bg)]">
+                        <AlertCircle size={18} className="text-[var(--danger)] shrink-0" />
+                        <p className="text-sm text-[var(--danger)]">
+                          {folderTranscription.errorMessage ?? 'Falha no processamento deste material.'}
+                        </p>
+                      </div>
+                    )}
+
+                    {activeTab === 'resumo' && (
+                      <div className="pt-2">
+                        {folderTranscription?.summaryText
+                          ? <MarkdownRenderer content={folderTranscription.summaryText} />
+                          : <p className="text-sm text-[var(--text-tertiary)]">Nenhum resumo disponível.</p>}
+                      </div>
+                    )}
+
+                    {activeTab === 'transcricao' && (
+                      <div className="pt-2">
+                        <TranscriptionViewer
+                          audioId={folderAudio?.id ?? selectedFolderItem.item.audioId}
+                          segments={folderTranscription?.segments ?? null}
+                          plainText={folderTranscription?.transcriptionText ?? null}
+                        />
+                      </div>
+                    )}
+
+                    {activeTab === 'mindmap' && (
+                      <div className="pt-2">
+                        {folderMaterials?.mindmap?.status === 'COMPLETED' && folderMaterials.mindmap.content ? (
+                          <MindMapViewer markdown={(folderMaterials.mindmap.content as MindmapContent).markdown} />
+                        ) : (
+                          <p className="text-sm text-[var(--text-tertiary)] text-center py-8">Mapa mental não disponível.</p>
+                        )}
+                      </div>
+                    )}
+
+                    {activeTab === 'flashcards' && (
+                      <div className="pt-2">
+                        {folderMaterials?.flashcards?.status === 'COMPLETED' && folderMaterials.flashcards.content ? (
+                          <FlashcardDeck cards={folderMaterials.flashcards.content as FlashcardItem[]} />
+                        ) : (
+                          <p className="text-sm text-[var(--text-tertiary)] text-center py-8">Flashcards não disponíveis.</p>
+                        )}
+                      </div>
+                    )}
+
+                    {activeTab === 'quiz' && (
+                      <div className="pt-2">
+                        {folderMaterials?.quiz?.status === 'COMPLETED' && folderMaterials.quiz.content ? (
+                          <QuizPlayer questions={folderMaterials.quiz.content as QuizItem[]} />
+                        ) : (
+                          <p className="text-sm text-[var(--text-tertiary)] text-center py-8">Quiz não disponível.</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
@@ -359,6 +517,20 @@ export function SharedResourcePage() {
                           <FlashcardDeck cards={data.studyMaterials.flashcards.content as FlashcardItem[]} />
                         ) : (
                           <p className="text-sm text-[var(--text-tertiary)] text-center py-8">Flashcards não disponíveis.</p>
+                        )}
+                      </div>
+                    )}
+
+                    {activeTab === 'quiz' && (
+                      <div className="p-6">
+                        <div className="flex items-center gap-2 mb-6">
+                          <CircleHelp size={15} className="text-[var(--text-secondary)]" />
+                          <h2 className="text-sm font-semibold text-[var(--text-primary)]">Quiz</h2>
+                        </div>
+                        {data.studyMaterials.quiz?.status === 'COMPLETED' && data.studyMaterials.quiz.content ? (
+                          <QuizPlayer questions={data.studyMaterials.quiz.content as QuizItem[]} />
+                        ) : (
+                          <p className="text-sm text-[var(--text-tertiary)] text-center py-8">Quiz não disponível.</p>
                         )}
                       </div>
                     )}
