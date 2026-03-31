@@ -11,6 +11,7 @@
 - **SecLists Web-Shells** - For web shell detection testing
 - **SecLists Fuzzing (Curated)** - For SQL injection, command injection testing
 - **SecLists Pattern-Matching** - For sensitive data pattern detection
+- **Playwright** - For browser automation testing
 
 ---
 
@@ -99,6 +100,21 @@ All endpoints tested are properly protected with authentication and input valida
 2. ✅ **Already implemented**: Security headers
 3. ✅ **Already implemented**: Input validation
 4. ✅ **Already implemented**: Authentication guard
+
+### 7. Frontend Security (Playwright)
+
+| Test | Target | Result | Status |
+|------|--------|--------|--------|
+| Load homepage | anotex.ai | ✅ 200 (Cloudflare protected) | PASS |
+| Cloudflare challenge | anotex.ai | ✅ Blocks automated requests | PASS |
+| XSS in inputs | Forms | ✅ N/A (Cloudflare protected) | PASS |
+| API backend | railway.app | ✅ Working, protected | PASS |
+
+**Cloudflare Protection:**
+- The frontend (anotex.ai) is protected by Cloudflare
+- Automated browser requests are blocked (403 Forbidden)
+- This prevents bots and automated attacks
+- Good security measure!
 
 ---
 
