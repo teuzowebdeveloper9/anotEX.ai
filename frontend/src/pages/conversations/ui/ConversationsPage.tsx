@@ -44,7 +44,7 @@ export function ConversationsPage() {
       <Sidebar withTopBar={false} />
 
       <main className="relative z-10 md:pl-56">
-        <div className="pen-content max-w-5xl pt-20 md:pt-8">
+        <div className="pen-content max-w-5xl pt-24 md:pt-8">
           <div className="flex items-center gap-3 mb-8">
             <div className="w-9 h-9 rounded-xl bg-[var(--accent-bg)] border border-[var(--accent)]/20 flex items-center justify-center">
               <MessageSquare size={16} className="text-[var(--accent)]" />

@@ -83,7 +83,7 @@ export function GroupsPage() {
       <Sidebar withTopBar={false} />
 
       <main className="relative z-10 md:pl-56">
-        <div className="pen-content max-w-5xl pt-20 md:pt-8">
+        <div className="pen-content max-w-5xl pt-24 md:pt-8">
 
           {/* Header */}
           <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

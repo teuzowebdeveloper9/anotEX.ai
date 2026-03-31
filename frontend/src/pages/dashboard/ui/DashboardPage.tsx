@@ -56,7 +56,7 @@ export function DashboardPage() {
     <div className="pen-page relative min-h-screen overflow-hidden">
       <Sidebar withTopBar={false} />
       <main className="relative z-10 md:pl-56">
-        <div className="mx-auto max-w-6xl px-4 pb-16 pt-20 sm:px-6 md:px-10 md:pt-9">
+        <div className="mx-auto max-w-6xl px-4 pb-16 pt-24 sm:px-6 md:px-10 md:pt-9">
           <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h1 className="text-[1.75rem] font-bold tracking-[-0.03em] text-[var(--text-primary)]">
