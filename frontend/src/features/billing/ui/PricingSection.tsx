@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Check, Zap, Shield, Crown } from 'lucide-react'
 import { Button } from '@/shared/ui/Button/Button'
-import { cn } from '@/shared/lib/cn'
 import { useCreateCheckout, useSubscriptionStatus } from '../hooks/useCheckout'
 import { useAuth } from '@/shared/auth/useAuth'
 import { CustomerFormModal } from './CustomerFormModal'
@@ -11,21 +10,6 @@ const PLAN_ID = 'prod_uFHtgP3NQARHx35LtuFqRTT5'
 const PLAN_PRICE_CENTS = 3990
 
 const plans = [
-  {
-    id: 'free',
-    name: 'Gratuito',
-    priceLabel: 'R$ 0',
-    description: 'Para quem quer experimentar',
-    features: [
-      '3 aulas por mês',
-      'Transcrição básica',
-      'Resumos simples',
-      'Até 10 flashcards',
-      'Acesso mobile',
-    ],
-    buttonText: 'Começar grátis',
-    productId: '',
-  },
   {
     id: 'pro',
     name: 'Pro',
@@ -109,34 +93,19 @@ export function PricingSection() {
         </p>
       </div>
 
-      <div className="mx-auto grid max-w-3xl gap-6 lg:grid-cols-2 lg:items-stretch">
+      <div className="mx-auto grid max-w-lg gap-6">
         {plans.map((plan) => (
           <div
             key={plan.id}
-            className={cn(
-              'relative flex flex-col rounded-[28px] p-8 transition-all duration-300',
-              plan.id === 'pro'
-                ? 'cursor-pointer border-2 border-[var(--accent)] bg-gradient-to-b from-[var(--accent)]/8 to-white shadow-[0_20px_60px_rgba(56,171,228,0.18)] hover:shadow-[0_25px_70px_rgba(56,171,228,0.25)] hover:scale-[1.02]'
-                : 'border border-[var(--border)] bg-white/55 backdrop-blur-sm'
-            )}
+            className="relative flex flex-col cursor-pointer rounded-[28px] border-2 border-[var(--accent)] bg-gradient-to-b from-[var(--accent)]/8 to-white p-8 shadow-[0_20px_60px_rgba(56,171,228,0.18)] transition-all duration-300 hover:shadow-[0_25px_70px_rgba(56,171,228,0.25)] hover:scale-[1.02]"
             onClick={() => plan.productId && handleSubscribe(plan.productId)}
           >
-            {plan.id === 'pro' && (
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--accent)] px-4 py-1.5 text-xs font-semibold text-white shadow-lg">
-                  <Zap size={12} />
-                  Mais popular
-                </span>
-              </div>
-            )}
-            {plan.id === 'pro' && (
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--accent)] px-4 py-1.5 text-xs font-semibold text-white shadow-lg">
-                  <Zap size={12} />
-                  Mais popular
-                </span>
-              </div>
-            )}
+            <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--accent)] px-4 py-1.5 text-xs font-semibold text-white shadow-lg">
+                <Zap size={12} />
+                Mais popular
+              </span>
+            </div>
 
             <div className="mb-6">
               <h3 className="text-lg font-bold text-[var(--text-primary)]">{plan.name}</h3>
@@ -154,27 +123,21 @@ export function PricingSection() {
             <ul className="mb-8 flex-1 space-y-3">
               {plan.features.map((feature) => (
                 <li key={feature} className="flex items-start gap-3 text-sm">
-                  <Check
-                    size={18}
-                    className={cn(
-                      'mt-0.5 shrink-0',
-                      plan.id === 'pro' ? 'text-[var(--accent)]' : 'text-[var(--success)]'
-                    )}
-                  />
+                  <Check size={18} className="mt-0.5 shrink-0 text-[var(--accent)]" />
                   <span className="text-[var(--text-secondary)]">{feature}</span>
                 </li>
               ))}
             </ul>
 
             <Button
-              variant={plan.id === 'pro' ? 'primary' : 'outline'}
+              variant="primary"
               size="lg"
               className="w-full"
               loading={checkout.isPending && checkout.variables?.productId === plan.productId}
               onClick={() => handleSubscribe(plan.productId)}
-              disabled={checkout.isPending || (plan.id === 'pro' && hasSubscription)}
+              disabled={checkout.isPending || hasSubscription}
             >
-              {plan.id === 'pro' && hasSubscription ? (
+              {hasSubscription ? (
                 <span className="flex items-center justify-center gap-2">
                   <Crown size={18} />
                   Assinante Pro
