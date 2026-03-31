@@ -165,6 +165,22 @@ describe('ProcessVideoUseCase', () => {
 
     expect(result.success).toBe(true);
     expect(execPromise).toHaveBeenCalledTimes(3);
+    expect(execPromise.mock.calls[0][0]).toEqual(
+      expect.arrayContaining([
+        '--retries',
+        '3',
+        '--fragment-retries',
+        '3',
+        '--extractor-retries',
+        '3',
+        '--sleep-requests',
+        '1',
+        '--sleep-interval',
+        '1',
+        '--max-sleep-interval',
+        '5',
+      ]),
+    );
     expect(execPromise.mock.calls[1][0]).toEqual(
       expect.arrayContaining([
         '--js-runtimes',
@@ -210,5 +226,44 @@ describe('ProcessVideoUseCase', () => {
     if (!result.success) {
       expect(result.error).toBeInstanceOf(BadRequestException);
     }
+  });
+
+  it('deve retornar erro acionavel quando o YouTube exigir anti-bot sem cookies', async () => {
+    folderRepository.findById.mockResolvedValue(makeFolder());
+    execPromise.mockRejectedValue(new Error('HTTP Error 429: Too Many Requests. Sign in to confirm you’re not a bot'));
+
+    const result = await useCase.execute({
+      folderId: 'folder-1',
+      userId: 'user-1',
+      videoId: 'abc123',
+      videoTitle: 'Video',
+    });
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error).toBeInstanceOf(BadRequestException);
+      expect(result.error.message).toContain('YTDLP_COOKIES_PATH');
+    }
+  });
+
+  it('deve incluir proxy configurado nas tentativas do yt-dlp', async () => {
+    folderRepository.findById.mockResolvedValue(makeFolder());
+    configService.get.mockImplementation((key: string) => {
+      if (key === 'YTDLP_PROXY_URL') return 'http://proxy.internal:8080';
+      return undefined;
+    });
+    execPromise.mockRejectedValue(new Error('bot check'));
+
+    const result = await useCase.execute({
+      folderId: 'folder-1',
+      userId: 'user-1',
+      videoId: 'abc123',
+      videoTitle: 'Video',
+    });
+
+    expect(result.success).toBe(false);
+    expect(execPromise.mock.calls[0][0]).toEqual(
+      expect.arrayContaining(['--proxy', 'http://proxy.internal:8080']),
+    );
   });
 });

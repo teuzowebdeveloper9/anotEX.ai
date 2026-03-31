@@ -87,7 +87,17 @@ UPSTASH_REDIS_TOKEN=...
 
 MAX_AUDIO_SIZE_MB=100
 SIGNED_URL_EXPIRES_IN_SECONDS=900
+YTDLP_JS_RUNTIME=node
+YTDLP_COOKIES_PATH=
+YTDLP_PROXY_URL=
 ```
+
+Se o processamento de vídeos do YouTube começar a falhar com `429 Too Many Requests` ou `Sign in to confirm you’re not a bot`, configure:
+
+- `YTDLP_COOKIES_PATH` apontando para um arquivo de cookies exportado do YouTube
+- `YTDLP_PROXY_URL` se o deploy estiver saindo por um IP bloqueado pelo YouTube
+
+O backend já usa essas variáveis automaticamente no fluxo de `study-folders/process-video`.
 
 ---
 

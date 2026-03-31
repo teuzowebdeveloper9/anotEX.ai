@@ -34,6 +34,9 @@ import { ok, fail, Result } from '../../../../shared/domain/result.js';
 
 const MAX_DOWNLOAD_REDIRECTS = 5;
 const DEFAULT_AUDIO_FORMAT = 'bestaudio[ext=webm]/bestaudio/best';
+const DEFAULT_REQUEST_RETRIES = 3;
+const DEFAULT_SLEEP_INTERVAL_SECONDS = 1;
+const DEFAULT_MAX_SLEEP_INTERVAL_SECONDS = 5;
 
 interface YtDlpAttempt {
   readonly label: string;
@@ -135,6 +138,19 @@ export class ProcessVideoUseCase implements OnModuleInit {
     return ['--cookies', cookiesPath];
   }
 
+  private hasConfiguredCookies(): boolean {
+    return this.getOptionalCookieArgs().length > 0;
+  }
+
+  private getOptionalProxyArgs(): string[] {
+    const proxyUrl = this.configService.get<string>('YTDLP_PROXY_URL')?.trim();
+    if (!proxyUrl) {
+      return [];
+    }
+
+    return ['--proxy', proxyUrl];
+  }
+
   private getOptionalJsRuntimeArgs(): string[] {
     const configuredRuntime = this.configService.get<string>('YTDLP_JS_RUNTIME')?.trim();
     if (configuredRuntime) {
@@ -142,6 +158,30 @@ export class ProcessVideoUseCase implements OnModuleInit {
     }
 
     return ['--js-runtimes', 'node'];
+  }
+
+  private getCommonRetryArgs(): string[] {
+    return [
+      '--retries',
+      String(DEFAULT_REQUEST_RETRIES),
+      '--fragment-retries',
+      String(DEFAULT_REQUEST_RETRIES),
+      '--extractor-retries',
+      String(DEFAULT_REQUEST_RETRIES),
+      '--sleep-requests',
+      String(DEFAULT_SLEEP_INTERVAL_SECONDS),
+      '--sleep-interval',
+      String(DEFAULT_SLEEP_INTERVAL_SECONDS),
+      '--max-sleep-interval',
+      String(DEFAULT_MAX_SLEEP_INTERVAL_SECONDS),
+    ];
+  }
+
+  private isYoutubeBotCheckError(error: unknown): boolean {
+    const message = error instanceof Error ? error.message : String(error);
+    return /too many requests|sign in to confirm you.?re not a bot|confirm you.?re not a bot/i.test(
+      message,
+    );
   }
 
   private buildDownloadAttempts(url: string, tmpFile: string): YtDlpAttempt[] {
@@ -154,7 +194,9 @@ export class ProcessVideoUseCase implements OnModuleInit {
       '200m',
       '-o',
       tmpFile,
+      ...this.getCommonRetryArgs(),
       ...this.getOptionalCookieArgs(),
+      ...this.getOptionalProxyArgs(),
     ];
 
     return [
@@ -204,6 +246,18 @@ export class ProcessVideoUseCase implements OnModuleInit {
     throw lastError instanceof Error ? lastError : new Error(String(lastError));
   }
 
+  private buildDownloadFailure(error: unknown): BadRequestException {
+    if (this.isYoutubeBotCheckError(error)) {
+      return new BadRequestException(
+        this.hasConfiguredCookies()
+          ? 'O YouTube bloqueou o download deste vídeo. Verifique os cookies configurados ou use um proxy/IP diferente.'
+          : 'O YouTube bloqueou o download deste vídeo. Configure YTDLP_COOKIES_PATH com cookies exportados do YouTube ou use um proxy/IP diferente.',
+      );
+    }
+
+    return new BadRequestException('Não foi possível baixar o áudio do vídeo');
+  }
+
   async execute(input: ProcessVideoInput): Promise<Result<ProcessVideoOutput>> {
     const folder = await this.folderRepository.findById(input.folderId);
     if (!folder) return fail(new NotFoundException('Pasta não encontrada'));
@@ -220,7 +274,7 @@ export class ProcessVideoUseCase implements OnModuleInit {
         `Falha ao baixar vídeo | videoId=${input.videoId}`,
         err instanceof Error ? err.stack : String(err),
       );
-      return fail(new BadRequestException('Não foi possível baixar o áudio do vídeo'));
+      return fail(this.buildDownloadFailure(err));
     }
 
     let buffer: Buffer;
