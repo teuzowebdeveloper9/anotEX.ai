@@ -1,6 +1,6 @@
-import { useRef } from 'react'
-import { Link } from 'react-router-dom'
-import { ArrowLeft, Mic, Pause, Play, Square, RotateCcw, Send, Upload, Zap } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { ArrowLeft, Mic, Pause, Play, Square, RotateCcw, Send, Upload, Zap, Sparkles, Brain, AudioLines } from 'lucide-react'
 import { toast } from 'sonner'
 import { Waveform } from '@/shared/ui/Waveform/Waveform'
 import { Button } from '@/shared/ui/Button/Button'
@@ -11,6 +11,12 @@ import logoAnotex from '@/shared/assets/logo-anotex.png'
 
 const ALLOWED_TYPES = ['audio/mpeg', 'audio/mp4', 'audio/webm', 'audio/wav', 'audio/ogg', 'audio/mp3']
 const MAX_MB = 100
+const PROCESSING_STEPS = [
+  { title: 'Enviando seu audio', description: 'Preparando o arquivo e registrando a transcricao.' },
+  { title: 'Analisando o contexto da aula', description: 'Separando idioma, ritmo e estrutura do conteudo.' },
+  { title: 'Entendendo as vozes e pausas', description: 'Organizando o que foi dito para abrir a leitura com clareza.' },
+  { title: 'Montando sua pagina de estudo', description: 'Finalizando o material para te levar direto para a transcricao.' },
+] as const
 
 function formatDuration(ms: number): string {
   const totalSec = Math.floor(ms / 1000)
@@ -22,13 +28,40 @@ function formatDuration(ms: number): string {
 }
 
 export function RecordPage() {
+  const navigate = useNavigate()
   const { state, stream, audioBlob, durationMs, start, pause, resume, stop, reset } = useRecorder()
   const { uploading, upload } = useUploadAudio()
   const levels = useAudioLevel(stream)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [processingAudioId, setProcessingAudioId] = useState<string | null>(null)
+  const [processingStep, setProcessingStep] = useState(0)
+
+  useEffect(() => {
+    if (!processingAudioId) return
+
+    setProcessingStep(0)
+    const interval = window.setInterval(() => {
+      setProcessingStep((current) => Math.min(current + 1, PROCESSING_STEPS.length - 1))
+    }, 1100)
+    const timeout = window.setTimeout(() => {
+      navigate(`/transcription/${processingAudioId}`)
+    }, 4200)
+
+    return () => {
+      window.clearInterval(interval)
+      window.clearTimeout(timeout)
+    }
+  }, [navigate, processingAudioId])
+
+  const beginUploadFlow = async (file: Blob | File, language = 'pt'): Promise<void> => {
+    const result = await upload(file, language)
+    if (result?.audioId) {
+      setProcessingAudioId(result.audioId)
+    }
+  }
 
   const handleSend = (): void => {
-    if (audioBlob) void upload(audioBlob)
+    if (audioBlob) void beginUploadFlow(audioBlob)
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
@@ -46,7 +79,7 @@ export function RecordPage() {
       return
     }
 
-    void upload(file, 'pt')
+    void beginUploadFlow(file, 'pt')
     e.target.value = ''
   }
 
@@ -184,6 +217,83 @@ export function RecordPage() {
           </div>
         </div>
       </main>
+
+      {processingAudioId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(248,250,252,0.55)] px-4 backdrop-blur-xl">
+          <div className="relative w-full max-w-[620px] overflow-hidden rounded-[32px] border border-[rgba(56,171,228,0.18)] bg-[rgba(255,255,255,0.78)] p-6 shadow-[0_30px_120px_rgba(15,23,42,0.18)] sm:p-8">
+            <div className="pointer-events-none absolute -right-16 -top-16 h-44 w-44 rounded-full bg-[rgba(56,171,228,0.18)] blur-3xl" />
+            <div className="pointer-events-none absolute -left-12 bottom-0 h-36 w-36 rounded-full bg-[rgba(34,211,238,0.14)] blur-3xl" />
+
+            <div className="relative flex flex-col gap-6">
+              <div className="flex items-start gap-4">
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-[rgba(56,171,228,0.2)] bg-[rgba(56,171,228,0.1)] text-[var(--accent)]">
+                  <AudioLines size={24} className="animate-pulse" />
+                </div>
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[var(--accent)]">
+                    Processando
+                  </p>
+                  <h2 className="mt-2 text-[26px] font-bold tracking-[-0.04em] text-[var(--text-primary)]">
+                    Sua aula ja esta entrando no modo estudo
+                  </h2>
+                  <p className="mt-2 max-w-[460px] text-[14px] leading-6 text-[var(--text-secondary)]">
+                    Estamos preparando a melhor primeira leitura para voce. Em instantes a transcricao abre com o audio ja registrado.
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid gap-3">
+                {PROCESSING_STEPS.map((step, index) => {
+                  const isDone = index < processingStep
+                  const isActive = index === processingStep
+                  const Icon = index % 2 === 0 ? Sparkles : Brain
+
+                  return (
+                    <div
+                      key={step.title}
+                      className={[
+                        'flex items-start gap-3 rounded-2xl border px-4 py-3 transition-all duration-300',
+                        isActive
+                          ? 'border-[rgba(56,171,228,0.28)] bg-[rgba(56,171,228,0.12)] shadow-[0_14px_30px_rgba(56,171,228,0.12)]'
+                          : isDone
+                            ? 'border-[rgba(16,185,129,0.18)] bg-[rgba(16,185,129,0.08)]'
+                            : 'border-[rgba(148,163,184,0.18)] bg-[rgba(255,255,255,0.42)]',
+                      ].join(' ')}
+                    >
+                      <div
+                        className={[
+                          'mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl',
+                          isActive
+                            ? 'bg-white text-[var(--accent)]'
+                            : isDone
+                              ? 'bg-emerald-500 text-white'
+                              : 'bg-[rgba(148,163,184,0.18)] text-[var(--text-tertiary)]',
+                        ].join(' ')}
+                      >
+                        <Icon size={15} className={isActive ? 'animate-pulse' : ''} />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-[var(--text-primary)]">{step.title}</p>
+                        <p className="mt-1 text-xs leading-5 text-[var(--text-secondary)]">{step.description}</p>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+
+              <div className="overflow-hidden rounded-full bg-[rgba(148,163,184,0.18)]">
+                <div
+                  className="h-2 rounded-full transition-all duration-700"
+                  style={{
+                    width: `${((processingStep + 1) / PROCESSING_STEPS.length) * 100}%`,
+                    background: 'var(--gradient-primary)',
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
