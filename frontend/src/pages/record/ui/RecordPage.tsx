@@ -63,19 +63,20 @@ export function RecordPage() {
       <div className="pointer-events-none pen-blob pen-blob-cyan left-[-4%] top-[58%] h-[24rem] w-[24rem]" />
 
       <header className="pen-nav relative z-20">
-        <div className="mx-auto flex h-[68px] max-w-[1440px] items-center justify-between px-6 md:px-[72px]">
+        <div className="mx-auto flex h-[68px] max-w-[1440px] items-center justify-between gap-3 px-4 sm:px-6 md:px-[72px]">
           <img src={logoAnotex} alt="anotEX.ai" className="h-8 w-auto" />
           <Link
             to="/dashboard"
-            className="inline-flex items-center gap-2 rounded-full border border-[rgba(56,171,228,0.28)] bg-[rgba(56,171,228,0.08)] px-4 py-2 text-[13px] font-medium text-[var(--accent-5)]"
+            className="inline-flex items-center gap-2 rounded-full border border-[rgba(56,171,228,0.28)] bg-[rgba(56,171,228,0.08)] px-3 py-2 text-[12px] font-medium text-[var(--accent-5)] sm:px-4 sm:text-[13px]"
           >
             <ArrowLeft size={14} />
-            Voltar ao Dashboard
+            <span className="hidden sm:inline">Voltar ao Dashboard</span>
+            <span className="sm:hidden">Dashboard</span>
           </Link>
         </div>
       </header>
 
-      <main className="relative z-10 mx-auto flex min-h-[calc(100vh-68px)] max-w-[1440px] items-center justify-center px-6 py-10">
+      <main className="relative z-10 mx-auto flex min-h-[calc(100vh-68px)] max-w-[1440px] items-center justify-center px-4 py-8 sm:px-6 sm:py-10">
         <div className="flex w-full max-w-[600px] flex-col items-center gap-8">
           <div className="flex flex-col items-center gap-2 text-center">
             <h1 className="text-[28px] font-bold tracking-[-0.03em] text-[var(--text-primary)]">
@@ -164,18 +165,18 @@ export function RecordPage() {
             onChange={handleFileChange}
           />
 
-          <div className="flex flex-wrap items-center justify-center gap-5">
+          <div className="flex w-full flex-col items-center justify-center gap-4 sm:flex-row sm:flex-wrap sm:gap-5">
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={uploading}
-              className="pen-surface flex min-w-[245px] flex-col items-center gap-1 rounded-2xl px-6 py-4 text-center transition-transform hover:-translate-y-px disabled:opacity-50"
+              className="pen-surface flex w-full max-w-[320px] flex-col items-center gap-1 rounded-2xl px-6 py-4 text-center transition-transform hover:-translate-y-px disabled:opacity-50 sm:min-w-[245px]"
             >
               <Upload size={20} className="text-[var(--accent)]" />
               <span className="text-[13px] font-semibold text-[var(--text-primary)]">Upload de arquivo</span>
               <span className="text-[11px] text-[var(--text-tertiary)]">MP3, M4A, WAV, WEBM</span>
             </button>
 
-            <div className="pen-surface flex min-w-[245px] flex-col items-center gap-1 rounded-2xl px-6 py-4 text-center">
+            <div className="pen-surface flex w-full max-w-[320px] flex-col items-center gap-1 rounded-2xl px-6 py-4 text-center sm:min-w-[245px]">
               <Zap size={20} className="text-[var(--accent-3)]" />
               <span className="text-[13px] font-semibold text-[var(--text-primary)]">Transcrição em segundos</span>
               <span className="text-[11px] text-[var(--text-tertiary)]">Powered by Groq Whisper</span>

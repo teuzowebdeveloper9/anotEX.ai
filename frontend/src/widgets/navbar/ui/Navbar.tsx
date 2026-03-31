@@ -24,13 +24,13 @@ export function Navbar() {
         boxShadow: '0 1px 0 rgba(56,171,228,0.1)',
       }}
     >
-      <div className="max-w-6xl mx-auto px-4 h-full flex items-center justify-between">
+      <div className="mx-auto flex h-full max-w-6xl items-center justify-between px-3 sm:px-4">
         {/* Esquerda: hamburguer (mobile) + logo */}
         <div className="flex items-center gap-2">
           <button
             onClick={toggleSidebar}
             aria-label="Abrir menu"
-            className="md:hidden h-8 w-8 flex items-center justify-center rounded-lg text-[var(--text-secondary)] hover:text-[var(--accent-5)] hover:bg-[var(--accent-bg)] transition-all duration-200"
+            className="flex h-9 w-9 items-center justify-center rounded-xl text-[var(--text-secondary)] transition-all duration-200 hover:bg-[var(--accent-bg)] hover:text-[var(--accent-5)] md:hidden"
           >
             {isOpen ? <X size={17} /> : <Menu size={17} />}
           </button>
@@ -45,7 +45,7 @@ export function Navbar() {
         </div>
 
         {/* Direita: ações */}
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 sm:gap-1.5">
           <Link to="/dashboard" className="hidden md:block">
             <Button variant="ghost" size="sm">
               <LayoutDashboard size={14} />
@@ -53,13 +53,13 @@ export function Navbar() {
             </Button>
           </Link>
           <Link to="/record">
-            <Button variant="primary" size="sm">
+            <Button variant="primary" size="sm" className="px-3 sm:px-4">
               <Mic size={14} />
               <span className="hidden sm:inline">Gravar</span>
             </Button>
           </Link>
 
-          <div className="w-px h-4 bg-[var(--border)] mx-1" />
+          <div className="mx-0.5 h-4 w-px bg-[var(--border)] sm:mx-1" />
 
           <button
             onClick={handleLogout}

@@ -35,7 +35,7 @@ export function MindMapsPage() {
       <GradientOrb size={500} color="#22D3EE" opacity={0.08} className="top-0 right-0 z-0" style={{ transform: 'translate(30%, -30%)' }} />
       <Sidebar withTopBar={false} />
       <main className="relative z-10 md:pl-56">
-        <div className="pen-content max-w-5xl">
+        <div className="pen-content max-w-5xl pt-20 md:pt-8">
           <div className="mb-8">
             <div className="flex items-center gap-3 mb-1">
               <div className="h-8 w-8 rounded-lg bg-[var(--accent-2)]/10 flex items-center justify-center">
@@ -91,13 +91,13 @@ export function MindMapsPage() {
 
                 return (
                   <Link key={t.id} to={`/transcription/${t.audioId}?tab=mindmap`}>
-                    <div className="pen-list-card group flex items-center gap-0 rounded-[20px] hover:border-[var(--accent-2)]/40 hover:-translate-y-px transition-all duration-200 cursor-pointer overflow-hidden">
+                    <div className="pen-list-card group flex gap-0 overflow-hidden rounded-[20px] transition-all duration-200 cursor-pointer hover:-translate-y-px hover:border-[var(--accent-2)]/40">
                       {/* Gradient left border */}
                       <div
                         className="w-0.5 self-stretch shrink-0"
                         style={{ background: 'linear-gradient(180deg, #22D3EE, #3B82F6)' }}
                       />
-                      <div className="flex items-center gap-4 p-4 flex-1 min-w-0">
+                      <div className="flex min-w-0 flex-1 flex-col gap-3 p-4 sm:flex-row sm:items-center sm:gap-4">
                         <div className="h-10 w-10 rounded-lg bg-[var(--accent-2)]/10 flex items-center justify-center shrink-0">
                           <Map size={18} className="text-[var(--accent-2)]" />
                         </div>
@@ -109,7 +109,7 @@ export function MindMapsPage() {
                           <p className="text-xs text-[var(--text-secondary)]/60 mt-0.5">{date}</p>
                         </div>
 
-                        <div className="flex items-center gap-3 shrink-0">
+                        <div className="flex flex-wrap items-center gap-3 sm:shrink-0">
                           {isQuerying ? (
                             <Loader2 size={14} className="text-[var(--text-secondary)] animate-spin" />
                           ) : material?.status === 'COMPLETED' ? (

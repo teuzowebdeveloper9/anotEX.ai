@@ -72,7 +72,7 @@ export function TranscriptionPage() {
       />
       <Sidebar withTopBar={false} />
       <main className="relative z-10 md:pl-56">
-        <div className="pen-content max-w-5xl">
+        <div className="pen-content max-w-5xl pt-20 md:pt-8">
 
           <Link
             to="/dashboard"
@@ -93,7 +93,7 @@ export function TranscriptionPage() {
             <div className="flex flex-col gap-6">
 
               {/* Header */}
-              <div className="flex items-start gap-3">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
                 <div className="flex-1 min-w-0">
                   <h1
                     className="text-xl font-semibold leading-snug gradient-text"
@@ -106,7 +106,7 @@ export function TranscriptionPage() {
                     </p>
                   )}
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   {isCompleted && (
                     <>
                       <Link
@@ -158,7 +158,7 @@ export function TranscriptionPage() {
               ) : isCompleted ? (
                 <>
                   {/* Pill tabs */}
-                  <div className="pen-surface flex gap-1 rounded-[20px] p-1.5">
+                  <div className="pen-surface flex flex-wrap gap-1 rounded-[20px] p-1.5">
                     {TABS.map((tab) => {
                       const Icon = tab.icon
                       const isActive = activeTab === tab.id
@@ -167,7 +167,7 @@ export function TranscriptionPage() {
                           key={tab.id}
                           onClick={() => setActiveTab(tab.id)}
                           className={cn(
-                            'flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg transition-all duration-200',
+                            'flex min-w-[calc(50%-0.125rem)] items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium transition-all duration-200 sm:flex-1 sm:min-w-0',
                             isActive
                               ? 'bg-white/85 text-[var(--text-primary)] shadow-[0_8px_18px_rgba(56,171,228,0.14)]'
                               : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'

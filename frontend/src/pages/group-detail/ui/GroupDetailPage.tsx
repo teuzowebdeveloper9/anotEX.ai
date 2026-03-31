@@ -169,7 +169,7 @@ export function GroupDetailPage() {
       <Sidebar withTopBar={false} />
 
       <main className="relative z-10 md:pl-56">
-        <div className="pen-content max-w-5xl">
+        <div className="pen-content max-w-5xl pt-20 md:pt-8">
 
           <Link
             to="/groups"
@@ -190,7 +190,7 @@ export function GroupDetailPage() {
           {!isLoading && data && (
             <div className="flex flex-col gap-8">
               {/* Group header */}
-              <div className="flex items-start justify-between gap-4">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                   <div className="flex items-center gap-2.5">
                     <h1 className="pen-page-title text-xl">{data.group.name}</h1>
@@ -201,12 +201,12 @@ export function GroupDetailPage() {
                   )}
                 </div>
                 {isOwner && (
-                  <div className="flex items-center gap-2">
-                    <Button size="sm" variant="ghost" onClick={() => setShowEditGroup(true)}>
+                  <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+                    <Button size="sm" variant="ghost" className="w-full sm:w-auto" onClick={() => setShowEditGroup(true)}>
                       <Pencil size={13} />
                       Editar
                     </Button>
-                    <Button size="sm" onClick={() => setShowAddMember(true)}>
+                    <Button size="sm" className="w-full sm:w-auto" onClick={() => setShowAddMember(true)}>
                       <Plus size={13} />
                       Membro
                     </Button>

@@ -83,17 +83,17 @@ export function GroupsPage() {
       <Sidebar withTopBar={false} />
 
       <main className="relative z-10 md:pl-56">
-        <div className="pen-content max-w-5xl">
+        <div className="pen-content max-w-5xl pt-20 md:pt-8">
 
           {/* Header */}
-          <div className="flex items-center justify-between mb-8">
+          <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h1 className="pen-page-title">Grupos de estudo</h1>
               <p className="pen-page-subtitle">
                 Colabore e compartilhe conteúdo com colegas
               </p>
             </div>
-            <Button size="sm" onClick={() => setShowCreate(true)}>
+            <Button size="sm" className="w-full sm:w-auto" onClick={() => setShowCreate(true)}>
               <Plus size={13} />
               Novo grupo
             </Button>
@@ -128,7 +128,7 @@ export function GroupsPage() {
               {groups.map((group) => (
                 <div
                   key={group.id}
-                  className="pen-list-card flex items-center gap-4 rounded-[20px] p-4 hover:border-[var(--accent)]/30 transition-colors group"
+                  className="pen-list-card group flex flex-col gap-3 rounded-[20px] p-4 transition-colors hover:border-[var(--accent)]/30 sm:flex-row sm:items-center sm:gap-4"
                 >
                   <div className="h-10 w-10 rounded-xl bg-[var(--accent-bg)] border border-[var(--accent)]/20 flex items-center justify-center shrink-0">
                     <Users size={16} className="text-[var(--accent)]" />
@@ -161,7 +161,7 @@ export function GroupsPage() {
                           deleteGroup.mutate(group.id)
                         }
                       }}
-                      className="opacity-0 group-hover:opacity-100 h-8 w-8 rounded-lg flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--danger)] hover:bg-[var(--danger-bg)] transition-all"
+                      className="flex h-8 w-8 items-center justify-center self-end rounded-lg text-[var(--text-secondary)] transition-all hover:bg-[var(--danger-bg)] hover:text-[var(--danger)] sm:self-auto sm:opacity-0 sm:group-hover:opacity-100"
                     >
                       <Trash2 size={13} />
                     </button>

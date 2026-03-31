@@ -30,7 +30,7 @@ export function SummariesPage() {
       <GradientOrb size={500} color="#38ABE4" opacity={0.08} className="top-0 right-0 z-0" style={{ transform: 'translate(30%, -30%)' }} />
       <Sidebar withTopBar={false} />
       <main className="relative z-10 md:pl-56">
-        <div className="pen-content max-w-5xl">
+        <div className="pen-content max-w-5xl pt-20 md:pt-8">
           <div className="mb-8">
             <div className="flex items-center gap-3 mb-1">
               <div className="h-8 w-8 rounded-lg bg-[var(--accent)]/10 flex items-center justify-center">
@@ -83,13 +83,13 @@ export function SummariesPage() {
                 })
                 return (
                   <Link key={t.id} to={`/transcription/${t.audioId}?tab=resumo`}>
-                    <div className="pen-list-card group flex items-start gap-0 rounded-[20px] hover:border-[var(--accent)]/40 hover:-translate-y-px transition-all duration-200 cursor-pointer overflow-visible">
+                    <div className="pen-list-card group flex items-start gap-0 overflow-visible rounded-[20px] transition-all duration-200 cursor-pointer hover:-translate-y-px hover:border-[var(--accent)]/40">
                       {/* Gradient left border */}
                       <div
                         className="w-0.5 self-stretch shrink-0 rounded-l-xl overflow-hidden"
                         style={{ background: 'linear-gradient(180deg, #38ABE4, #22D3EE)' }}
                       />
-                      <div className="flex items-start gap-4 p-4 flex-1 min-w-0">
+                      <div className="flex min-w-0 flex-1 flex-col gap-3 p-4 sm:flex-row sm:items-start sm:gap-4">
                         <div className="h-10 w-10 rounded-lg bg-[var(--accent)]/10 flex items-center justify-center shrink-0 mt-0.5">
                           <Sparkles size={18} className="text-[var(--accent)]" />
                         </div>
@@ -104,7 +104,7 @@ export function SummariesPage() {
                           <p className="text-xs text-[var(--text-secondary)]/60 mt-1">{date}</p>
                         </div>
 
-                        <div className="flex items-center gap-3 shrink-0 mt-1">
+                        <div className="mt-1 flex flex-wrap items-center gap-3 sm:shrink-0">
                           <Badge status={t.status} />
                           <SaveToFolderButton transcriptionId={t.id} itemType="SUMMARY" />
                           <ChevronRight size={16} className="text-[var(--text-secondary)] group-hover:text-[var(--accent)] transition-colors" />
