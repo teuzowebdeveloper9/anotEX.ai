@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { FolderPlus, Loader2, Plus } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useFolderList } from '@/entities/study-folder/model/useFolderList'
@@ -14,6 +15,12 @@ export function SaveToFolderButton({ transcriptionId, itemType }: SaveToFolderBu
   const [open, setOpen] = useState(false)
   const [addedFolders, setAddedFolders] = useState<Set<string>>(new Set())
   const ref = useRef<HTMLDivElement>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
+  const [menuStyle, setMenuStyle] = useState<{ top: number; left: number; width: number }>({
+    top: 0,
+    left: 0,
+    width: 224,
+  })
 
   const { data: folders, isLoading } = useFolderList()
   const { mutate, isPending, variables } = useAddItem(() => {
@@ -24,12 +31,49 @@ export function SaveToFolderButton({ transcriptionId, itemType }: SaveToFolderBu
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
+      const target = e.target as Node
+      if (
+        ref.current &&
+        !ref.current.contains(target) &&
+        !menuRef.current?.contains(target)
+      ) {
         setOpen(false)
       }
     }
     if (open) document.addEventListener('mousedown', handleClick)
     return () => document.removeEventListener('mousedown', handleClick)
+  }, [open])
+
+  useEffect(() => {
+    if (!open) return
+
+    const updatePosition = () => {
+      const trigger = ref.current
+      if (!trigger) return
+
+      const rect = trigger.getBoundingClientRect()
+      const width = 224
+      const viewportWidth = window.innerWidth
+      const left = Math.min(
+        Math.max(12, rect.right - width),
+        viewportWidth - width - 12,
+      )
+
+      setMenuStyle({
+        top: rect.bottom + 6,
+        left,
+        width,
+      })
+    }
+
+    updatePosition()
+    window.addEventListener('scroll', updatePosition, true)
+    window.addEventListener('resize', updatePosition)
+
+    return () => {
+      window.removeEventListener('scroll', updatePosition, true)
+      window.removeEventListener('resize', updatePosition)
+    }
   }, [open])
 
   const addingFolderId = isPending ? variables?.folderId : null
@@ -45,66 +89,80 @@ export function SaveToFolderButton({ transcriptionId, itemType }: SaveToFolderBu
         <span className="hidden sm:inline">Salvar em pasta</span>
       </button>
 
-      {open && (
-        <div className="absolute right-0 top-full mt-1.5 w-56 rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)] shadow-[0_8px_32px_rgba(0,0,0,0.4)] z-50 overflow-hidden">
-          <p className="px-3 pt-3 pb-2 text-[10px] font-semibold uppercase tracking-widest text-[var(--text-secondary)]">
-            Escolher pasta
-          </p>
+      {open && createPortal(
+        <div
+          className="fixed inset-0 z-[120] pointer-events-none"
+          aria-hidden="true"
+        >
+          <div
+            ref={menuRef}
+            className="pointer-events-auto absolute rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)] shadow-[0_8px_32px_rgba(0,0,0,0.18)] overflow-hidden"
+            style={{
+              top: menuStyle.top,
+              left: menuStyle.left,
+              width: menuStyle.width,
+            }}
+          >
+            <p className="px-3 pt-3 pb-2 text-[10px] font-semibold uppercase tracking-widest text-[var(--text-secondary)]">
+              Escolher pasta
+            </p>
 
-          {isLoading ? (
-            <div className="flex items-center justify-center py-4">
-              <Loader2 size={14} className="animate-spin text-[var(--text-secondary)]" />
-            </div>
-          ) : !folders || folders.length === 0 ? (
-            <div className="px-3 pb-3">
-              <p className="text-xs text-[var(--text-secondary)] mb-2">
-                Nenhuma pasta ainda.
-              </p>
-              <Link
-                to="/study-folders"
-                onClick={() => setOpen(false)}
-                className="flex items-center gap-1.5 text-xs text-[var(--accent)] hover:underline"
-              >
-                <Plus size={11} />
-                Criar uma pasta
-              </Link>
-            </div>
-          ) : (
-            <div className="flex flex-col pb-1.5">
-              {folders.map((folder) => {
-                const isAdding = addingFolderId === folder.id
-                const wasAdded = addedFolders.has(folder.id)
-                return (
-                  <button
-                    key={folder.id}
-                    disabled={isPending || wasAdded}
-                    onClick={() =>
-                      mutate({ folderId: folder.id, transcriptionId, itemType })
-                    }
-                    className={`flex items-center gap-2.5 px-3 py-2 text-xs transition-colors text-left disabled:cursor-not-allowed ${
-                      wasAdded
-                        ? 'text-[var(--accent)] opacity-60'
-                        : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)]'
-                    }`}
-                  >
-                    {isAdding ? (
-                      <Loader2 size={12} className="animate-spin shrink-0 text-[var(--accent)]" />
-                    ) : (
-                      <FolderPlus
-                        size={12}
-                        className={`shrink-0 ${wasAdded ? 'text-[var(--accent)]' : 'text-[var(--accent)]/60'}`}
-                      />
-                    )}
-                    <span className="truncate flex-1">{folder.name}</span>
-                    {wasAdded && (
-                      <span className="text-[10px] text-[var(--accent)] shrink-0">Salvo</span>
-                    )}
-                  </button>
-                )
-              })}
-            </div>
-          )}
-        </div>
+            {isLoading ? (
+              <div className="flex items-center justify-center py-4">
+                <Loader2 size={14} className="animate-spin text-[var(--text-secondary)]" />
+              </div>
+            ) : !folders || folders.length === 0 ? (
+              <div className="px-3 pb-3">
+                <p className="text-xs text-[var(--text-secondary)] mb-2">
+                  Nenhuma pasta ainda.
+                </p>
+                <Link
+                  to="/study-folders"
+                  onClick={() => setOpen(false)}
+                  className="flex items-center gap-1.5 text-xs text-[var(--accent)] hover:underline"
+                >
+                  <Plus size={11} />
+                  Criar uma pasta
+                </Link>
+              </div>
+            ) : (
+              <div className="flex max-h-80 flex-col overflow-y-auto pb-1.5">
+                {folders.map((folder) => {
+                  const isAdding = addingFolderId === folder.id
+                  const wasAdded = addedFolders.has(folder.id)
+                  return (
+                    <button
+                      key={folder.id}
+                      disabled={isPending || wasAdded}
+                      onClick={() =>
+                        mutate({ folderId: folder.id, transcriptionId, itemType })
+                      }
+                      className={`flex items-center gap-2.5 px-3 py-2 text-xs transition-colors text-left disabled:cursor-not-allowed ${
+                        wasAdded
+                          ? 'text-[var(--accent)] opacity-60'
+                          : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)]'
+                      }`}
+                    >
+                      {isAdding ? (
+                        <Loader2 size={12} className="animate-spin shrink-0 text-[var(--accent)]" />
+                      ) : (
+                        <FolderPlus
+                          size={12}
+                          className={`shrink-0 ${wasAdded ? 'text-[var(--accent)]' : 'text-[var(--accent)]/60'}`}
+                        />
+                      )}
+                      <span className="truncate flex-1">{folder.name}</span>
+                      {wasAdded && (
+                        <span className="text-[10px] text-[var(--accent)] shrink-0">Salvo</span>
+                      )}
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        </div>,
+        document.body,
       )}
     </div>
   )
