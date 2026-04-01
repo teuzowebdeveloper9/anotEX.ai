@@ -7,6 +7,7 @@ import { Button } from '@/shared/ui/Button/Button'
 import { Skeleton } from '@/shared/ui/Skeleton/Skeleton'
 import { GradientOrb } from '@/shared/ui/decorative/GradientOrb'
 import { DueCardsWidget } from '@/widgets/due-cards-widget/ui/DueCardsWidget'
+import { PomodoroDashboardWidget } from '@/widgets/pomodoro-panel/ui/PomodoroDashboardWidget'
 import { useAudioList } from '@/entities/audio/model/useAudioList'
 
 function StatCard({ icon: Icon, label, value, color, gradientFrom, gradientTo }: {
@@ -83,8 +84,9 @@ export function DashboardPage() {
             </div>
           </div>
 
-          <div className="mb-6">
+          <div className="mb-6 grid gap-3 lg:grid-cols-2">
             <DueCardsWidget />
+            <PomodoroDashboardWidget />
           </div>
 
           {!isLoading && visible.length > 0 && (

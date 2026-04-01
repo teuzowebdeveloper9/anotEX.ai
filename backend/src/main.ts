@@ -31,7 +31,7 @@ async function bootstrapApi() {
 
   app.enableCors({
     origin: allowedOrigins,
-    methods: ['GET', 'POST', 'PATCH', 'DELETE'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     credentials: true,
   });
 

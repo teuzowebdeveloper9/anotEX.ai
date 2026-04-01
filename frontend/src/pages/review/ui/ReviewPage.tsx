@@ -30,6 +30,9 @@ export function ReviewPage() {
           <img src={logoAnotex} alt="anotEX.ai" className="h-[30px] w-auto" />
           <div className="flex items-center gap-3">
             <span className="text-sm font-semibold text-[var(--text-primary)]">Revisão de hoje</span>
+            <Link to="/pomodoro?contextType=review&contextLabel=Revis%C3%A3o%20de%20flashcards">
+              <Button variant="outline" size="sm">Pomodoro</Button>
+            </Link>
             <span className="rounded-full bg-[rgba(56,171,228,0.1)] px-3 py-1 text-xs font-semibold text-[var(--accent-5)]">
               {Math.min(currentIndex + 1, Math.max(totalCards, 1))} / {Math.max(totalCards, 1)}
             </span>

@@ -55,4 +55,15 @@ export const ENDPOINTS = {
     due: '/review/due',
     submit: '/review',
   },
+  pomodoro: {
+    active: '/pomodoro/active',
+    start: '/pomodoro/start',
+    pause: (sessionId: string) => `/pomodoro/${sessionId}/pause`,
+    resume: (sessionId: string) => `/pomodoro/${sessionId}/resume`,
+    advance: (sessionId: string) => `/pomodoro/${sessionId}/advance`,
+    stop: (sessionId: string) => `/pomodoro/${sessionId}/stop`,
+    settings: '/pomodoro/settings',
+    stats: (range: '7d' | '30d' | '90d') => `/pomodoro/stats?range=${range}`,
+    history: '/pomodoro/history',
+  },
 } as const

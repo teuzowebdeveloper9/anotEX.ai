@@ -21,6 +21,7 @@ import { GroupDetailPage } from '@/pages/group-detail/ui/GroupDetailPage'
 import { ChatPage } from '@/pages/chat/ui/ChatPage'
 import { ConversationsPage } from '@/pages/conversations/ui/ConversationsPage'
 import { ReviewPage } from '@/pages/review/ui/ReviewPage'
+import { PomodoroPage } from '@/pages/pomodoro/ui/PomodoroPage'
 import { ProtectedRoute } from '@/shared/ui/ProtectedRoute/ProtectedRoute'
 import { useTheme } from '@/shared/hooks/useTheme'
 
@@ -136,6 +137,14 @@ export function App() {
             element={
               <ProtectedRoute>
                 <ReviewPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/pomodoro"
+            element={
+              <ProtectedRoute>
+                <PomodoroPage />
               </ProtectedRoute>
             }
           />

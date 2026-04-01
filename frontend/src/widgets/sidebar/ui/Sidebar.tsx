@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from 'react-router-dom'
-import { LayoutDashboard, Mic, FileText, Map, BookOpen, Sparkles, FolderOpen, Users, CircleHelp, MessageSquare, Brain, Menu, X } from 'lucide-react'
+import { LayoutDashboard, Mic, FileText, Map, BookOpen, Sparkles, FolderOpen, Users, CircleHelp, MessageSquare, Brain, Menu, X, Timer } from 'lucide-react'
 import { useEffect } from 'react'
 import { useSidebarStore } from '@/shared/hooks/useSidebarStore'
 import logoAnotex from '@/shared/assets/logo-anotex.png'
@@ -21,6 +21,7 @@ const studyItems: NavItem[] = [
   { icon: <Map size={15} />,           label: 'Mapas Mentais',    to: '/mindmaps'       },
   { icon: <BookOpen size={15} />,      label: 'Flashcards',       to: '/flashcards'     },
   { icon: <Brain size={15} />,         label: 'Revisão',          to: '/review'         },
+  { icon: <Timer size={15} />,         label: 'Pomodoro',         to: '/pomodoro'       },
   { icon: <CircleHelp size={15} />,    label: 'Quiz',             to: '/quiz'           },
   { icon: <MessageSquare size={15} />, label: 'Conversas',        to: '/conversations'  },
   { icon: <FolderOpen size={15} />,    label: 'Pastas de Estudo', to: '/study-folders'  },
