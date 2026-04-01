@@ -11,6 +11,20 @@ import type {
   StartPomodoroPayload,
 } from '@/entities/pomodoro/model/pomodoro.types'
 
+function isPomodoroSessionSnapshot(value: unknown): value is PomodoroSessionSnapshot {
+  if (!value || typeof value !== 'object') return false
+
+  const snapshot = value as Partial<PomodoroSessionSnapshot>
+  return Boolean(
+    snapshot.session &&
+      typeof snapshot.session === 'object' &&
+      typeof snapshot.session.id === 'string' &&
+      typeof snapshot.session.status === 'string' &&
+      typeof snapshot.phaseDurationMs === 'number' &&
+      typeof snapshot.remainingMs === 'number'
+  )
+}
+
 function computeLiveRemaining(snapshot: PomodoroSessionSnapshot, serverOffsetMs: number): number {
   if (snapshot.session.status !== 'running' || !snapshot.session.phaseTargetEndsAt) {
     return snapshot.remainingMs
@@ -116,7 +130,9 @@ export function usePomodoroSession() {
     },
   })
 
-  const activeSession = activeQuery.data
+  const activeSession: PomodoroSessionSnapshot | null = isPomodoroSessionSnapshot(activeQuery.data)
+    ? activeQuery.data
+    : null
   const remainingMs = useMemo(() => {
     void tick
     if (!activeSession) return 0
