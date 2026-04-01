@@ -16,6 +16,7 @@ import {
   type PomodoroContextType,
   type PomodoroPhaseType,
   type PomodoroSessionEntity,
+  type UpdatePomodoroSessionProps,
 } from '../../domain/entities/pomodoro-session.entity.js';
 import {
   POMODORO_SETTINGS_REPOSITORY,
@@ -345,13 +346,16 @@ export class PomodoroSessionService {
         completedAutomatically: true,
       });
 
-      const sessionUpdate: Parameters<IPomodoroSessionRepository['update']>[1] = {
+      let sessionUpdate: UpdatePomodoroSessionProps = {
         version: currentSession.version + 1,
       };
 
       if (currentCycle.phaseType === 'focus') {
-        sessionUpdate.completedFocusCycles = currentSession.completedFocusCycles + 1;
-        sessionUpdate.totalFocusMs = currentSession.totalFocusMs + effectiveDurationMs;
+        sessionUpdate = {
+          ...sessionUpdate,
+          completedFocusCycles: currentSession.completedFocusCycles + 1,
+          totalFocusMs: currentSession.totalFocusMs + effectiveDurationMs,
+        };
 
         const nextPhaseType = this.getNextPhaseAfterFocus({
           ...currentSession,
@@ -386,11 +390,20 @@ export class PomodoroSessionService {
       }
 
       if (currentCycle.phaseType === 'short_break') {
-        sessionUpdate.completedShortBreakCycles = currentSession.completedShortBreakCycles + 1;
+        sessionUpdate = {
+          ...sessionUpdate,
+          completedShortBreakCycles: currentSession.completedShortBreakCycles + 1,
+        };
       } else {
-        sessionUpdate.completedLongBreakCycles = currentSession.completedLongBreakCycles + 1;
+        sessionUpdate = {
+          ...sessionUpdate,
+          completedLongBreakCycles: currentSession.completedLongBreakCycles + 1,
+        };
       }
-      sessionUpdate.totalBreakMs = currentSession.totalBreakMs + effectiveDurationMs;
+      sessionUpdate = {
+        ...sessionUpdate,
+        totalBreakMs: currentSession.totalBreakMs + effectiveDurationMs,
+      };
 
       if (!currentSession.autoStartFocus) {
         currentSession = await this.sessionRepository.update(currentSession.id, {
