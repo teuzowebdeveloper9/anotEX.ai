@@ -2,7 +2,7 @@ import { NavLink, useLocation } from 'react-router-dom'
 import { LayoutDashboard, Mic, FileText, Map, BookOpen, Sparkles, FolderOpen, Users, CircleHelp, MessageSquare, Brain, Menu, X, Timer } from 'lucide-react'
 import { useEffect } from 'react'
 import { useSidebarStore } from '@/shared/hooks/useSidebarStore'
-import logoAnotex from '@/shared/assets/logo-anotex.png'
+import { brandLogo } from '@/shared/assets/brand-logo'
 
 interface NavItem {
   icon: React.ReactNode
@@ -35,42 +35,16 @@ function SideNavItem({ item, onClick }: { item: NavItem; onClick?: () => void })
       end
       onClick={onClick}
       className={({ isActive }) =>
-        `relative flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm transition-all duration-150 ${
+        `relative flex items-center gap-2.5 rounded-2xl px-3 py-2.5 text-sm transition-all duration-150 ${
           isActive
-            ? 'text-[var(--accent-5)] font-semibold'
-            : 'text-[var(--text-tertiary)] hover:text-[var(--text-primary)]'
+            ? 'bg-[rgba(37,99,235,0.08)] text-[var(--brand-primary)] font-semibold'
+            : 'text-[var(--text-tertiary)] hover:bg-[rgba(37,99,235,0.03)] hover:text-[var(--text-primary)]'
         }`
-      }
-      style={({ isActive }) =>
-        isActive
-          ? {
-              background: 'linear-gradient(90deg, rgba(56,171,228,0.14) 0%, rgba(0,196,204,0.06) 100%)',
-              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.8), 0 6px 18px rgba(56,171,228,0.12)',
-              border: '1px solid rgba(56,171,228,0.22)',
-            }
-          : undefined
       }
     >
       {({ isActive }) => (
         <>
-          {isActive && (
-            <span
-              className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-r-full"
-              style={{ background: 'linear-gradient(180deg, #7AD5F5, #1E6CDC)' }}
-            />
-          )}
-          <span
-            style={
-              isActive
-                ? {
-                    background: 'linear-gradient(135deg, #38ABE4, #1E6CDC)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    backgroundClip: 'text',
-                  }
-                : undefined
-            }
-          >
+          <span className={isActive ? 'text-[var(--brand-primary)]' : ''}>
             {item.icon}
           </span>
           {item.label}
@@ -91,26 +65,25 @@ export function Sidebar({ withTopBar = true }: { withTopBar?: boolean }) {
   const sidebarContent = (
     <aside
       className={[
-        'fixed bottom-0 left-0 z-40 flex w-[min(18rem,calc(100vw-1rem))] max-w-[18rem] flex-col overflow-y-auto border-r border-[var(--border)] px-3 py-4 md:w-56 md:max-w-none md:py-5',
+        'fixed bottom-0 left-0 z-40 flex w-[min(18rem,calc(100vw-1rem))] max-w-[18rem] flex-col overflow-y-auto border-r border-[rgba(25,28,31,0.06)] px-3 py-4 md:w-[11rem] md:max-w-none md:py-5',
         'transition-transform duration-300 ease-in-out',
         'md:translate-x-0',
         withTopBar ? 'top-14' : 'top-0',
         isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0',
       ].join(' ')}
       style={{
-        background: 'rgba(255,255,255,0.75)',
-        backdropFilter: 'blur(14px)',
-        WebkitBackdropFilter: 'blur(14px)',
-        boxShadow: '1px 0 0 rgba(56,171,228,0.1)',
+        background: 'rgba(255,255,255,0.88)',
+        backdropFilter: 'blur(18px)',
+        WebkitBackdropFilter: 'blur(18px)',
       }}
     >
       <div className="mb-4 flex items-center justify-between px-2 pb-4">
-        <img src={logoAnotex} alt="anotEX.ai" className="h-[30px] w-auto" />
+        <img src={brandLogo} alt="anotEX.ai" className="h-[22px] w-auto" />
         <button
           type="button"
           onClick={close}
           aria-label="Fechar menu"
-          className="flex h-9 w-9 items-center justify-center rounded-xl text-[var(--text-secondary)] transition-colors hover:bg-[var(--accent-bg)] hover:text-[var(--accent-5)] md:hidden"
+          className="flex h-9 w-9 items-center justify-center rounded-xl text-[var(--text-secondary)] transition-colors hover:bg-[rgba(37,99,235,0.08)] hover:text-[var(--brand-primary)] md:hidden"
         >
           <X size={17} />
         </button>
@@ -139,7 +112,7 @@ export function Sidebar({ withTopBar = true }: { withTopBar?: boolean }) {
           type="button"
           onClick={open}
           aria-label="Abrir menu"
-          className="fixed left-4 top-4 z-30 flex h-11 w-11 items-center justify-center rounded-2xl border border-[var(--border)] bg-[rgba(255,255,255,0.82)] text-[var(--text-secondary)] shadow-[0_8px_28px_rgba(56,171,228,0.18)] backdrop-blur-md transition-colors hover:text-[var(--accent-5)] md:hidden"
+          className="fixed left-4 top-4 z-30 flex h-11 w-11 items-center justify-center rounded-2xl border border-[var(--border-soft)] bg-[rgba(255,255,255,0.88)] text-[var(--text-secondary)] shadow-[var(--shadow-card)] backdrop-blur-md transition-colors hover:text-[var(--brand-primary)] md:hidden"
         >
           <Menu size={18} />
         </button>

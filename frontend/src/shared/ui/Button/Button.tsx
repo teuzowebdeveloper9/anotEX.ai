@@ -5,31 +5,33 @@ import type { ButtonProps } from './Button.types'
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ variant = 'primary', size = 'md', loading, className, children, disabled, ...props }, ref) => {
     const base =
-      'relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-full font-semibold transition-all duration-200 select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:cursor-not-allowed disabled:opacity-50'
+      'relative inline-flex items-center justify-center gap-2 overflow-hidden font-semibold transition-all duration-200 select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--surface-base)] disabled:cursor-not-allowed disabled:opacity-50'
 
     const variants = {
       primary:
-        'text-white active:scale-[0.985] hover:-translate-y-px hover:brightness-105 hover:shadow-[0_10px_28px_rgba(56,171,228,0.34)]',
+        'rounded-full text-white active:scale-[0.985] hover:-translate-y-px hover:brightness-[1.03] hover:shadow-[var(--shadow-elevated)]',
       ghost:
-        'rounded-xl bg-transparent text-[var(--text-secondary)] hover:bg-[var(--accent-bg)] hover:text-[var(--accent-5)]',
+        'rounded-2xl bg-transparent text-[var(--text-secondary)] hover:bg-[var(--surface-panel)] hover:text-[var(--text-primary)]',
       outline:
-        'rounded-full border border-[rgba(56,171,228,0.4)] bg-[rgba(255,255,255,0.6)] text-[var(--accent-5)] backdrop-blur-sm hover:-translate-y-px hover:bg-white/85',
+        'rounded-full border border-[var(--border-soft)] bg-[rgba(255,255,255,0.78)] text-[var(--brand-primary-strong)] backdrop-blur-sm hover:-translate-y-px hover:border-[var(--border-strong)] hover:bg-white',
+      soft:
+        'rounded-full bg-[var(--surface-panel)] text-[var(--brand-primary-strong)] hover:-translate-y-px hover:bg-[var(--surface-raised)] hover:shadow-[var(--shadow-card)]',
       danger:
-        'bg-transparent border border-[var(--danger)] text-[var(--danger)] hover:bg-[var(--danger)] hover:text-white rounded-full',
+        'rounded-full border border-[var(--danger)] bg-transparent text-[var(--danger)] hover:bg-[var(--danger)] hover:text-white',
     }
 
     const sizes = {
-      sm: 'px-4 py-1.5 text-xs h-8',
-      md: 'px-5 py-2 text-sm h-9',
-      lg: 'px-6 py-2.5 text-sm h-10',
+      sm: 'h-9 px-4 text-xs',
+      md: 'h-11 px-5 text-sm',
+      lg: 'h-12 px-6 text-sm',
     }
 
     const primaryStyle =
       variant === 'primary'
         ? {
-            background: 'var(--gradient-primary)',
-            boxShadow: '0 8px 24px rgba(56,171,228,0.38), 0 1px 2px rgba(255,255,255,0.5) inset',
-            transition: 'brightness 0.2s, box-shadow 0.2s, transform 0.1s',
+            background: 'var(--gradient-brand)',
+            boxShadow: 'var(--shadow-card)',
+            transition: 'filter 0.2s, box-shadow 0.2s, transform 0.1s',
           }
         : undefined
 
@@ -44,9 +46,9 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         {/* Gloss highlight for primary */}
         {variant === 'primary' && (
           <span
-            className="absolute inset-x-0 top-0 h-1/2 rounded-full pointer-events-none"
+            className="pointer-events-none absolute inset-x-0 top-0 h-1/2 rounded-full"
             style={{
-              background: 'linear-gradient(180deg, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0.08) 100%)',
+              background: 'linear-gradient(180deg, rgba(255,255,255,0.34) 0%, rgba(255,255,255,0.02) 100%)',
             }}
           />
         )}

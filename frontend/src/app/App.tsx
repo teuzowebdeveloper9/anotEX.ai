@@ -24,6 +24,7 @@ import { ReviewPage } from '@/pages/review/ui/ReviewPage'
 import { PomodoroPage } from '@/pages/pomodoro/ui/PomodoroPage'
 import { ProtectedRoute } from '@/shared/ui/ProtectedRoute/ProtectedRoute'
 import { useTheme } from '@/shared/hooks/useTheme'
+import { FloatingPomodoroWidget } from '@/widgets/pomodoro-panel/ui/FloatingPomodoroWidget'
 
 export function App() {
   const { theme } = useTheme()
@@ -32,6 +33,7 @@ export function App() {
     <QueryProvider>
       <BrowserRouter>
         <SubscriptionGuard />
+        <FloatingPomodoroWidget />
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
