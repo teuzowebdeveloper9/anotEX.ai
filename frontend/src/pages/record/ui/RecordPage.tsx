@@ -1,22 +1,16 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Mic, Pause, Play, Square, RotateCcw, Send, Upload, Zap, Sparkles, Brain, AudioLines } from 'lucide-react'
+import { ArrowLeft, Mic, Pause, Play, Square, RotateCcw, Send, Upload, Zap } from 'lucide-react'
 import { toast } from 'sonner'
 import { Waveform } from '@/shared/ui/Waveform/Waveform'
 import { Button } from '@/shared/ui/Button/Button'
 import { useRecorder } from '@/features/recording/start-recording/model/useRecorder'
-import { useUploadAudio } from '@/features/recording/upload-audio/model/useUploadAudio'
 import { useAudioLevel } from '@/shared/hooks/useAudioLevel'
-import logoAnotex from '@/shared/assets/logo-anotex.png'
+import { startPendingUpload } from '@/features/recording/upload-audio/model/pending-upload.store'
+import { brandLogo } from '@/shared/assets/brand-logo'
 
 const ALLOWED_TYPES = ['audio/mpeg', 'audio/mp4', 'audio/webm', 'audio/wav', 'audio/ogg', 'audio/mp3']
 const MAX_MB = 100
-const PROCESSING_STEPS = [
-  { title: 'Enviando seu audio', description: 'Preparando o arquivo e registrando a transcricao.' },
-  { title: 'Analisando o contexto da aula', description: 'Separando idioma, ritmo e estrutura do conteudo.' },
-  { title: 'Entendendo as vozes e pausas', description: 'Organizando o que foi dito para abrir a leitura com clareza.' },
-  { title: 'Montando sua pagina de estudo', description: 'Finalizando o material para te levar direto para a transcricao.' },
-] as const
 
 function formatDuration(ms: number): string {
   const totalSec = Math.floor(ms / 1000)
@@ -30,38 +24,16 @@ function formatDuration(ms: number): string {
 export function RecordPage() {
   const navigate = useNavigate()
   const { state, stream, audioBlob, durationMs, start, pause, resume, stop, reset } = useRecorder()
-  const { uploading, upload } = useUploadAudio()
   const levels = useAudioLevel(stream)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const [processingAudioId, setProcessingAudioId] = useState<string | null>(null)
-  const [processingStep, setProcessingStep] = useState(0)
 
-  useEffect(() => {
-    if (!processingAudioId) return
-
-    setProcessingStep(0)
-    const interval = window.setInterval(() => {
-      setProcessingStep((current) => Math.min(current + 1, PROCESSING_STEPS.length - 1))
-    }, 1100)
-    const timeout = window.setTimeout(() => {
-      navigate(`/transcription/${processingAudioId}`)
-    }, 4200)
-
-    return () => {
-      window.clearInterval(interval)
-      window.clearTimeout(timeout)
-    }
-  }, [navigate, processingAudioId])
-
-  const beginUploadFlow = async (file: Blob | File, language = 'pt'): Promise<void> => {
-    const result = await upload(file, language)
-    if (result?.audioId) {
-      setProcessingAudioId(result.audioId)
-    }
+  const beginUploadFlow = (file: Blob | File, language = 'pt'): void => {
+    const uploadId = startPendingUpload(file, language)
+    navigate(`/transcription/pending?uploadId=${uploadId}`)
   }
 
   const handleSend = (): void => {
-    if (audioBlob) void beginUploadFlow(audioBlob)
+    if (audioBlob) beginUploadFlow(audioBlob)
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
@@ -79,7 +51,7 @@ export function RecordPage() {
       return
     }
 
-    void beginUploadFlow(file, 'pt')
+    beginUploadFlow(file, 'pt')
     e.target.value = ''
   }
 
@@ -91,37 +63,42 @@ export function RecordPage() {
   }[state]
 
   return (
-    <div className="pen-page min-h-screen overflow-hidden">
-      <div className="pointer-events-none pen-blob pen-blob-blue left-[28%] top-[-6%] h-[38rem] w-[38rem]" />
-      <div className="pointer-events-none pen-blob pen-blob-cyan left-[-4%] top-[58%] h-[24rem] w-[24rem]" />
+    <div className="relative min-h-screen overflow-hidden bg-[linear-gradient(180deg,#fbfcff_0%,#f7f9fd_100%)]">
+      <div className="pointer-events-none absolute left-[-8rem] top-[-6rem] h-[24rem] w-[24rem] rounded-full bg-[radial-gradient(circle,rgba(37,99,235,0.12)_0%,rgba(37,99,235,0)_72%)] blur-3xl" />
+      <div className="pointer-events-none absolute right-[-7rem] top-[18%] h-[22rem] w-[22rem] rounded-full bg-[radial-gradient(circle,rgba(86,245,248,0.1)_0%,rgba(86,245,248,0)_72%)] blur-3xl" />
+      <div className="pointer-events-none absolute bottom-[-6rem] left-[20%] h-[18rem] w-[18rem] rounded-full bg-[radial-gradient(circle,rgba(122,220,125,0.08)_0%,rgba(122,220,125,0)_72%)] blur-3xl" />
 
-      <header className="pen-nav relative z-20">
-        <div className="mx-auto flex h-[68px] max-w-[1440px] items-center justify-between gap-3 px-4 sm:px-6 md:px-[72px]">
-          <img src={logoAnotex} alt="anotEX.ai" className="h-8 w-auto" />
-          <Link
-            to="/dashboard"
-            className="inline-flex items-center gap-2 rounded-full border border-[rgba(56,171,228,0.28)] bg-[rgba(56,171,228,0.08)] px-3 py-2 text-[12px] font-medium text-[var(--accent-5)] sm:px-4 sm:text-[13px]"
-          >
-            <ArrowLeft size={14} />
-            <span className="hidden sm:inline">Voltar ao Dashboard</span>
-            <span className="sm:hidden">Dashboard</span>
-          </Link>
-        </div>
-      </header>
+      <main className="relative z-10 mx-auto flex min-h-screen max-w-[1440px] items-center justify-center px-4 py-8 sm:px-6 md:px-[72px]">
+        <div className="flex w-full max-w-[680px] flex-col items-center gap-8 text-center">
+          <div className="flex w-full items-center justify-between">
+            <Link
+              to="/dashboard"
+              className="inline-flex items-center gap-2 rounded-full border border-[var(--border-soft)] bg-white px-4 py-2 text-[13px] font-medium text-[var(--text-secondary)] shadow-[0_8px_24px_rgba(25,28,31,0.04)] transition-colors hover:text-[var(--text-primary)]"
+            >
+              <ArrowLeft size={14} />
+              Dashboard
+            </Link>
 
-      <main className="relative z-10 mx-auto flex min-h-[calc(100vh-68px)] max-w-[1440px] items-center justify-center px-4 py-8 sm:px-6 sm:py-10">
-        <div className="flex w-full max-w-[600px] flex-col items-center gap-8">
-          <div className="flex flex-col items-center gap-2 text-center">
-            <h1 className="text-[28px] font-bold tracking-[-0.03em] text-[var(--text-primary)]">
-              Gravar nova aula
+            <img src={brandLogo} alt="anotEX.ai" className="h-8 w-auto" />
+          </div>
+
+          <div className="flex flex-col items-center gap-3 text-center">
+            <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border-soft)] bg-white px-4 py-2 text-[13px] font-medium text-[var(--brand-primary-strong)] shadow-[0_8px_24px_rgba(25,28,31,0.05)]">
+              <span className="h-2 w-2 rounded-full bg-[var(--brand-primary)]" />
+              Gravação inteligente
+            </div>
+            <h1 className="text-[2.4rem] font-extrabold tracking-[-0.06em] text-[var(--text-primary)] md:text-[3.4rem]">
+              Grave sua próxima aula
             </h1>
-            <p className="max-w-[400px] text-[15px] leading-[1.5] text-[var(--text-tertiary)]">
-              Pressione o botão para começar a gravar sua aula.
+            <p className="max-w-[460px] text-[15px] leading-7 text-[var(--text-tertiary)]">
+              Inicie a gravação, faça upload do arquivo ou continue do ponto em que parou. O fluxo de processamento continua o mesmo.
             </p>
           </div>
 
-          <div className="relative h-40 w-40">
-            <div className="absolute inset-0 rounded-full border-2 border-[rgba(56,171,228,0.24)] bg-[radial-gradient(circle,rgba(56,171,228,0.14)_60%,transparent_100%)]" />
+          <div className="relative h-48 w-48">
+            <div className="absolute inset-0 rounded-full bg-[radial-gradient(circle,rgba(37,99,235,0.12)_0%,rgba(37,99,235,0.02)_48%,transparent_72%)]" />
+            <div className="absolute inset-[8px] rounded-full border border-[rgba(37,99,235,0.14)]" />
+            <div className={`absolute inset-[18px] rounded-full ${state === 'recording' ? 'animate-pulse' : ''} bg-[rgba(37,99,235,0.08)]`} />
             <button
               onClick={() => {
                 if (state === 'idle') {
@@ -136,25 +113,25 @@ export function RecordPage() {
                   resume()
                 }
               }}
-              className="absolute inset-5 flex items-center justify-center rounded-full text-white shadow-[0_10px_32px_rgba(56,171,228,0.42)]"
-              style={{ background: 'var(--gradient-primary)' }}
+              className="absolute inset-[28px] flex items-center justify-center rounded-full text-white shadow-[0_18px_42px_rgba(37,99,235,0.28)] transition-transform hover:scale-[1.01]"
+              style={{ background: 'var(--gradient-brand)' }}
               aria-label="Controle da gravação"
             >
               {state === 'recording' ? <Pause size={40} /> : state === 'paused' ? <Play size={40} /> : <Mic size={40} />}
             </button>
           </div>
 
-          <div className="text-[48px] font-bold tracking-[-0.08em] text-[var(--text-primary)]">
+          <div className="text-[58px] font-extrabold tracking-[-0.08em] text-[var(--text-primary)]">
             {formatDuration(durationMs)}
           </div>
 
-          <div className="inline-flex items-center gap-2 rounded-full bg-[rgba(56,171,228,0.08)] px-[18px] py-2 text-[13px] font-medium text-[var(--accent-5)]">
-            <span className={`h-2 w-2 rounded-full ${state === 'recording' ? 'animate-pulse bg-red-500' : 'bg-[var(--accent)]'}`} />
+          <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border-soft)] bg-white px-[18px] py-2 text-[13px] font-medium text-[var(--brand-primary-strong)]">
+            <span className={`h-2 w-2 rounded-full ${state === 'recording' ? 'animate-pulse bg-red-500' : 'bg-[var(--brand-primary)]'}`} />
             {statusText}
           </div>
 
-          <div className="w-full max-w-[520px] overflow-hidden rounded-[20px] border border-[rgba(56,171,228,0.12)] bg-[rgba(255,255,255,0.34)] p-4">
-            <Waveform levels={levels} active={state === 'recording'} />
+          <div className="w-full max-w-[560px] overflow-hidden rounded-[28px] border border-[var(--border-soft)] bg-[rgba(255,255,255,0.8)] p-5 shadow-[0_16px_40px_rgba(25,28,31,0.04)]">
+            <Waveform levels={levels} active={state === 'recording'} className="h-20" />
           </div>
 
           <div className="flex flex-wrap items-center justify-center gap-3">
@@ -182,7 +159,7 @@ export function RecordPage() {
                   <RotateCcw size={16} />
                   Regravar
                 </Button>
-                <Button size="lg" loading={uploading} onClick={handleSend}>
+                <Button size="lg" onClick={handleSend}>
                   <Send size={16} />
                   Enviar
                 </Button>
@@ -198,102 +175,29 @@ export function RecordPage() {
             onChange={handleFileChange}
           />
 
-          <div className="flex w-full flex-col items-center justify-center gap-4 sm:flex-row sm:flex-wrap sm:gap-5">
+          <div className="grid w-full max-w-[640px] gap-4 md:grid-cols-2">
             <button
               onClick={() => fileInputRef.current?.click()}
-              disabled={uploading}
-              className="pen-surface flex w-full max-w-[320px] flex-col items-center gap-1 rounded-2xl px-6 py-4 text-center transition-transform hover:-translate-y-px disabled:opacity-50 sm:min-w-[245px]"
+              className="flex w-full flex-col items-center gap-1 rounded-[28px] border border-[var(--border-soft)] bg-[rgba(255,255,255,0.82)] px-6 py-5 text-center shadow-[0_12px_34px_rgba(25,28,31,0.04)] transition-transform hover:-translate-y-px disabled:opacity-50"
             >
-              <Upload size={20} className="text-[var(--accent)]" />
-              <span className="text-[13px] font-semibold text-[var(--text-primary)]">Upload de arquivo</span>
-              <span className="text-[11px] text-[var(--text-tertiary)]">MP3, M4A, WAV, WEBM</span>
+              <div className="mb-1 flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--brand-accent-soft)]">
+                <Upload size={20} className="text-[var(--brand-primary)]" />
+              </div>
+              <span className="text-[15px] font-semibold text-[var(--text-primary)]">Upload de arquivo</span>
+              <span className="text-[12px] text-[var(--text-tertiary)]">MP3, M4A, WAV, WEBM</span>
             </button>
 
-            <div className="pen-surface flex w-full max-w-[320px] flex-col items-center gap-1 rounded-2xl px-6 py-4 text-center sm:min-w-[245px]">
-              <Zap size={20} className="text-[var(--accent-3)]" />
-              <span className="text-[13px] font-semibold text-[var(--text-primary)]">Transcrição em segundos</span>
-              <span className="text-[11px] text-[var(--text-tertiary)]">Powered by Groq Whisper</span>
+            <div className="flex w-full flex-col items-center gap-1 rounded-[28px] border border-[var(--border-soft)] bg-[rgba(255,255,255,0.82)] px-6 py-5 text-center shadow-[0_12px_34px_rgba(25,28,31,0.04)]">
+              <div className="mb-1 flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--brand-tertiary-soft)]">
+                <Zap size={20} className="text-[var(--brand-tertiary)]" />
+              </div>
+              <span className="text-[15px] font-semibold text-[var(--text-primary)]">Transcrição em segundos</span>
+              <span className="text-[12px] text-[var(--text-tertiary)]">Powered by Groq Whisper</span>
             </div>
           </div>
         </div>
       </main>
 
-      {processingAudioId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(248,250,252,0.55)] px-4 backdrop-blur-xl">
-          <div className="relative w-full max-w-[620px] overflow-hidden rounded-[32px] border border-[rgba(56,171,228,0.18)] bg-[rgba(255,255,255,0.78)] p-6 shadow-[0_30px_120px_rgba(15,23,42,0.18)] sm:p-8">
-            <div className="pointer-events-none absolute -right-16 -top-16 h-44 w-44 rounded-full bg-[rgba(56,171,228,0.18)] blur-3xl" />
-            <div className="pointer-events-none absolute -left-12 bottom-0 h-36 w-36 rounded-full bg-[rgba(34,211,238,0.14)] blur-3xl" />
-
-            <div className="relative flex flex-col gap-6">
-              <div className="flex items-start gap-4">
-                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-[rgba(56,171,228,0.2)] bg-[rgba(56,171,228,0.1)] text-[var(--accent)]">
-                  <AudioLines size={24} className="animate-pulse" />
-                </div>
-                <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[var(--accent)]">
-                    Processando
-                  </p>
-                  <h2 className="mt-2 text-[26px] font-bold tracking-[-0.04em] text-[var(--text-primary)]">
-                    Sua aula ja esta entrando no modo estudo
-                  </h2>
-                  <p className="mt-2 max-w-[460px] text-[14px] leading-6 text-[var(--text-secondary)]">
-                    Estamos preparando a melhor primeira leitura para voce. Em instantes a transcricao abre com o audio ja registrado.
-                  </p>
-                </div>
-              </div>
-
-              <div className="grid gap-3">
-                {PROCESSING_STEPS.map((step, index) => {
-                  const isDone = index < processingStep
-                  const isActive = index === processingStep
-                  const Icon = index % 2 === 0 ? Sparkles : Brain
-
-                  return (
-                    <div
-                      key={step.title}
-                      className={[
-                        'flex items-start gap-3 rounded-2xl border px-4 py-3 transition-all duration-300',
-                        isActive
-                          ? 'border-[rgba(56,171,228,0.28)] bg-[rgba(56,171,228,0.12)] shadow-[0_14px_30px_rgba(56,171,228,0.12)]'
-                          : isDone
-                            ? 'border-[rgba(16,185,129,0.18)] bg-[rgba(16,185,129,0.08)]'
-                            : 'border-[rgba(148,163,184,0.18)] bg-[rgba(255,255,255,0.42)]',
-                      ].join(' ')}
-                    >
-                      <div
-                        className={[
-                          'mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl',
-                          isActive
-                            ? 'bg-white text-[var(--accent)]'
-                            : isDone
-                              ? 'bg-emerald-500 text-white'
-                              : 'bg-[rgba(148,163,184,0.18)] text-[var(--text-tertiary)]',
-                        ].join(' ')}
-                      >
-                        <Icon size={15} className={isActive ? 'animate-pulse' : ''} />
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold text-[var(--text-primary)]">{step.title}</p>
-                        <p className="mt-1 text-xs leading-5 text-[var(--text-secondary)]">{step.description}</p>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-
-              <div className="overflow-hidden rounded-full bg-[rgba(148,163,184,0.18)]">
-                <div
-                  className="h-2 rounded-full transition-all duration-700"
-                  style={{
-                    width: `${((processingStep + 1) / PROCESSING_STEPS.length) * 100}%`,
-                    background: 'var(--gradient-primary)',
-                  }}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

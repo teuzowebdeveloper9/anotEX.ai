@@ -47,17 +47,13 @@ export function PricingSection() {
       return
     }
 
-    if (!productId) {
-      navigate('/record')
+    if (hasSubscription) {
+      navigate('/dashboard')
       return
     }
 
-    if (hasSubscription) {
-      checkout.mutate({
-        productId,
-        frequency: 'SUBSCRIPTION',
-        priceInCents: PLAN_PRICE_CENTS,
-      })
+    if (!productId) {
+      navigate('/record')
       return
     }
 
@@ -83,9 +79,9 @@ export function PricingSection() {
   }
 
   return (
-    <section id="pricing" className="mx-auto w-full max-w-[1440px] px-6 py-16 md:px-[100px]">
+    <section id="pricing" className="mx-auto w-full max-w-[1440px] px-6 py-16 md:px-[72px]">
       <div className="mx-auto mb-12 max-w-[700px] text-center">
-        <h2 className="text-[2.2rem] font-extrabold tracking-[-0.04em] text-[var(--text-primary)] md:text-[3rem]">
+        <h2 className="text-[2.3rem] font-extrabold tracking-[-0.05em] text-[var(--text-primary)] md:text-[3.2rem]">
           Invista no seu estudo
         </h2>
         <p className="mt-4 text-[1.05rem] leading-8 text-[var(--text-secondary)]">
@@ -97,11 +93,11 @@ export function PricingSection() {
         {plans.map((plan) => (
           <div
             key={plan.id}
-            className="relative flex flex-col cursor-pointer rounded-[28px] border-2 border-[var(--accent)] bg-gradient-to-b from-[var(--accent)]/8 to-white p-8 shadow-[0_20px_60px_rgba(56,171,228,0.18)] transition-all duration-300 hover:shadow-[0_25px_70px_rgba(56,171,228,0.25)] hover:scale-[1.02]"
+            className="relative flex flex-col cursor-pointer rounded-[32px] border border-[var(--border-soft)] bg-[rgba(255,255,255,0.88)] p-8 shadow-[0_18px_44px_rgba(25,28,31,0.06)] transition-all duration-300 hover:-translate-y-1"
             onClick={() => plan.productId && handleSubscribe(plan.productId)}
           >
             <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--accent)] px-4 py-1.5 text-xs font-semibold text-white shadow-lg">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--brand-primary)] px-4 py-1.5 text-xs font-semibold text-white shadow-[0_10px_24px_rgba(37,99,235,0.24)]">
                 <Zap size={12} />
                 Mais popular
               </span>
@@ -135,12 +131,12 @@ export function PricingSection() {
               className="w-full"
               loading={checkout.isPending && checkout.variables?.productId === plan.productId}
               onClick={() => handleSubscribe(plan.productId)}
-              disabled={checkout.isPending || hasSubscription}
+              disabled={checkout.isPending}
             >
               {hasSubscription ? (
                 <span className="flex items-center justify-center gap-2">
                   <Crown size={18} />
-                  Assinante Pro
+                  Ir para o dashboard
                 </span>
               ) : plan.buttonText}
             </Button>
