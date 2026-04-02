@@ -5,7 +5,6 @@ import { supabase } from '@/shared/auth/supabase'
 import { AudioCard } from '@/entities/audio/ui/AudioCard'
 import { Button } from '@/shared/ui/Button/Button'
 import { Skeleton } from '@/shared/ui/Skeleton/Skeleton'
-import { GradientOrb } from '@/shared/ui/decorative/GradientOrb'
 import { DueCardsWidget } from '@/widgets/due-cards-widget/ui/DueCardsWidget'
 import { PomodoroDashboardWidget } from '@/widgets/pomodoro-panel/ui/PomodoroDashboardWidget'
 import { useAudioList } from '@/entities/audio/model/useAudioList'
@@ -19,7 +18,7 @@ function StatCard({ icon: Icon, label, value, color, gradientFrom, gradientTo }:
   gradientTo?: string
 }) {
   return (
-    <div className="rounded-[20px] border p-5 shadow-[0_6px_18px_rgba(56,171,228,0.12)] transition-all duration-200 hover:-translate-y-0.5">
+    <div className="rounded-[20px] border border-[var(--border-soft)] bg-[rgba(255,255,255,0.8)] p-5 transition-all duration-200">
       <div
         className={`mb-5 flex h-10 w-10 items-center justify-center rounded-2xl text-white ${color}`}
         style={
@@ -54,13 +53,13 @@ export function DashboardPage() {
   const readyToStudy = Math.max(completed - processing, 0)
 
   return (
-    <div className="pen-page relative min-h-screen overflow-hidden">
+    <div className="relative min-h-screen overflow-hidden bg-[linear-gradient(180deg,#fbfcff_0%,#f7f9fd_100%)]">
       <Sidebar withTopBar={false} />
-      <main className="relative z-10 md:pl-56">
-        <div className="mx-auto max-w-6xl px-4 pb-16 pt-24 sm:px-6 md:px-10 md:pt-9">
+      <main className="relative z-10 md:pl-[11rem]">
+        <div className="mx-auto max-w-6xl px-4 pb-16 pt-24 sm:px-8 md:px-8 md:pt-9">
           <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h1 className="text-[1.75rem] font-bold tracking-[-0.03em] text-[var(--text-primary)]">
+              <h1 className="text-[2.25rem] font-extrabold tracking-[-0.05em] text-[var(--text-primary)]">
                 Bom dia!
               </h1>
               <p className="mt-1 text-sm text-[var(--text-tertiary)]">
@@ -129,25 +128,18 @@ export function DashboardPage() {
           <div className="flex flex-col gap-2">
             {isLoading ? (
               Array.from({ length: 4 }).map((_, i) => (
-                <Skeleton key={i} className="h-[72px] w-full rounded-xl" />
+                <Skeleton key={i} className="h-[72px] w-full rounded-[22px]" />
               ))
             ) : visible.length === 0 ? (
               <div className="relative flex flex-col items-center gap-5 overflow-hidden py-24 text-center">
-                <GradientOrb
-                  size={300}
-                  color="#38ABE4"
-                  opacity={0.07}
-                  className="top-1/2 left-1/2 z-0"
-                  style={{ transform: 'translate(-50%, -50%)' }}
-                />
-                <div className="relative z-10 h-16 w-16 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border)] flex items-center justify-center">
+                <div className="relative z-10 flex h-16 w-16 items-center justify-center rounded-2xl border border-[var(--border-soft)] bg-[rgba(255,255,255,0.84)]">
                   <Inbox size={28} className="text-[var(--text-tertiary)]" />
                 </div>
                 <div className="relative z-10">
-                  <p className="text-base font-medium text-[var(--text-primary)]">
+                  <p className="text-[1.05rem] font-semibold text-[var(--text-primary)]">
                     Nenhuma gravação ainda
                   </p>
-                  <p className="text-sm text-[var(--text-secondary)] mt-1 max-w-xs">
+                  <p className="mt-1 max-w-xs text-sm text-[var(--text-secondary)]">
                     Grave sua primeira aula e a IA vai gerar transcrição, resumo, mapas mentais e flashcards automaticamente.
                   </p>
                 </div>

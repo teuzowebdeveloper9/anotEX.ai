@@ -21,9 +21,9 @@ export function AudioCard({ audio }: AudioCardProps) {
 
   return (
     <Link to={`/transcription/${audio.id}`}>
-      <div className="group flex items-center gap-4 p-4 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] hover:border-[var(--accent)]/40 hover:bg-[var(--bg-elevated)] hover:-translate-y-px transition-all duration-200 shadow-[var(--shadow-card)]">
-        <div className="h-10 w-10 rounded-lg bg-[var(--accent-bg)] border border-[var(--accent)]/20 flex items-center justify-center shrink-0">
-          <FileAudio size={17} className="text-[var(--accent)]" />
+      <div className="group flex items-center gap-4 rounded-[22px] border border-[var(--border-soft)] bg-[rgba(255,255,255,0.78)] p-4 transition-all duration-200 hover:border-[var(--border-strong)] hover:bg-white">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[rgba(37,99,235,0.08)] shrink-0">
+          <FileAudio size={17} className="text-[var(--brand-primary)]" />
         </div>
 
         <div className="flex-1 min-w-0">
@@ -46,7 +46,7 @@ export function AudioCard({ audio }: AudioCardProps) {
           <Badge status={audio.status} />
           <ChevronRight
             size={15}
-            className="text-[var(--text-tertiary)] group-hover:text-[var(--accent)] group-hover:translate-x-0.5 transition-all duration-150"
+            className="text-[var(--text-tertiary)] transition-all duration-150 group-hover:translate-x-0.5 group-hover:text-[var(--brand-primary)]"
           />
         </div>
       </div>
