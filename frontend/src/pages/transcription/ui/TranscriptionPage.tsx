@@ -1,6 +1,6 @@
-import { useState } from 'react'
-import { useParams, Link, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, AlertCircle, Loader2, FileText, Sparkles, Map, BookOpen, Share2, CircleHelp, MessageSquare } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { useParams, Link, useSearchParams, useNavigate } from 'react-router-dom'
+import { ArrowLeft, AlertCircle, Loader2, FileText, Sparkles, Map, BookOpen, Share2, CircleHelp, MessageSquare, AudioLines, Brain } from 'lucide-react'
 import { Sidebar } from '@/widgets/sidebar/ui/Sidebar'
 import { Badge } from '@/shared/ui/Badge/Badge'
 import { Skeleton } from '@/shared/ui/Skeleton/Skeleton'
@@ -16,6 +16,7 @@ import { useTranscriptionStatus } from '@/features/transcription/poll-status/mod
 import { useStudyMaterial } from '@/entities/study-material/model/useStudyMaterial'
 import { ShareModal } from '@/shared/ui/ShareModal'
 import { ExportButton } from '@/features/transcription/export/ui/ExportButton'
+import { usePendingUpload } from '@/features/recording/upload-audio/model/pending-upload.store'
 import { cn } from '@/shared/lib/cn'
 import type { FlashcardItem, MindmapContent, QuizItem } from '@/shared/types/api.types'
 
@@ -30,29 +31,111 @@ const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
 ]
 
 function ProcessingState({ message }: { message: string }) {
+  const steps = [
+    { title: 'Lendo o audio enviado', description: 'Validando o arquivo e preparando a base da transcricao.', icon: AudioLines },
+    { title: 'Entendendo contexto e ritmo', description: 'Organizando pausas, trechos e o encadeamento da aula.', icon: Brain },
+    { title: 'Estruturando o texto final', description: 'Montando uma leitura clara para abrir o conteudo completo.', icon: Sparkles },
+  ] as const
+  const [activeStep, setActiveStep] = useState(0)
+
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      setActiveStep((current) => (current + 1) % steps.length)
+    }, 1400)
+    return () => window.clearInterval(interval)
+  }, [steps.length])
+
   return (
-    <div className="flex flex-col items-center gap-4 py-16 text-center">
-      <div className="h-14 w-14 rounded-2xl bg-[var(--accent-bg)] border border-[var(--accent)]/20 flex items-center justify-center">
-        <Loader2 size={22} className="text-[var(--accent)] animate-spin" />
-      </div>
-      <div>
-        <p className="text-sm font-medium text-[var(--text-primary)]">{message}</p>
-        <p className="text-xs text-[var(--text-secondary)] mt-1">
-          Esta página atualiza automaticamente
-        </p>
+    <div className="relative overflow-hidden rounded-[28px] border border-[rgba(56,171,228,0.16)] bg-[linear-gradient(180deg,rgba(255,255,255,0.92)_0%,rgba(244,249,255,0.94)_100%)] px-6 py-8 sm:px-8 sm:py-10">
+      <div className="pointer-events-none absolute -right-16 top-0 h-44 w-44 rounded-full bg-[rgba(56,171,228,0.16)] blur-3xl" />
+      <div className="pointer-events-none absolute -left-12 bottom-0 h-36 w-36 rounded-full bg-[rgba(34,211,238,0.14)] blur-3xl" />
+
+      <div className="relative flex flex-col gap-6">
+        <div className="flex flex-col gap-4 text-center sm:flex-row sm:items-start sm:text-left">
+          <div className="mx-auto flex h-16 w-16 shrink-0 items-center justify-center rounded-[22px] border border-[rgba(56,171,228,0.2)] bg-[rgba(56,171,228,0.12)] sm:mx-0">
+            <Loader2 size={24} className="text-[var(--accent)] animate-spin" />
+          </div>
+          <div className="flex-1">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[var(--accent)]">
+              Processando
+            </p>
+            <h2 className="mt-2 text-[26px] font-bold tracking-[-0.04em] text-[var(--text-primary)]">
+              Estamos transformando seu audio em material de estudo
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">
+              {message}
+            </p>
+            <p className="mt-1 text-xs text-[var(--text-tertiary)]">
+              Esta pagina atualiza automaticamente e vai abrir o conteudo assim que tudo estiver pronto.
+            </p>
+          </div>
+        </div>
+
+        <div className="grid gap-3">
+          {steps.map((step, index) => {
+            const Icon = step.icon
+            const isActive = index === activeStep
+            const isDone = index < activeStep
+
+            return (
+              <div
+                key={step.title}
+                className={cn(
+                  'flex items-start gap-3 rounded-2xl border px-4 py-3 transition-all duration-300',
+                  isActive
+                    ? 'border-[rgba(56,171,228,0.28)] bg-[rgba(56,171,228,0.12)] shadow-[0_14px_30px_rgba(56,171,228,0.12)]'
+                    : isDone
+                      ? 'border-[rgba(16,185,129,0.18)] bg-[rgba(16,185,129,0.08)]'
+                      : 'border-[rgba(148,163,184,0.18)] bg-white/55'
+                )}
+              >
+                <div
+                  className={cn(
+                    'mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl',
+                    isActive
+                      ? 'bg-white text-[var(--accent)]'
+                      : isDone
+                        ? 'bg-emerald-500 text-white'
+                        : 'bg-[rgba(148,163,184,0.18)] text-[var(--text-tertiary)]'
+                  )}
+                >
+                  <Icon size={15} className={isActive ? 'animate-pulse' : ''} />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-[var(--text-primary)]">{step.title}</p>
+                  <p className="mt-1 text-xs leading-5 text-[var(--text-secondary)]">{step.description}</p>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        <div className="overflow-hidden rounded-full bg-[rgba(148,163,184,0.18)]">
+          <div
+            className="h-2 rounded-full transition-all duration-700"
+            style={{
+              width: `${((activeStep + 1) / steps.length) * 100}%`,
+              background: 'var(--gradient-primary)',
+            }}
+          />
+        </div>
       </div>
     </div>
   )
 }
 
 export function TranscriptionPage() {
+  const navigate = useNavigate()
   const { id } = useParams<{ id: string }>()
   const [searchParams] = useSearchParams()
+  const pendingUploadId = searchParams.get('uploadId')
+  const pendingUpload = usePendingUpload(pendingUploadId)
+  const isPendingUploadRoute = id === 'pending' && !!pendingUploadId
   const initialTab = (searchParams.get('tab') as Tab | null) ?? 'resumo'
   const [activeTab, setActiveTab] = useState<Tab>(initialTab)
 
   const [showShareModal, setShowShareModal] = useState(false)
-  const { data, isLoading } = useTranscriptionStatus(id!)
+  const { data, isLoading } = useTranscriptionStatus(isPendingUploadRoute ? '' : (id ?? ''))
   const transcription = data?.transcription
   const transcriptionId = transcription?.id ?? ''
   const isCompleted = transcription?.status === 'COMPLETED'
@@ -60,6 +143,18 @@ export function TranscriptionPage() {
   const { data: mindmapData }    = useStudyMaterial(transcriptionId, 'mindmap')
   const { data: flashcardsData } = useStudyMaterial(transcriptionId, 'flashcards')
   const { data: quizData }       = useStudyMaterial(transcriptionId, 'quiz')
+
+  useEffect(() => {
+    if (pendingUpload?.status === 'completed' && pendingUpload.audioId) {
+      navigate(`/transcription/${pendingUpload.audioId}`, { replace: true })
+    }
+  }, [navigate, pendingUpload])
+
+  const processingMessage = isPendingUploadRoute
+    ? pendingUpload?.status === 'error'
+      ? pendingUpload.errorMessage ?? 'Erro ao enviar áudio. Tente novamente.'
+      : `Enviando ${pendingUpload?.fileName ?? 'seu áudio'} para analise.`
+    : 'Estamos convertendo seu audio, organizando a fala e preparando a pagina final.'
 
   return (
     <div className="pen-shell">
@@ -82,7 +177,7 @@ export function TranscriptionPage() {
             Voltar ao dashboard
           </Link>
 
-          {isLoading ? (
+          {isLoading && !isPendingUploadRoute ? (
             <div className="flex flex-col gap-4">
               <Skeleton className="h-7 w-52" />
               <Skeleton className="h-5 w-36" />
@@ -98,7 +193,7 @@ export function TranscriptionPage() {
                   <h1
                     className="text-xl font-semibold leading-snug gradient-text"
                   >
-                    {transcription?.title ?? data?.audio.fileName ?? 'Gravação'}
+                    {transcription?.title ?? data?.audio.fileName ?? pendingUpload?.fileName ?? 'Gravação'}
                   </h1>
                   {transcription?.title && (
                     <p className="text-sm text-[var(--text-secondary)] truncate mt-1">
@@ -115,6 +210,13 @@ export function TranscriptionPage() {
                       >
                         <MessageSquare size={12} />
                         Chat
+                      </Link>
+                      <Link
+                        to={`/pomodoro?contextType=transcription&contextId=${transcriptionId}&contextLabel=${encodeURIComponent(transcription?.title ?? data?.audio.fileName ?? 'Transcrição')}`}
+                        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--accent-bg)] border border-[var(--border)] hover:border-[var(--accent)]/30 transition-colors"
+                      >
+                        <Brain size={12} />
+                        Pomodoro
                       </Link>
                       <ExportButton
                         title={transcription?.title ?? data?.audio.fileName ?? 'Gravação'}
@@ -141,9 +243,23 @@ export function TranscriptionPage() {
               </div>
 
               {/* Processing / Error */}
-              {transcription?.status === 'PENDING' || transcription?.status === 'PROCESSING' ? (
+              {isPendingUploadRoute && pendingUpload?.status !== 'error' ? (
                 <div className="pen-surface rounded-[24px]">
-                  <ProcessingState message="Processando transcrição..." />
+                  <ProcessingState message={processingMessage} />
+                </div>
+              ) : isPendingUploadRoute && pendingUpload?.status === 'error' ? (
+                <div className="flex items-center gap-4 p-5 rounded-xl border border-[var(--danger)]/25 bg-[var(--danger-bg)]">
+                  <AlertCircle size={18} className="text-[var(--danger)] shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium text-[var(--danger)]">Falha no envio</p>
+                    <p className="text-xs text-[var(--text-secondary)] mt-0.5">
+                      {processingMessage}
+                    </p>
+                  </div>
+                </div>
+              ) : transcription?.status === 'PENDING' || transcription?.status === 'PROCESSING' ? (
+                <div className="pen-surface rounded-[24px]">
+                  <ProcessingState message={processingMessage} />
                 </div>
               ) : transcription?.status === 'FAILED' ? (
                 <div className="flex items-center gap-4 p-5 rounded-xl border border-[var(--danger)]/25 bg-[var(--danger-bg)]">

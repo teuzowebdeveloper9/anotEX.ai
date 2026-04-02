@@ -10,6 +10,7 @@ export function useTranscriptionStatus(audioId: string) {
       const { data } = await api.get<AudioStatusResponse>(ENDPOINTS.audio.status(audioId))
       return data
     },
+    enabled: Boolean(audioId),
     refetchInterval: (query) => {
       const status = query.state.data?.transcription?.status
       return status === 'COMPLETED' || status === 'FAILED' ? false : 5000
