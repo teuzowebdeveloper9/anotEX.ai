@@ -1,29 +1,34 @@
-import { useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { supabase } from '@/shared/auth/supabase'
+import { useEffect, useRef } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import { toast } from 'sonner'
+import { verifyMagicLink } from '@/shared/auth/auth-client'
 
 export function AuthCallbackPage() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const started = useRef(false)
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session) {
+    // Token de uso único: garante uma única troca mesmo com StrictMode
+    if (started.current) return
+    started.current = true
+
+    const token = searchParams.get('token')
+    if (!token) {
+      toast.error('Link inválido ou expirado.')
+      navigate('/login', { replace: true })
+      return
+    }
+
+    verifyMagicLink(token)
+      .then(() => {
         navigate('/dashboard', { replace: true })
-      }
-      if (event === 'SIGNED_OUT') {
+      })
+      .catch(() => {
+        toast.error('Link inválido ou expirado. Solicite um novo.')
         navigate('/login', { replace: true })
-      }
-    })
-
-    // Fallback: session may already be set before listener fires
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) {
-        navigate('/dashboard', { replace: true })
-      }
-    })
-
-    return () => subscription.unsubscribe()
-  }, [navigate])
+      })
+  }, [navigate, searchParams])
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-[var(--bg-base)]">

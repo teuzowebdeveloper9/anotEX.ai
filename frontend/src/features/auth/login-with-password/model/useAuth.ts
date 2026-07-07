@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { supabase } from '@/shared/auth/supabase'
+import { AuthApiError, login, register } from '@/shared/auth/auth-client'
 import { toast } from 'sonner'
 
 type AuthMode = 'login' | 'register'
@@ -43,40 +43,35 @@ export function useAuth(): UseAuthReturn {
     setLoading(true)
 
     if (mode === 'login') {
-      const { error } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
-        password,
-      })
-      setLoading(false)
-      if (error) {
-        if (error.message.toLowerCase().includes('invalid login credentials')) {
+      try {
+        await login(email.trim(), password)
+        const returnTo = sessionStorage.getItem('returnTo') ?? '/dashboard'
+        sessionStorage.removeItem('returnTo')
+        navigate(returnTo, { replace: true })
+      } catch (error) {
+        const isInvalidCredentials =
+          error instanceof AuthApiError && (error.status === 401 || error.status === 400)
+        if (isInvalidCredentials) {
           toast.error('E-mail ou senha incorretos.')
         } else {
           toast.error('Erro ao entrar. Tente novamente.')
         }
-        return
+      } finally {
+        setLoading(false)
       }
-      const returnTo = sessionStorage.getItem('returnTo') ?? '/dashboard'
-      sessionStorage.removeItem('returnTo')
-      navigate(returnTo, { replace: true })
     } else {
-      const { data, error } = await supabase.auth.signUp({
-        email: email.trim(),
-        password,
-      })
-      setLoading(false)
-      if (error) {
-        if (error.message.toLowerCase().includes('already registered')) {
+      try {
+        await register(email.trim(), password)
+        navigate('/dashboard', { replace: true })
+      } catch (error) {
+        const isAlreadyRegistered = error instanceof AuthApiError && error.status === 409
+        if (isAlreadyRegistered) {
           toast.error('Este e-mail já está cadastrado.')
         } else {
           toast.error('Erro ao criar conta. Tente novamente.')
         }
-        return
-      }
-      if (data.session) {
-        navigate('/dashboard', { replace: true })
-      } else {
-        toast.success('Conta criada! Verifique seu e-mail para confirmar.')
+      } finally {
+        setLoading(false)
       }
     }
   }
