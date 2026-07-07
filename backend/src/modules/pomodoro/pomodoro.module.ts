@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { SupabaseService } from '../../shared/infrastructure/config/supabase.config.js';
 import { PomodoroController } from './presentation/controllers/pomodoro.controller.js';
 import { GetActivePomodoroSessionUseCase } from './domain/use-cases/get-active-session.use-case.js';
 import { StartPomodoroSessionUseCase } from './domain/use-cases/start-session.use-case.js';
@@ -23,7 +22,6 @@ import { POMODORO_CYCLE_REPOSITORY } from './domain/repositories/pomodoro-cycle.
 @Module({
   controllers: [PomodoroController],
   providers: [
-    SupabaseService,
     PomodoroSessionService,
     PomodoroTimeService,
     GetActivePomodoroSessionUseCase,
