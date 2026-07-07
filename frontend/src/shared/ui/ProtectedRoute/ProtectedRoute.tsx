@@ -1,30 +1,17 @@
 import { useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
-import { supabase } from '@/shared/auth/supabase'
-import type { Session } from '@supabase/supabase-js'
+import { isAuthenticated, onAuthStateChange } from '@/shared/auth/auth-client'
 
 interface ProtectedRouteProps {
   children: React.ReactNode
 }
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const [session, setSession] = useState<Session | null | undefined>(undefined)
+  const [authenticated, setAuthenticated] = useState<boolean>(() => isAuthenticated())
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setSession(data.session))
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, s) => setSession(s))
-    return () => listener.subscription.unsubscribe()
-  }, [])
+  useEffect(() => onAuthStateChange((user) => setAuthenticated(!!user)), [])
 
-  if (session === undefined) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[var(--bg-base)]">
-        <span className="h-8 w-8 rounded-full border-2 border-[var(--accent)] border-t-transparent animate-spin" />
-      </div>
-    )
-  }
-
-  if (!session) {
+  if (!authenticated) {
     // Save the intended destination so we can redirect back after login
     const returnTo = window.location.pathname + window.location.search
     if (returnTo !== '/login') {

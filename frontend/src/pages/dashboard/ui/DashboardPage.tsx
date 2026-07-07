@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { Mic, Inbox, CheckCircle, Clock, Layers, LogOut } from 'lucide-react'
 import { Sidebar } from '@/widgets/sidebar/ui/Sidebar'
-import { supabase } from '@/shared/auth/supabase'
+import { logout } from '@/shared/auth/auth-client'
 import { AudioCard } from '@/entities/audio/ui/AudioCard'
 import { Button } from '@/shared/ui/Button/Button'
 import { Skeleton } from '@/shared/ui/Skeleton/Skeleton'
@@ -42,8 +42,8 @@ function StatCard({ icon: Icon, label, value, color, gradientFrom, gradientTo }:
 export function DashboardPage() {
   const { data: audios, isLoading } = useAudioList()
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut()
+  const handleLogout = async (): Promise<void> => {
+    await logout()
     window.location.href = '/login'
   }
 
