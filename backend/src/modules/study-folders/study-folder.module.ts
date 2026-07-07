@@ -20,15 +20,13 @@ import { TranscriptionRepositoryImpl } from '../transcription/infrastructure/rep
 import { AUDIO_REPOSITORY } from '../audio/domain/repositories/audio.repository.js';
 import { AudioRepositoryImpl } from '../audio/infrastructure/repositories/audio.repository.impl.js';
 import { STORAGE_REPOSITORY } from '../audio/domain/repositories/storage.repository.js';
-import { StorageRepositoryImpl } from '../audio/infrastructure/repositories/storage.repository.impl.js';
+import { AzureBlobStorageRepositoryImpl } from '../audio/infrastructure/repositories/azure-blob-storage.repository.impl.js';
 import { TRANSCRIPTION_QUEUE } from '../transcription/application/services/transcription-queue.processor.js';
-import { SupabaseService } from '../../shared/infrastructure/config/supabase.config.js';
 
 @Module({
   imports: [ConfigModule, BullModule.registerQueue({ name: TRANSCRIPTION_QUEUE })],
   controllers: [StudyFolderController],
   providers: [
-    SupabaseService,
     CreateFolderUseCase,
     ListFoldersUseCase,
     GetFolderUseCase,
@@ -42,7 +40,7 @@ import { SupabaseService } from '../../shared/infrastructure/config/supabase.con
     { provide: YOUTUBE_PROVIDER, useClass: YouTubeProviderImpl },
     { provide: TRANSCRIPTION_REPOSITORY, useClass: TranscriptionRepositoryImpl },
     { provide: AUDIO_REPOSITORY, useClass: AudioRepositoryImpl },
-    { provide: STORAGE_REPOSITORY, useClass: StorageRepositoryImpl },
+    { provide: STORAGE_REPOSITORY, useClass: AzureBlobStorageRepositoryImpl },
   ],
 })
 export class StudyFolderModule {}

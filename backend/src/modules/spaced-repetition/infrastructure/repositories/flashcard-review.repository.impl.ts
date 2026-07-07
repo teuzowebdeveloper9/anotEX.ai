@@ -1,25 +1,32 @@
 import { Injectable } from '@nestjs/common';
-import { SupabaseService } from '../../../../shared/infrastructure/config/supabase.config.js';
+import { PostgresService } from '../../../../shared/infrastructure/config/postgres.config.js';
 import type { IFlashcardReviewRepository } from '../../domain/repositories/flashcard-review.repository.js';
 import type { FlashcardReviewEntity } from '../../domain/entities/flashcard-review.entity.js';
 
+function toMessage(err: unknown): string {
+  return err instanceof Error ? err.message : String(err);
+}
+
 @Injectable()
 export class FlashcardReviewRepositoryImpl implements IFlashcardReviewRepository {
-  constructor(private readonly supabaseService: SupabaseService) {}
+  constructor(private readonly postgresService: PostgresService) {}
 
   async save(review: FlashcardReviewEntity): Promise<void> {
-    const { error } = await this.supabaseService
-      .getClient()
-      .from('flashcard_reviews')
-      .insert({
-        id: review.id,
-        user_id: review.userId,
-        study_material_id: review.studyMaterialId,
-        flashcard_index: review.flashcardIndex,
-        quality: review.quality,
-        reviewed_at: review.reviewedAt.toISOString(),
-      });
-
-    if (error) throw new Error(`Failed to save flashcard review: ${error.message}`);
+    try {
+      await this.postgresService.query(
+        `INSERT INTO flashcard_reviews (id, user_id, study_material_id, flashcard_index, quality, reviewed_at)
+         VALUES ($1, $2, $3, $4, $5, $6)`,
+        [
+          review.id,
+          review.userId,
+          review.studyMaterialId,
+          review.flashcardIndex,
+          review.quality,
+          review.reviewedAt.toISOString(),
+        ],
+      );
+    } catch (err) {
+      throw new Error(`Failed to save flashcard review: ${toMessage(err)}`);
+    }
   }
 }

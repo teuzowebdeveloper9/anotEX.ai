@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { SupabaseService } from '../../../../shared/infrastructure/config/supabase.config.js';
+import { PostgresService } from '../../../../shared/infrastructure/config/postgres.config.js';
 import { ITranscriptionRepository } from '../../domain/repositories/transcription.repository.js';
 import {
   CreateTranscriptionProps,
@@ -8,66 +8,81 @@ import {
   TranscriptionStatus,
 } from '../../domain/entities/transcription.entity.js';
 
+interface TranscriptionRow {
+  id: string;
+  audio_id: string;
+  user_id: string;
+  title: string | null;
+  transcription_text: string | null;
+  summary_text: string | null;
+  segments: TranscriptionSegment[] | null;
+  language: string;
+  status: TranscriptionStatus;
+  error_message: string | null;
+  created_at: Date | string;
+  updated_at: Date | string;
+}
+
+function toMessage(err: unknown): string {
+  return err instanceof Error ? err.message : String(err);
+}
+
 @Injectable()
 export class TranscriptionRepositoryImpl implements ITranscriptionRepository {
-  constructor(private readonly supabaseService: SupabaseService) {}
+  constructor(private readonly postgresService: PostgresService) {}
 
   async create(props: CreateTranscriptionProps): Promise<TranscriptionEntity> {
-    const { data, error } = await this.supabaseService
-      .getClient()
-      .from('transcriptions')
-      .insert({
-        audio_id: props.audioId,
-        user_id: props.userId,
-        language: props.language,
-        status: TranscriptionStatus.PENDING,
-      })
-      .select()
-      .single();
-
-    if (error) throw new Error(`Failed to create transcription: ${error.message}`);
-    return this.toEntity(data);
+    try {
+      const result = await this.postgresService.query<TranscriptionRow>(
+        `INSERT INTO transcriptions (audio_id, user_id, language, status)
+         VALUES ($1, $2, $3, $4)
+         RETURNING *`,
+        [props.audioId, props.userId, props.language, TranscriptionStatus.PENDING],
+      );
+      return this.toEntity(result.rows[0]);
+    } catch (err) {
+      throw new Error(`Failed to create transcription: ${toMessage(err)}`);
+    }
   }
 
   async findById(id: string): Promise<TranscriptionEntity | null> {
-    const { data, error } = await this.supabaseService
-      .getClient()
-      .from('transcriptions')
-      .select()
-      .eq('id', id)
-      .single();
+    const result = await this.postgresService.query<TranscriptionRow>(
+      'SELECT * FROM transcriptions WHERE id = $1',
+      [id],
+    );
 
-    if (error || !data) return null;
-    return this.toEntity(data);
+    if (result.rows.length === 0) return null;
+    return this.toEntity(result.rows[0]);
   }
 
   async findByAudioId(audioId: string): Promise<TranscriptionEntity | null> {
-    const { data, error } = await this.supabaseService
-      .getClient()
-      .from('transcriptions')
-      .select()
-      .eq('audio_id', audioId)
-      .single();
+    const result = await this.postgresService.query<TranscriptionRow>(
+      'SELECT * FROM transcriptions WHERE audio_id = $1',
+      [audioId],
+    );
 
-    if (error || !data) return null;
-    return this.toEntity(data);
+    if (result.rows.length === 0) return null;
+    return this.toEntity(result.rows[0]);
   }
 
   async findByUserId(userId: string, search?: string): Promise<TranscriptionEntity[]> {
-    let query = this.supabaseService
-      .getClient()
-      .from('transcriptions')
-      .select()
-      .eq('user_id', userId);
+    try {
+      const result = search
+        ? await this.postgresService.query<TranscriptionRow>(
+            `SELECT * FROM transcriptions
+             WHERE user_id = $1 AND (title ILIKE $2 OR transcription_text ILIKE $2)
+             ORDER BY created_at DESC`,
+            [userId, `%${search}%`],
+          )
+        : await this.postgresService.query<TranscriptionRow>(
+            'SELECT * FROM transcriptions WHERE user_id = $1 ORDER BY created_at DESC',
+            [userId],
+          );
 
-    if (search) {
-      query = query.or(`title.ilike.%${search}%,transcription_text.ilike.%${search}%`);
+      return result.rows.map((row) => this.toEntity(row));
+    } catch (err) {
+      throw new Error(`Failed to fetch transcriptions: ${toMessage(err)}`);
     }
-
-    const { data, error } = await query.order('created_at', { ascending: false });
-
-    if (error) throw new Error(`Failed to fetch transcriptions: ${error.message}`);
-    return (data ?? []).map(this.toEntity);
   }
 
   async updateStatus(
@@ -75,13 +90,14 @@ export class TranscriptionRepositoryImpl implements ITranscriptionRepository {
     status: TranscriptionStatus,
     errorMessage?: string,
   ): Promise<void> {
-    const { error } = await this.supabaseService
-      .getClient()
-      .from('transcriptions')
-      .update({ status, error_message: errorMessage ?? null, updated_at: new Date().toISOString() })
-      .eq('id', id);
-
-    if (error) throw new Error(`Failed to update transcription status: ${error.message}`);
+    try {
+      await this.postgresService.query(
+        'UPDATE transcriptions SET status = $1, error_message = $2, updated_at = NOW() WHERE id = $3',
+        [status, errorMessage ?? null, id],
+      );
+    } catch (err) {
+      throw new Error(`Failed to update transcription status: ${toMessage(err)}`);
+    }
   }
 
   async updateResult(
@@ -91,45 +107,50 @@ export class TranscriptionRepositoryImpl implements ITranscriptionRepository {
     title: string,
     segments: TranscriptionSegment[],
   ): Promise<void> {
-    const { error } = await this.supabaseService
-      .getClient()
-      .from('transcriptions')
-      .update({
-        title,
-        transcription_text: transcriptionText,
-        summary_text: summaryText,
-        segments: segments.length > 0 ? segments : null,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', id);
-
-    if (error) throw new Error(`Failed to update transcription result: ${error.message}`);
+    try {
+      await this.postgresService.query(
+        `UPDATE transcriptions
+         SET title = $1,
+             transcription_text = $2,
+             summary_text = $3,
+             segments = $4::jsonb,
+             updated_at = NOW()
+         WHERE id = $5`,
+        [
+          title,
+          transcriptionText,
+          summaryText,
+          segments.length > 0 ? JSON.stringify(segments) : null,
+          id,
+        ],
+      );
+    } catch (err) {
+      throw new Error(`Failed to update transcription result: ${toMessage(err)}`);
+    }
   }
 
   async deleteByAudioId(audioId: string): Promise<void> {
-    const { error } = await this.supabaseService
-      .getClient()
-      .from('transcriptions')
-      .delete()
-      .eq('audio_id', audioId);
-
-    if (error) throw new Error(`Failed to delete transcription: ${error.message}`);
+    try {
+      await this.postgresService.query('DELETE FROM transcriptions WHERE audio_id = $1', [audioId]);
+    } catch (err) {
+      throw new Error(`Failed to delete transcription: ${toMessage(err)}`);
+    }
   }
 
-  private toEntity(raw: Record<string, unknown>): TranscriptionEntity {
+  private toEntity(row: TranscriptionRow): TranscriptionEntity {
     return {
-      id: raw.id as string,
-      audioId: raw.audio_id as string,
-      userId: raw.user_id as string,
-      title: (raw.title as string | null) ?? null,
-      transcriptionText: raw.transcription_text as string | null,
-      summaryText: raw.summary_text as string | null,
-      segments: (raw.segments as TranscriptionSegment[] | null) ?? null,
-      language: raw.language as string,
-      status: raw.status as TranscriptionStatus,
-      errorMessage: raw.error_message as string | null,
-      createdAt: new Date(raw.created_at as string),
-      updatedAt: new Date(raw.updated_at as string),
+      id: row.id,
+      audioId: row.audio_id,
+      userId: row.user_id,
+      title: row.title ?? null,
+      transcriptionText: row.transcription_text,
+      summaryText: row.summary_text,
+      segments: row.segments ?? null,
+      language: row.language,
+      status: row.status,
+      errorMessage: row.error_message,
+      createdAt: new Date(row.created_at),
+      updatedAt: new Date(row.updated_at),
     };
   }
 }

@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { SupabaseService } from '../../shared/infrastructure/config/supabase.config.js';
 import { SharingController } from './presentation/controllers/sharing.controller.js';
 import { CreateShareLinkUseCase } from './domain/use-cases/create-share-link.use-case.js';
 import { ToggleShareVisibilityUseCase } from './domain/use-cases/toggle-share-visibility.use-case.js';
@@ -22,7 +21,6 @@ import { StudyFolderRepositoryImpl } from '../study-folders/infrastructure/repos
   imports: [ConfigModule],
   controllers: [SharingController],
   providers: [
-    SupabaseService,
     CreateShareLinkUseCase,
     ToggleShareVisibilityUseCase,
     GetMyShareLinksUseCase,
