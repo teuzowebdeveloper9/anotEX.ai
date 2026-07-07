@@ -100,7 +100,7 @@ export class ProcessTranscriptionUseCase {
   private extractErrorMessage(error: unknown): string {
     if (!(error instanceof Error)) return 'Unknown error';
 
-    // Groq returns errors as JSON strings — extract the human-readable message
+    // Providers de IA retornam erros como JSON string — extrai a mensagem legível
     try {
       const parsed = JSON.parse(error.message) as { error?: { message?: string } };
       if (parsed?.error?.message) return parsed.error.message;
