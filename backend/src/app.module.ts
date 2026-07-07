@@ -4,6 +4,8 @@ import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { BullModule } from '@nestjs/bull';
 import { APP_GUARD } from '@nestjs/core';
 import { envValidationSchema } from './shared/infrastructure/config/env.validation.js';
+import { PostgresModule } from './shared/infrastructure/config/postgres.module.js';
+import { AuthModule } from './modules/auth/auth.module.js';
 import { AudioModule } from './modules/audio/audio.module.js';
 import { TranscriptionModule } from './modules/transcription/transcription.module.js';
 import { StudyMaterialModule } from './modules/study-materials/study-material.module.js';
@@ -16,7 +18,7 @@ import { UserModule } from './modules/user/user.module.js';
 import { PaymentModule } from './modules/payments/payment.module.js';
 import { PomodoroModule } from './modules/pomodoro/pomodoro.module.js';
 import { HealthController } from './shared/presentation/controllers/health.controller.js';
-import { SupabaseAuthGuard } from './modules/audio/presentation/guards/auth.guard.js';
+import { JwtAuthGuard } from './modules/audio/presentation/guards/auth.guard.js';
 import { LoggingMiddleware } from './shared/presentation/middlewares/logging.middleware.js';
 
 @Module({
@@ -33,18 +35,23 @@ import { LoggingMiddleware } from './shared/presentation/middlewares/logging.mid
     ]),
     BullModule.forRootAsync({
       useFactory: () => {
-        const redisUrl = process.env.UPSTASH_REDIS_URL ?? '';
-        const host = redisUrl.replace(/^https?:\/\//, '');
+        const host = process.env.REDIS_HOST ?? 'localhost';
+        const useTls = (process.env.REDIS_TLS ?? 'true') === 'true';
         return {
           redis: {
             host,
-            port: 6379,
-            password: process.env.UPSTASH_REDIS_TOKEN ?? '',
-            tls: {},
+            port: Number(process.env.REDIS_PORT ?? 10000),
+            password: process.env.REDIS_PASSWORD ?? '',
+            // Azure Managed Redis fecha conexões ociosas — keepAlive evita queda das
+            // conexões bloqueantes do Bull; TLS exige SNI com o hostname
+            keepAlive: 30_000,
+            ...(useTls ? { tls: { servername: host } } : {}),
           },
         };
       },
     }),
+    PostgresModule,
+    AuthModule,
     AudioModule,
     TranscriptionModule,
     StudyMaterialModule,
@@ -67,7 +74,7 @@ import { LoggingMiddleware } from './shared/presentation/middlewares/logging.mid
     // Auth global — todo controller protegido por padrão; use @Public() para rotas abertas
     {
       provide: APP_GUARD,
-      useClass: SupabaseAuthGuard,
+      useClass: JwtAuthGuard,
     },
   ],
 })
