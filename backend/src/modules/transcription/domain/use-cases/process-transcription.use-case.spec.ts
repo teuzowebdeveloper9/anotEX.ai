@@ -120,6 +120,7 @@ describe('ProcessTranscriptionUseCase', () => {
         'Texto transcrito da aula',
         'Resumo da aula',
         'Título da aula',
+        [],
       );
       expect(transcriptionRepository.updateStatus).toHaveBeenCalledWith(
         'transcription-1',
