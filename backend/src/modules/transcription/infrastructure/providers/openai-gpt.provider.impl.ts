@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import Groq from 'groq-sdk';
+import OpenAI from 'openai';
 import { ISummaryProvider } from '../../domain/repositories/transcription.provider.js';
 
 const SUMMARY_PROMPT = `Você é um assistente especializado em resumir aulas.
@@ -18,24 +18,24 @@ const TITLE_PROMPT = `Leia a transcrição a seguir e crie um título curto (má
 Transcrição:`;
 
 @Injectable()
-export class GroqLlamaProviderImpl implements ISummaryProvider {
-  private readonly logger = new Logger(GroqLlamaProviderImpl.name);
-  private readonly groq: Groq;
+export class OpenAiGptProviderImpl implements ISummaryProvider {
+  private readonly logger = new Logger(OpenAiGptProviderImpl.name);
+  private readonly openai: OpenAI;
 
   constructor(private readonly configService: ConfigService) {
-    this.groq = new Groq({
-      apiKey: this.configService.getOrThrow<string>('GROQ_API_KEY'),
+    this.openai = new OpenAI({
+      apiKey: this.configService.getOrThrow<string>('OPENAI_API_KEY'),
     });
   }
 
   async summarize(transcriptionText: string): Promise<string> {
-    this.logger.log('Summarizing with Groq Llama 3 70B...');
+    this.logger.log('Summarizing with OpenAI gpt-4o-mini...');
 
-    // ~30k chars ≈ 7500 tokens — stays under Groq free tier TPM limit of 12k
-    const truncated = transcriptionText.slice(0, 30_000);
+    // gpt-4o-mini tem contexto de 128k tokens — 100k chars cobre aulas longas com folga
+    const truncated = transcriptionText.slice(0, 100_000);
 
-    const completion = await this.groq.chat.completions.create({
-      model: 'llama-3.3-70b-versatile',
+    const completion = await this.openai.chat.completions.create({
+      model: 'gpt-4o-mini',
       messages: [
         {
           role: 'user',
@@ -50,12 +50,12 @@ export class GroqLlamaProviderImpl implements ISummaryProvider {
   }
 
   async generateTitle(transcriptionText: string): Promise<string> {
-    this.logger.log('Generating title with Groq Llama 3 70B...');
+    this.logger.log('Generating title with OpenAI gpt-4o-mini...');
 
     const preview = transcriptionText.slice(0, 1500);
 
-    const completion = await this.groq.chat.completions.create({
-      model: 'llama-3.3-70b-versatile',
+    const completion = await this.openai.chat.completions.create({
+      model: 'gpt-4o-mini',
       messages: [
         {
           role: 'user',

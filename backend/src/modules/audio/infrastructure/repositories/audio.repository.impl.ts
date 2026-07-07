@@ -1,86 +1,101 @@
 import { Injectable } from '@nestjs/common';
-import { SupabaseService } from '../../../../shared/infrastructure/config/supabase.config.js';
+import { PostgresService } from '../../../../shared/infrastructure/config/postgres.config.js';
 import { IAudioRepository } from '../../domain/repositories/audio.repository.js';
 import { AudioEntity, AudioStatus, CreateAudioProps } from '../../domain/entities/audio.entity.js';
 
+interface AudioRow {
+  id: string;
+  user_id: string;
+  file_name: string;
+  mime_type: string;
+  size_bytes: string | number;
+  storage_key: string;
+  status: AudioStatus;
+  created_at: Date | string;
+  updated_at: Date | string;
+}
+
+function toMessage(err: unknown): string {
+  return err instanceof Error ? err.message : String(err);
+}
+
 @Injectable()
 export class AudioRepositoryImpl implements IAudioRepository {
-  constructor(private readonly supabaseService: SupabaseService) {}
+  constructor(private readonly postgresService: PostgresService) {}
 
   async create(props: CreateAudioProps): Promise<AudioEntity> {
-    const { data, error } = await this.supabaseService
-      .getClient()
-      .from('audios')
-      .insert({
-        user_id: props.userId,
-        file_name: props.fileName,
-        mime_type: props.mimeType,
-        size_bytes: props.sizeBytes,
-        storage_key: props.storageKey,
-        status: AudioStatus.PENDING,
-      })
-      .select()
-      .single();
-
-    if (error) throw new Error(`Failed to create audio: ${error.message}`);
-    return this.toEntity(data);
+    try {
+      const result = await this.postgresService.query<AudioRow>(
+        `INSERT INTO audios (user_id, file_name, mime_type, size_bytes, storage_key, status)
+         VALUES ($1, $2, $3, $4, $5, $6)
+         RETURNING *`,
+        [
+          props.userId,
+          props.fileName,
+          props.mimeType,
+          props.sizeBytes,
+          props.storageKey,
+          AudioStatus.PENDING,
+        ],
+      );
+      return this.toEntity(result.rows[0]);
+    } catch (err) {
+      throw new Error(`Failed to create audio: ${toMessage(err)}`);
+    }
   }
 
   async findById(id: string): Promise<AudioEntity | null> {
-    const { data, error } = await this.supabaseService
-      .getClient()
-      .from('audios')
-      .select()
-      .eq('id', id)
-      .single();
+    const result = await this.postgresService.query<AudioRow>(
+      'SELECT * FROM audios WHERE id = $1',
+      [id],
+    );
 
-    if (error || !data) return null;
-    return this.toEntity(data);
+    if (result.rows.length === 0) return null;
+    return this.toEntity(result.rows[0]);
   }
 
   async findByUserId(userId: string): Promise<AudioEntity[]> {
-    const { data, error } = await this.supabaseService
-      .getClient()
-      .from('audios')
-      .select()
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false });
-
-    if (error) throw new Error(`Failed to fetch audios: ${error.message}`);
-    return (data ?? []).map(this.toEntity);
+    try {
+      const result = await this.postgresService.query<AudioRow>(
+        'SELECT * FROM audios WHERE user_id = $1 ORDER BY created_at DESC',
+        [userId],
+      );
+      return result.rows.map((row) => this.toEntity(row));
+    } catch (err) {
+      throw new Error(`Failed to fetch audios: ${toMessage(err)}`);
+    }
   }
 
   async updateStatus(id: string, status: AudioStatus, errorMessage?: string): Promise<void> {
-    const { error } = await this.supabaseService
-      .getClient()
-      .from('audios')
-      .update({ status, error_message: errorMessage ?? null, updated_at: new Date().toISOString() })
-      .eq('id', id);
-
-    if (error) throw new Error(`Failed to update audio status: ${error.message}`);
+    try {
+      await this.postgresService.query(
+        'UPDATE audios SET status = $1, error_message = $2, updated_at = NOW() WHERE id = $3',
+        [status, errorMessage ?? null, id],
+      );
+    } catch (err) {
+      throw new Error(`Failed to update audio status: ${toMessage(err)}`);
+    }
   }
 
   async delete(id: string): Promise<void> {
-    const { error } = await this.supabaseService
-      .getClient()
-      .from('audios')
-      .delete()
-      .eq('id', id);
-
-    if (error) throw new Error(`Failed to delete audio: ${error.message}`);
+    try {
+      await this.postgresService.query('DELETE FROM audios WHERE id = $1', [id]);
+    } catch (err) {
+      throw new Error(`Failed to delete audio: ${toMessage(err)}`);
+    }
   }
 
-  private toEntity(raw: Record<string, unknown>): AudioEntity {
+  private toEntity(row: AudioRow): AudioEntity {
     return {
-      id: raw.id as string,
-      userId: raw.user_id as string,
-      fileName: raw.file_name as string,
-      mimeType: raw.mime_type as string,
-      sizeBytes: raw.size_bytes as number,
-      storageKey: raw.storage_key as string,
-      status: raw.status as AudioStatus,
-      createdAt: new Date(raw.created_at as string),
-      updatedAt: new Date(raw.updated_at as string),
+      id: row.id,
+      userId: row.user_id,
+      fileName: row.file_name,
+      mimeType: row.mime_type,
+      sizeBytes: Number(row.size_bytes),
+      storageKey: row.storage_key,
+      status: row.status,
+      createdAt: new Date(row.created_at),
+      updatedAt: new Date(row.updated_at),
     };
   }
 }
