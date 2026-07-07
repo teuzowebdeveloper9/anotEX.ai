@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import Groq from 'groq-sdk';
+import OpenAI from 'openai';
 import type { IStudyMaterialProvider } from '../../domain/repositories/study-material.provider.js';
 import type {
   FlashcardItem,
@@ -53,19 +53,19 @@ Retorne APENAS um JSON array válido, sem texto adicional, no formato:
 Resumo da aula:`;
 
 @Injectable()
-export class GroqStudyMaterialProviderImpl implements IStudyMaterialProvider {
-  private readonly logger = new Logger(GroqStudyMaterialProviderImpl.name);
-  private readonly groq: Groq;
+export class OpenAiStudyMaterialProviderImpl implements IStudyMaterialProvider {
+  private readonly logger = new Logger(OpenAiStudyMaterialProviderImpl.name);
+  private readonly openai: OpenAI;
 
   constructor(private readonly configService: ConfigService) {
-    this.groq = new Groq({
-      apiKey: this.configService.getOrThrow<string>('GROQ_API_KEY'),
+    this.openai = new OpenAI({
+      apiKey: this.configService.getOrThrow<string>('OPENAI_API_KEY'),
     });
   }
 
   async generateFlashcards(summaryText: string): Promise<FlashcardItem[]> {
     this.logger.log('Generating flashcards...');
-    const raw = await this.callGroq(`${FLASHCARD_PROMPT}\n\n${summaryText}`, 2048);
+    const raw = await this.callOpenAi(`${FLASHCARD_PROMPT}\n\n${summaryText}`, 2048);
     const parsed = this.parseJsonArray<FlashcardItem>(raw);
 
     return parsed.filter(
@@ -78,13 +78,13 @@ export class GroqStudyMaterialProviderImpl implements IStudyMaterialProvider {
 
   async generateMindmap(summaryText: string): Promise<MindmapContent> {
     this.logger.log('Generating mindmap...');
-    const markdown = await this.callGroq(`${MINDMAP_PROMPT}\n\n${summaryText}`, 1024);
+    const markdown = await this.callOpenAi(`${MINDMAP_PROMPT}\n\n${summaryText}`, 1024);
     return { markdown: markdown.trim() };
   }
 
   async generateQuiz(summaryText: string): Promise<QuizItem[]> {
     this.logger.log('Generating quiz...');
-    const raw = await this.callGroq(`${QUIZ_PROMPT}\n\n${summaryText}`, 2048);
+    const raw = await this.callOpenAi(`${QUIZ_PROMPT}\n\n${summaryText}`, 2048);
     const parsed = this.parseJsonArray<QuizItem>(raw);
 
     return parsed.filter(
@@ -96,9 +96,9 @@ export class GroqStudyMaterialProviderImpl implements IStudyMaterialProvider {
     );
   }
 
-  private async callGroq(prompt: string, maxTokens: number): Promise<string> {
-    const completion = await this.groq.chat.completions.create({
-      model: 'llama-3.3-70b-versatile',
+  private async callOpenAi(prompt: string, maxTokens: number): Promise<string> {
+    const completion = await this.openai.chat.completions.create({
+      model: 'gpt-4o-mini',
       messages: [{ role: 'user', content: prompt }],
       temperature: 0.4,
       max_tokens: maxTokens,

@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { SupabaseService } from '../../shared/infrastructure/config/supabase.config.js';
 import { StudyGroupController } from './presentation/controllers/study-group.controller.js';
 import { CreateGroupUseCase } from './domain/use-cases/create-group.use-case.js';
 import { GetUserGroupsUseCase } from './domain/use-cases/get-user-groups.use-case.js';
@@ -20,7 +19,6 @@ import { ShareLinkRepositoryImpl } from '../sharing/infrastructure/repositories/
   imports: [ConfigModule],
   controllers: [StudyGroupController],
   providers: [
-    SupabaseService,
     CreateGroupUseCase,
     GetUserGroupsUseCase,
     AddGroupMemberUseCase,

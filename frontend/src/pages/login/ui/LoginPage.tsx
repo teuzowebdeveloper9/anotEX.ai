@@ -1,35 +1,19 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AuthForm } from '@/features/auth/login-with-password/ui/AuthForm'
-import { supabase } from '@/shared/auth/supabase'
+import { isAuthenticated } from '@/shared/auth/auth-client'
 import { brandLogo } from '@/shared/assets/brand-logo'
-import { BrandedLoader } from '@/shared/ui/BrandedLoader/BrandedLoader'
 
 export function LoginPage() {
   const navigate = useNavigate()
-  const [checkingSession, setCheckingSession] = useState(true)
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) {
-        const returnTo = sessionStorage.getItem('returnTo')
-        sessionStorage.removeItem('returnTo')
-        navigate(returnTo ?? '/dashboard', { replace: true })
-        return
-      }
-      setCheckingSession(false)
-    })
+    if (isAuthenticated()) {
+      const returnTo = sessionStorage.getItem('returnTo')
+      sessionStorage.removeItem('returnTo')
+      navigate(returnTo ?? '/dashboard', { replace: true })
+    }
   }, [navigate])
-
-  if (checkingSession) {
-    return (
-      <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[linear-gradient(180deg,#fbfcff_0%,#f7f9fd_100%)] px-4 py-10">
-        <div className="pointer-events-none absolute left-[-6rem] top-[-4rem] h-[22rem] w-[22rem] rounded-full bg-[radial-gradient(circle,rgba(37,99,235,0.12)_0%,rgba(37,99,235,0)_70%)] blur-3xl" />
-        <div className="pointer-events-none absolute right-[-6rem] top-[40%] h-[18rem] w-[18rem] rounded-full bg-[radial-gradient(circle,rgba(86,245,248,0.1)_0%,rgba(86,245,248,0)_70%)] blur-3xl" />
-        <BrandedLoader className="relative z-10 w-full max-w-sm" />
-      </div>
-    )
-  }
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[linear-gradient(180deg,#fbfcff_0%,#f7f9fd_100%)] px-4 py-10">

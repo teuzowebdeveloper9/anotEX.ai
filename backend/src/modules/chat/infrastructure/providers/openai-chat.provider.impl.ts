@@ -1,16 +1,16 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import Groq from 'groq-sdk';
+import OpenAI from 'openai';
 import type { IChatProvider, ChatHistoryMessage } from '../../domain/repositories/chat.provider.js';
 
 @Injectable()
-export class GroqChatProviderImpl implements IChatProvider {
-  private readonly logger = new Logger(GroqChatProviderImpl.name);
-  private readonly groq: Groq;
+export class OpenAiChatProviderImpl implements IChatProvider {
+  private readonly logger = new Logger(OpenAiChatProviderImpl.name);
+  private readonly openai: OpenAI;
 
   constructor(private readonly configService: ConfigService) {
-    this.groq = new Groq({
-      apiKey: this.configService.getOrThrow<string>('GROQ_API_KEY'),
+    this.openai = new OpenAI({
+      apiKey: this.configService.getOrThrow<string>('OPENAI_API_KEY'),
     });
   }
 
@@ -19,10 +19,10 @@ export class GroqChatProviderImpl implements IChatProvider {
     history: ChatHistoryMessage[],
     userMessage: string,
   ): AsyncIterable<string> {
-    this.logger.log('Streaming chat response from Groq Llama 3.3 70B...');
+    this.logger.log('Streaming chat response from OpenAI gpt-4o-mini...');
 
-    const stream = await this.groq.chat.completions.create({
-      model: 'llama-3.3-70b-versatile',
+    const stream = await this.openai.chat.completions.create({
+      model: 'gpt-4o-mini',
       messages: [
         { role: 'system', content: systemPrompt },
         ...history,

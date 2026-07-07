@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import Groq from 'groq-sdk';
+import OpenAI from 'openai';
 import type { IYouTubeProvider } from '../../domain/repositories/youtube.provider.js';
 import type { FolderContext, YouTubeVideoResult } from '../../domain/entities/study-folder.entity.js';
 
@@ -31,12 +31,12 @@ interface YouTubeSearchResponse {
 @Injectable()
 export class YouTubeProviderImpl implements IYouTubeProvider {
   private readonly logger = new Logger(YouTubeProviderImpl.name);
-  private readonly groq: Groq;
+  private readonly openai: OpenAI;
   private readonly youtubeApiKey: string;
 
   constructor(private readonly configService: ConfigService) {
-    this.groq = new Groq({
-      apiKey: this.configService.getOrThrow<string>('GROQ_API_KEY'),
+    this.openai = new OpenAI({
+      apiKey: this.configService.getOrThrow<string>('OPENAI_API_KEY'),
     });
     this.youtubeApiKey = this.configService.getOrThrow<string>('YOUTUBE_API_KEY');
   }
@@ -56,8 +56,8 @@ export class YouTubeProviderImpl implements IYouTubeProvider {
       .replace('{description}', context.folderDescription ?? 'Não informada')
       .replace('{materials}', materialsText);
 
-    const completion = await this.groq.chat.completions.create({
-      model: 'llama-3.3-70b-versatile',
+    const completion = await this.openai.chat.completions.create({
+      model: 'gpt-4o-mini',
       messages: [{ role: 'user', content: prompt }],
       temperature: 0.3,
       max_tokens: 50,

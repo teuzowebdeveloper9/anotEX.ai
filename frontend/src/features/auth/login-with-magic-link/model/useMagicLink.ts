@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { supabase } from '@/shared/auth/supabase'
+import { AuthApiError, requestMagicLink } from '@/shared/auth/auth-client'
 import { toast } from 'sonner'
 
 const COOLDOWN_KEY = 'magic_link_cooldown_until'
@@ -43,15 +43,14 @@ export function useMagicLink(): UseMagicLinkReturn {
   const submit = async (): Promise<void> => {
     if (!email.trim() || cooldownSeconds > 0) return
     setLoading(true)
-    const { error } = await supabase.auth.signInWithOtp({
-      email: email.trim(),
-      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
-    })
-    setLoading(false)
-    if (error) {
+    try {
+      await requestMagicLink(email.trim())
+      setSent(true)
+      toast.success('Link enviado! Verifique seu e-mail.')
+    } catch (error) {
       const isRateLimit =
-        error.message.toLowerCase().includes('rate limit') ||
-        error.message.toLowerCase().includes('over_email_send_rate_limit')
+        error instanceof AuthApiError &&
+        (error.status === 429 || error.message.toLowerCase().includes('rate limit'))
       if (isRateLimit) {
         const until = Date.now() + COOLDOWN_SECONDS * 1000
         localStorage.setItem(COOLDOWN_KEY, String(until))
@@ -60,10 +59,9 @@ export function useMagicLink(): UseMagicLinkReturn {
       } else {
         toast.error('Erro ao enviar link. Tente novamente.')
       }
-      return
+    } finally {
+      setLoading(false)
     }
-    setSent(true)
-    toast.success('Link enviado! Verifique seu e-mail.')
   }
 
   return { email, setEmail, loading, sent, cooldownSeconds, submit }

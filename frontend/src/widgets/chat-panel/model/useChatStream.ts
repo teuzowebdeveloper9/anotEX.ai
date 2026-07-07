@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import { supabase } from '@/shared/auth/supabase'
+import { getAccessToken } from '@/shared/auth/auth-client'
 
 export interface ChatMessage {
   id: string
@@ -26,8 +26,7 @@ export function useChatStream(transcriptionId: string) {
     ])
 
     try {
-      const { data } = await supabase.auth.getSession()
-      const token = data.session?.access_token
+      const token = getAccessToken()
       if (!token) throw new Error('Sessão expirada')
 
       const baseUrl = import.meta.env.VITE_API_BASE_URL as string

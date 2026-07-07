@@ -5,20 +5,32 @@ export const envValidationSchema = Joi.object({
   PORT: Joi.number().default(3000),
   ALLOWED_ORIGINS: Joi.string().required(),
 
-  SUPABASE_URL: Joi.string().uri().required(),
-  SUPABASE_ANON_KEY: Joi.string().required(),
-  SUPABASE_SERVICE_ROLE_KEY: Joi.string().required(),
+  // Azure Database for PostgreSQL
+  DATABASE_URL: Joi.string().required(),
 
-  GROQ_API_KEY: Joi.string().required(),
+  // Auth própria (magic link + JWT)
+  JWT_SECRET: Joi.string().min(32).required(),
+  JWT_EXPIRES_IN: Joi.string().default('1h'),
+  MAGIC_LINK_EXPIRES_IN_MINUTES: Joi.number().default(15),
+  FRONTEND_URL: Joi.string().uri().required(),
 
-  R2_ACCOUNT_ID: Joi.string().required(),
-  R2_ACCESS_KEY_ID: Joi.string().required(),
-  R2_SECRET_ACCESS_KEY: Joi.string().required(),
-  R2_BUCKET_NAME: Joi.string().required(),
-  R2_PUBLIC_URL: Joi.string().uri().required(),
+  // Azure Communication Services (envio dos magic links)
+  ACS_CONNECTION_STRING: Joi.string().required(),
+  ACS_SENDER_ADDRESS: Joi.string().required(),
 
-  UPSTASH_REDIS_URL: Joi.string().required(),
-  UPSTASH_REDIS_TOKEN: Joi.string().required(),
+  // OpenAI
+  OPENAI_API_KEY: Joi.string().required(),
+
+  // Azure Blob Storage
+  AZURE_STORAGE_ACCOUNT: Joi.string().required(),
+  AZURE_STORAGE_KEY: Joi.string().required(),
+  AZURE_STORAGE_CONTAINER: Joi.string().default('audios'),
+
+  // Redis (Azure Managed Redis — porta 10000, TLS)
+  REDIS_HOST: Joi.string().required(),
+  REDIS_PORT: Joi.number().default(10000),
+  REDIS_PASSWORD: Joi.string().required(),
+  REDIS_TLS: Joi.string().valid('true', 'false').default('true'),
 
   ABACATEPAY_API_KEY: Joi.string().optional(),
   ABACATEPAY_API_BASE_URL: Joi.string().uri().default('https://api.abacatepay.com/v2'),

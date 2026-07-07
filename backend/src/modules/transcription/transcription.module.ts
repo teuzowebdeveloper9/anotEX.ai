@@ -5,15 +5,14 @@ import { TranscriptionQueueProcessor, TRANSCRIPTION_QUEUE } from './application/
 import { ProcessTranscriptionUseCase } from './domain/use-cases/process-transcription.use-case.js';
 import { GetTranscriptionUseCase } from './domain/use-cases/get-transcription.use-case.js';
 import { TranscriptionRepositoryImpl } from './infrastructure/repositories/transcription.repository.impl.js';
-import { GroqWhisperProviderImpl } from './infrastructure/providers/groq-whisper.provider.impl.js';
-import { GroqLlamaProviderImpl } from './infrastructure/providers/groq-llama.provider.impl.js';
+import { OpenAiWhisperProviderImpl } from './infrastructure/providers/openai-whisper.provider.impl.js';
+import { OpenAiGptProviderImpl } from './infrastructure/providers/openai-gpt.provider.impl.js';
 import { TRANSCRIPTION_REPOSITORY } from './domain/repositories/transcription.repository.js';
 import { TRANSCRIPTION_PROVIDER, SUMMARY_PROVIDER } from './domain/repositories/transcription.provider.js';
 import { AUDIO_REPOSITORY } from '../audio/domain/repositories/audio.repository.js';
 import { STORAGE_REPOSITORY } from '../audio/domain/repositories/storage.repository.js';
 import { AudioRepositoryImpl } from '../audio/infrastructure/repositories/audio.repository.impl.js';
-import { StorageRepositoryImpl } from '../audio/infrastructure/repositories/storage.repository.impl.js';
-import { SupabaseService } from '../../shared/infrastructure/config/supabase.config.js';
+import { AzureBlobStorageRepositoryImpl } from '../audio/infrastructure/repositories/azure-blob-storage.repository.impl.js';
 import { TranscriptionController } from './presentation/controllers/transcription.controller.js';
 
 @Module({
@@ -24,15 +23,14 @@ import { TranscriptionController } from './presentation/controllers/transcriptio
   ],
   controllers: [TranscriptionController],
   providers: [
-    SupabaseService,
     TranscriptionQueueProcessor,
     ProcessTranscriptionUseCase,
     GetTranscriptionUseCase,
     { provide: TRANSCRIPTION_REPOSITORY, useClass: TranscriptionRepositoryImpl },
     { provide: AUDIO_REPOSITORY, useClass: AudioRepositoryImpl },
-    { provide: STORAGE_REPOSITORY, useClass: StorageRepositoryImpl },
-    { provide: TRANSCRIPTION_PROVIDER, useClass: GroqWhisperProviderImpl },
-    { provide: SUMMARY_PROVIDER, useClass: GroqLlamaProviderImpl },
+    { provide: STORAGE_REPOSITORY, useClass: AzureBlobStorageRepositoryImpl },
+    { provide: TRANSCRIPTION_PROVIDER, useClass: OpenAiWhisperProviderImpl },
+    { provide: SUMMARY_PROVIDER, useClass: OpenAiGptProviderImpl },
   ],
   exports: [GetTranscriptionUseCase],
 })

@@ -7,12 +7,10 @@ import { Sm2Helper } from './infrastructure/helpers/sm2.helper.js';
 import { FLASHCARD_REVIEW_REPOSITORY } from './domain/repositories/flashcard-review.repository.js';
 import { STUDY_MATERIAL_REPOSITORY } from '../study-materials/domain/repositories/study-material.repository.js';
 import { StudyMaterialRepositoryImpl } from '../study-materials/infrastructure/repositories/study-material.repository.impl.js';
-import { SupabaseService } from '../../shared/infrastructure/config/supabase.config.js';
 
 @Module({
   controllers: [SpacedRepetitionController],
   providers: [
-    SupabaseService,
     GetDueCardsUseCase,
     ReviewFlashcardUseCase,
     Sm2Helper,

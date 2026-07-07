@@ -12,7 +12,7 @@ import { FlashcardDeck } from '@/widgets/flashcard-deck/ui/FlashcardDeck'
 import { QuizPlayer } from '@/widgets/quiz-player/ui/QuizPlayer'
 import { TranscriptionViewer } from '@/widgets/transcription-viewer/ui/TranscriptionViewer'
 import { GradientOrb } from '@/shared/ui/decorative/GradientOrb'
-import { supabase } from '@/shared/auth/supabase'
+import { isAuthenticated, onAuthStateChange } from '@/shared/auth/auth-client'
 import { cn } from '@/shared/lib/cn'
 import type { FlashcardItem, MindmapContent, QuizItem, TranscriptionSegment } from '@/shared/types/api.types'
 
@@ -101,17 +101,9 @@ export function SharedResourcePage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const selectedItemId = searchParams.get('item')
   const [activeTab, setActiveTab] = useState<Tab>('resumo')
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null)
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => isAuthenticated())
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setIsLoggedIn(!!data.session)
-    })
-    const { data: listener } = supabase.auth.onAuthStateChange((_e, s) => {
-      setIsLoggedIn(!!s)
-    })
-    return () => listener.subscription.unsubscribe()
-  }, [])
+  useEffect(() => onAuthStateChange((user) => setIsLoggedIn(!!user)), [])
 
   const { data, isLoading, error } = useQuery<SharedResource>({
     queryKey: ['shared-resource', token, selectedItemId],
