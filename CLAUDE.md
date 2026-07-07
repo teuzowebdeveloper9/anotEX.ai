@@ -3,12 +3,13 @@
 ## Stack
 
 - **Runtime:** Node.js + NestJS (TypeScript estrito)
-- **IA - Transcrição:** Groq Whisper Large v3
-- **IA - Resumo:** Groq Llama 3 70B
-- **Banco de dados:** Supabase (Postgres + Auth + Storage)
-- **Storage de áudio:** Cloudflare R2
-- **Fila:** BullMQ + Upstash Redis
-- **Deploy:** Railway
+- **IA - Transcrição:** OpenAI Whisper (whisper-1)
+- **IA - Resumo/Chat/Materiais:** OpenAI gpt-4o-mini
+- **Banco de dados:** Azure Database for PostgreSQL Flexible Server (acesso via `pg`, SQL parametrizado)
+- **Auth:** própria — magic link (Azure Communication Services Email) + email/senha (bcrypt), JWT HS256
+- **Storage de áudio:** Azure Blob Storage (SAS urls)
+- **Fila:** Bull + Azure Managed Redis (TLS, porta 10000)
+- **Deploy:** Azure Container Apps (api + worker) + Azure Static Web Apps (frontend)
 
 ---
 
@@ -27,7 +28,7 @@ src/
       application/      # Orquestração, DTOs, casos de uso NestJS
         dto/
         services/
-      infrastructure/   # Implementações concretas (Supabase, Groq, R2)
+      infrastructure/   # Implementações concretas (Postgres, OpenAI, Azure Blob)
         repositories/
         providers/
       presentation/     # Controllers, Guards, Pipes
@@ -59,12 +60,12 @@ Cada classe tem uma única razão para mudar.
 
 ### O — Open/Closed
 Aberto para extensão, fechado para modificação.
-- Providers de IA implementam uma interface comum (`TranscriptionProvider`, `SummaryProvider`)
-- Para adicionar novo provider (ex: OpenAI), cria-se uma nova classe sem alterar as existentes
+- Providers de IA implementam uma interface comum (`ITranscriptionProvider`, `ISummaryProvider`)
+- Para adicionar novo provider (ex: Groq, Azure OpenAI), cria-se uma nova classe sem alterar as existentes
 
 ### L — Liskov Substitution
 Implementações devem ser substituíveis por suas interfaces sem quebrar o sistema.
-- `GroqWhisperProvider` e `CloudflareWhisperProvider` são intercambiáveis via `TranscriptionProvider`
+- `OpenAiWhisperProviderImpl` e qualquer provider futuro são intercambiáveis via `ITranscriptionProvider`
 
 ### I — Interface Segregation
 Interfaces pequenas e específicas, não interfaces gordas.
@@ -73,7 +74,7 @@ Interfaces pequenas e específicas, não interfaces gordas.
 
 ### D — Dependency Inversion
 Dependa de abstrações, não de implementações concretas.
-- Use cases recebem `ITranscriptionProvider` via injeção de dependência, nunca instanciam `GroqWhisperProvider` diretamente
+- Use cases recebem `ITranscriptionProvider` via injeção de dependência, nunca instanciam `OpenAiWhisperProviderImpl` diretamente
 - Módulos NestJS configuram qual implementação injetar
 
 ---
@@ -86,7 +87,7 @@ Dependa de abstrações, não de implementações concretas.
 - **Interfaces:** prefixo `I` — `ITranscriptionProvider`, `IAudioRepository`
 - **Arquivos:** kebab-case — `transcribe-audio.use-case.ts`, `audio.repository.ts`
 - **Variáveis e funções:** camelCase — `audioBuffer`, `transcribeAudio()`
-- **Constantes:** SCREAMING_SNAKE_CASE — `MAX_AUDIO_SIZE_MB`, `GROQ_RATE_LIMIT`
+- **Constantes:** SCREAMING_SNAKE_CASE — `MAX_AUDIO_SIZE_MB`, `MAGIC_LINK_EXPIRES_IN_MINUTES`
 - **Enums:** PascalCase com valores SCREAMING_SNAKE_CASE
 
 ### Sufixos obrigatórios por tipo
@@ -99,7 +100,7 @@ Dependa de abstrações, não de implementações concretas.
 | Repository (interface) | `.repository.ts` | `audio.repository.ts` |
 | Repository (impl) | `.repository.impl.ts` | `audio.repository.impl.ts` |
 | Provider (interface) | `.provider.ts` | `transcription.provider.ts` |
-| Provider (impl) | `.provider.impl.ts` | `groq-whisper.provider.impl.ts` |
+| Provider (impl) | `.provider.impl.ts` | `openai-whisper.provider.impl.ts` |
 | DTO | `.dto.ts` | `upload-audio.dto.ts` |
 | Entity | `.entity.ts` | `audio.entity.ts` |
 | Guard | `.guard.ts` | `auth.guard.ts` |
@@ -126,17 +127,18 @@ Dependa de abstrações, não de implementações concretas.
 
 ### Autenticação e Autorização (API1, API2, API5)
 
-- JWT validado via `SupabaseAuthGuard` em todas as rotas protegidas
+- Auth própria em `modules/auth`: magic link por email (Azure Communication Services) + login email/senha com hash `bcryptjs`
+- JWT validado via `JwtAuthGuard` (`modules/audio/presentation/guards/auth.guard.ts`) — validação local do HS256, sem chamada externa
 - Guard aplicado globalmente — rotas públicas marcadas explicitamente com `@Public()`
-- Nunca confiar em dados do `user_metadata` do JWT para RLS — usar `auth.uid()` do Supabase
-- Tokens com expiração curta (1h); refresh token gerenciado pelo Supabase
+- Access token JWT HS256 com expiração de 1h; refresh token opaco rotacionado a cada uso, validade de 30 dias
+- Identidade do usuário vem exclusivamente de `req.user.id` (extraído do JWT pelo guard) — nunca de campos do body/query
 - Nunca expor endpoints admin sem verificação de role
 
 ```typescript
-// Correto
-@UseGuards(SupabaseAuthGuard)
-@Roles(Role.USER)
-async uploadAudio() {}
+// Guard global — toda rota é protegida por padrão
+async uploadAudio(@Req() req: AuthenticatedRequest) {
+  const userId = req.user.id; // única fonte de identidade
+}
 
 // Rotas públicas explicitamente marcadas
 @Public()
@@ -148,7 +150,7 @@ async healthCheck() {}
 - `ValidationPipe` global com `whitelist: true` — campos extras são removidos automaticamente
 - Validar tamanho máximo do arquivo de áudio no pipe antes de processar
 - Sanitizar nomes de arquivo antes de salvar no storage
-- Nunca usar input do usuário em queries SQL diretas — usar Supabase client com parâmetros
+- Nunca usar input do usuário em queries SQL diretas — sempre SQL parametrizado via `pg` (`PostgresService`)
 
 ```typescript
 // Global no main.ts
@@ -163,7 +165,7 @@ app.useGlobalPipes(new ValidationPipe({
 
 - `@nestjs/throttler` aplicado globalmente: 100 req/min por IP
 - Rate limit específico para upload de áudio: 10 uploads/hora por usuário
-- Rate limit para transcrição: respeitar limites do Groq (20 req/min) via fila BullMQ
+- Rate limit para transcrição: respeitar os limites da OpenAI via fila Bull (processamento assíncrono)
 - Retornar `429 Too Many Requests` com `Retry-After` header
 
 ### Headers de Segurança
@@ -177,8 +179,8 @@ app.useGlobalPipes(new ValidationPipe({
 
 - Nunca logar tokens, API keys ou dados de áudio
 - Variáveis de ambiente via `@nestjs/config` + schema de validação com Joi
-- Nunca commitar `.env` — usar `.env.example` com chaves vazias
-- Áudios armazenados no R2 com acesso privado — URLs assinadas com expiração curta
+- Nunca commitar `.env` — usar `.env.example` com chaves vazias; em produção, segredos ficam nos secrets do Azure Container Apps
+- Áudios armazenados no Azure Blob Storage com acesso privado — SAS URLs com expiração de 15 minutos
 
 ### Tratamento de Erros
 
@@ -189,64 +191,17 @@ app.useGlobalPipes(new ValidationPipe({
 
 ---
 
-## Row Level Security (RLS) — Supabase
+## Autorização de Dados
 
-RLS é a principal camada de autorização no banco. **Toda tabela pública deve ter RLS habilitado.**
+Não há RLS no banco — a autorização é feita inteiramente na camada de aplicação.
 
-### Regras obrigatórias
-
-1. Habilitar RLS em todas as tabelas: `ALTER TABLE tabela ENABLE ROW LEVEL SECURITY;`
-2. Toda tabela com RLS deve ter pelo menos uma policy — RLS sem policy = nenhum acesso
-3. Policies de leitura usam `USING`, policies de escrita usam `WITH CHECK`, UPDATE usa os dois
-4. Sempre usar `auth.uid()` para identificar o usuário — nunca confiar em campos da request
-5. Criar índice nas colunas usadas em policies RLS para evitar full table scan
-
-### Padrão de policies por tabela
-
-```sql
--- Habilitar RLS
-ALTER TABLE audios ENABLE ROW LEVEL SECURITY;
-
--- SELECT: usuário só vê seus próprios registros
-CREATE POLICY "users_select_own_audios"
-ON audios FOR SELECT
-USING (auth.uid() = user_id);
-
--- INSERT: usuário só insere com seu próprio user_id
-CREATE POLICY "users_insert_own_audios"
-ON audios FOR INSERT
-WITH CHECK (auth.uid() = user_id);
-
--- UPDATE: usuário só atualiza seus próprios registros
-CREATE POLICY "users_update_own_audios"
-ON audios FOR UPDATE
-USING (auth.uid() = user_id)
-WITH CHECK (auth.uid() = user_id);
-
--- DELETE: usuário só deleta seus próprios registros
-CREATE POLICY "users_delete_own_audios"
-ON audios FOR DELETE
-USING (auth.uid() = user_id);
-```
-
-### Índices obrigatórios para RLS
-
-```sql
--- Indexar user_id em todas as tabelas com RLS
-CREATE INDEX idx_audios_user_id ON audios(user_id);
-CREATE INDEX idx_transcriptions_user_id ON transcriptions(user_id);
-```
-
-### Storage RLS (Cloudflare R2 / Supabase Storage)
-
-- Buckets de áudio privados — sem acesso público
-- URLs assinadas geradas pelo backend com expiração de 15 minutos
-- Nunca expor a URL permanente do R2 para o frontend
-
-### Testar RLS
-
-- Testar sempre pelo client SDK, nunca pelo SQL Editor (que bypassa RLS)
-- Verificar que um usuário A não consegue acessar dados do usuário B
+- Toda query em tabela multi-tenant filtra por `user_id` vindo do JWT (`req.user.id`, injetado pelo `JwtAuthGuard` global)
+- Repositórios sempre recebem `userId` como parâmetro — nunca buscam ou alteram registros sem esse filtro
+- Acesso ao banco exclusivamente via `pg` com SQL parametrizado (`PostgresService` global em `shared/infrastructure/config/postgres.config.ts`)
+- Índices em `user_id` são obrigatórios em todas as tabelas multi-tenant
+- Storage: Azure Blob privado (container `audios`) — acesso apenas via SAS URLs de 15 minutos geradas pelo backend; nunca expor URL permanente do Blob
+- Schema canônico do banco: `infra/azure-postgres-schema.sql`
+- Testar sempre que um usuário A não consegue acessar dados do usuário B
 
 ---
 ## Providers de IA — Padrão de Fallback
@@ -261,20 +216,16 @@ interface ISummaryProvider {
   summarize(text: string, prompt: string): Promise<string>;
 }
 
-// Ordem de fallback para transcrição
-// 1. Groq Whisper (primário)
-// 2. Cloudflare Workers AI Whisper (fallback)
-
-// Ordem de fallback para resumo
-// 1. Groq Llama 3 70B (primário)
-// 2. Google Gemini Flash (fallback)
+// Provider atual (único): OpenAI
+// - Transcrição: whisper-1 (com segments)
+// - Resumo, título, chat streaming, flashcards/mindmap/quiz e query do YouTube: gpt-4o-mini
 ```
 
-Erros de rate limit (429) devem acionar o fallback automaticamente, nunca retornar erro para o usuário.
+As interfaces (`ITranscriptionProvider`, `ISummaryProvider`, etc.) são preservadas para permitir adicionar providers de fallback no futuro sem alterar use-cases. Quando houver fallback configurado, erros de rate limit (429) devem acioná-lo automaticamente, nunca retornar erro para o usuário.
 
 ---
 
-## Fila de Processamento (BullMQ)
+## Fila de Processamento (Bull + Azure Managed Redis)
 
 - Todo processamento de áudio (transcrição + resumo) passa pela fila — nunca processar de forma síncrona no request
 - Job com retry automático: 3 tentativas com backoff exponencial
@@ -285,33 +236,56 @@ Erros de rate limit (429) devem acionar o fallback automaticamente, nunca retorn
 
 ## Variáveis de Ambiente
 
-Nunca usar valores hardcoded. Toda configuração via `.env` validado no startup:
+Nunca usar valores hardcoded. Toda configuração via `.env` validado no startup — a lista canônica (schema Joi) está em `backend/src/shared/infrastructure/config/env.validation.ts`. Em produção, os valores ficam nos secrets/env vars do Azure Container Apps.
 
 ```
-# Supabase
-SUPABASE_URL=
-SUPABASE_SERVICE_ROLE_KEY=   # Apenas no backend, nunca expor ao frontend
-SUPABASE_ANON_KEY=
-
-# Groq
-GROQ_API_KEY=
-
-# Cloudflare R2
-R2_ACCOUNT_ID=
-R2_ACCESS_KEY_ID=
-R2_SECRET_ACCESS_KEY=
-R2_BUCKET_NAME=
-
-# Upstash Redis
-UPSTASH_REDIS_URL=
-UPSTASH_REDIS_TOKEN=
-
 # App
 NODE_ENV=development
 PORT=3000
-JWT_SECRET=
-ALLOWED_ORIGINS=http://localhost:3000
+ALLOWED_ORIGINS=http://localhost:5173
+
+# Azure Database for PostgreSQL
+DATABASE_URL=
+
+# Auth própria (magic link + JWT)
+JWT_SECRET=                        # mínimo 32 caracteres
+JWT_EXPIRES_IN=1h
+MAGIC_LINK_EXPIRES_IN_MINUTES=15
+FRONTEND_URL=
+
+# Azure Communication Services (envio dos magic links)
+ACS_CONNECTION_STRING=
+ACS_SENDER_ADDRESS=
+
+# OpenAI
+OPENAI_API_KEY=
+
+# Azure Blob Storage
+AZURE_STORAGE_ACCOUNT=
+AZURE_STORAGE_KEY=
+AZURE_STORAGE_CONTAINER=audios
+
+# Redis (Azure Managed Redis — TLS, porta 10000)
+REDIS_HOST=
+REDIS_PORT=10000
+REDIS_PASSWORD=
+REDIS_TLS=true
+
+# AbacatePay (opcionais)
+ABACATEPAY_API_KEY=
+ABACATEPAY_API_BASE_URL=https://api.abacatepay.com/v2
+ABACATEPAY_WEBHOOK_SECRET=
+ABACATEPAY_PUBLIC_HMAC_KEY=
+ABACATEPAY_ALLOWED_PRODUCT_IDS=
+ABACATEPAY_RETURN_URL=
+ABACATEPAY_COMPLETION_URL=
+
+# Limites
 MAX_AUDIO_SIZE_MB=100
+SIGNED_URL_EXPIRES_IN_SECONDS=900
+
+# YouTube
+YOUTUBE_API_KEY=
 ```
 
 ---
@@ -394,13 +368,14 @@ npm run test:cov       # gera relatório de cobertura
 - Nunca usar `any` no TypeScript
 - Nunca colocar lógica de negócio em controllers
 - Nunca acessar o banco diretamente de um use-case — sempre via repositório
-- Nunca expor a `SUPABASE_SERVICE_ROLE_KEY` ao frontend
-- Nunca criar tabela no Supabase sem habilitar RLS
+- Nunca expor `AZURE_STORAGE_KEY`, `JWT_SECRET` ou `ACS_CONNECTION_STRING` ao frontend
+- Nunca criar query sem filtro de `user_id` em tabela multi-tenant
+- Nunca guardar segredo fora dos secrets do Azure Container Apps (nem em imagem Docker, nem em código)
 - Nunca processar áudio de forma síncrona no request HTTP
 - Nunca logar dados sensíveis (tokens, áudio, PII)
 - Nunca commitar `.env`
 - Nunca usar `*` no CORS em produção
-- Nunca confiar em dados do `user_metadata` JWT para autorização
+- Nunca confiar em campos do body/query para identificar o usuário — sempre `req.user.id` do JWT
 
 ---
 
@@ -410,7 +385,7 @@ npm run test:cov       # gera relatório de cobertura
 - Vite + React 19 + TypeScript strict
 - Tailwind CSS v4, Framer Motion, Lucide React
 - TanStack Query v5, Zustand, React Router v7
-- Supabase JS SDK (Magic Link), Axios com interceptor JWT
+- Auth própria via `shared/auth/auth-client.ts`, Axios com interceptor JWT
 - Sonner (toasts)
 
 ### Arquitetura FSD — Camadas e regra de importação
@@ -428,13 +403,13 @@ Camadas superiores importam das inferiores. **Nunca o contrário.**
 | `widgets` | Blocos de UI independentes (Navbar, RecordingPanel, MouseLight) |
 | `features` | Ações do usuário (login, gravar, deletar, copiar) |
 | `entities` | Modelos de negócio com UI e queries (Audio, Transcription, User) |
-| `shared` | UI base, axios, supabase client, hooks utilitários, tipos |
+| `shared` | UI base, axios, auth-client, hooks utilitários, tipos |
 
 ### Regras do frontend
 
-- Nunca armazenar JWT manualmente — Supabase SDK gerencia sessão
-- Nunca expor `SUPABASE_SERVICE_ROLE_KEY` no frontend
-- Todo acesso ao backend via `shared/api/axios.ts` (interceptor injeta JWT automaticamente)
+- Tokens gerenciados exclusivamente pelo `shared/auth/auth-client.ts` (localStorage), nunca em outro lugar
+- Refresh de token com single-flight (uma única requisição de refresh por vez) — já implementado no auth-client, não duplicar
+- Todo acesso ao backend via `shared/api/axios.ts` (interceptor injeta JWT automaticamente e refaz a requisição após refresh em 401)
 - Polling de status via TanStack Query `refetchInterval` condicional (5s se PENDING/PROCESSING)
 - Gravação: MediaRecorder API, formato `audio/webm;codecs=opus`
 - Zero emojis na UI — ícones exclusivamente via Lucide React
@@ -449,10 +424,10 @@ Camadas superiores importam das inferiores. **Nunca o contrário.**
 
 ### Variáveis de ambiente
 ```
-VITE_SUPABASE_URL=
-VITE_SUPABASE_ANON_KEY=
 VITE_API_BASE_URL=http://localhost:3000/api/v1
 ```
+
+Única env var do frontend. Em produção (Azure Static Web Apps): `https://anotex-api.calmhill-a7701bda.brazilsouth.azurecontainerapps.io/api/v1`.
 
 ### O que nunca fazer no frontend
 - Nunca quebrar a regra de importação FSD

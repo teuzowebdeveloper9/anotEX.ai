@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { SupabaseService } from '../../../../shared/infrastructure/config/supabase.config.js';
+import { PostgresService } from '../../../../shared/infrastructure/config/postgres.config.js';
 import type { IStudyFolderRepository } from '../../domain/repositories/study-folder.repository.js';
 import type {
   AddItemProps,
@@ -9,147 +9,173 @@ import type {
   StudyFolderItemEntity,
 } from '../../domain/entities/study-folder.entity.js';
 
+interface StudyFolderRow {
+  id: string;
+  user_id: string;
+  name: string;
+  description: string | null;
+  item_count: number;
+  recommendations_unlocked: boolean;
+  created_at: Date | string;
+  updated_at: Date | string;
+}
+
+interface StudyFolderItemRow {
+  id: string;
+  folder_id: string;
+  user_id: string;
+  transcription_id: string;
+  audio_id: string;
+  item_type: FolderItemType;
+  title: string;
+  created_at: Date | string;
+}
+
+function toMessage(err: unknown): string {
+  return err instanceof Error ? err.message : String(err);
+}
+
 @Injectable()
 export class StudyFolderRepositoryImpl implements IStudyFolderRepository {
-  constructor(private readonly supabaseService: SupabaseService) {}
+  constructor(private readonly postgresService: PostgresService) {}
 
   async create(props: CreateFolderProps): Promise<StudyFolderEntity> {
-    const { data, error } = await this.supabaseService
-      .getClient()
-      .from('study_folders')
-      .insert({
-        user_id: props.userId,
-        name: props.name,
-        description: props.description ?? null,
-        item_count: 0,
-        recommendations_unlocked: false,
-      })
-      .select()
-      .single();
-
-    if (error) throw new Error(`Failed to create folder: ${error.message}`);
-    return this.toEntity(data);
+    try {
+      const result = await this.postgresService.query<StudyFolderRow>(
+        `INSERT INTO study_folders (user_id, name, description, item_count, recommendations_unlocked)
+         VALUES ($1, $2, $3, 0, false)
+         RETURNING *`,
+        [props.userId, props.name, props.description ?? null],
+      );
+      return this.toEntity(result.rows[0]);
+    } catch (err) {
+      throw new Error(`Failed to create folder: ${toMessage(err)}`);
+    }
   }
 
   async findById(id: string): Promise<StudyFolderEntity | null> {
-    const { data, error } = await this.supabaseService
-      .getClient()
-      .from('study_folders')
-      .select()
-      .eq('id', id)
-      .single();
+    const result = await this.postgresService.query<StudyFolderRow>(
+      'SELECT * FROM study_folders WHERE id = $1',
+      [id],
+    );
 
-    if (error || !data) return null;
-    return this.toEntity(data);
+    if (result.rows.length === 0) return null;
+    return this.toEntity(result.rows[0]);
   }
 
   async findByUserId(userId: string): Promise<StudyFolderEntity[]> {
-    const { data, error } = await this.supabaseService
-      .getClient()
-      .from('study_folders')
-      .select()
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false });
-
-    if (error) throw new Error(`Failed to fetch folders: ${error.message}`);
-    return (data ?? []).map((r) => this.toEntity(r));
+    try {
+      const result = await this.postgresService.query<StudyFolderRow>(
+        'SELECT * FROM study_folders WHERE user_id = $1 ORDER BY created_at DESC',
+        [userId],
+      );
+      return result.rows.map((r) => this.toEntity(r));
+    } catch (err) {
+      throw new Error(`Failed to fetch folders: ${toMessage(err)}`);
+    }
   }
 
   async update(
     id: string,
     data: { name?: string; description?: string | null },
   ): Promise<StudyFolderEntity> {
-    const updatePayload: Record<string, unknown> = { updated_at: new Date().toISOString() };
-    if (data.name !== undefined) updatePayload.name = data.name;
-    if (data.description !== undefined) updatePayload.description = data.description;
+    const sets: string[] = ['updated_at = NOW()'];
+    const params: unknown[] = [];
 
-    const { data: updated, error } = await this.supabaseService
-      .getClient()
-      .from('study_folders')
-      .update(updatePayload)
-      .eq('id', id)
-      .select()
-      .single();
+    if (data.name !== undefined) {
+      params.push(data.name);
+      sets.push(`name = $${params.length}`);
+    }
+    if (data.description !== undefined) {
+      params.push(data.description);
+      sets.push(`description = $${params.length}`);
+    }
 
-    if (error) throw new Error(`Failed to update folder: ${error.message}`);
-    return this.toEntity(updated);
+    params.push(id);
+
+    try {
+      const result = await this.postgresService.query<StudyFolderRow>(
+        `UPDATE study_folders SET ${sets.join(', ')} WHERE id = $${params.length} RETURNING *`,
+        params,
+      );
+      return this.toEntity(result.rows[0]);
+    } catch (err) {
+      throw new Error(`Failed to update folder: ${toMessage(err)}`);
+    }
   }
 
   async deleteById(id: string): Promise<void> {
-    const { error } = await this.supabaseService
-      .getClient()
-      .from('study_folders')
-      .delete()
-      .eq('id', id);
-
-    if (error) throw new Error(`Failed to delete folder: ${error.message}`);
+    try {
+      await this.postgresService.query('DELETE FROM study_folders WHERE id = $1', [id]);
+    } catch (err) {
+      throw new Error(`Failed to delete folder: ${toMessage(err)}`);
+    }
   }
 
   async addItem(props: AddItemProps): Promise<StudyFolderItemEntity> {
-    const { data, error } = await this.supabaseService
-      .getClient()
-      .from('study_folder_items')
-      .insert({
-        folder_id: props.folderId,
-        user_id: props.userId,
-        transcription_id: props.transcriptionId,
-        audio_id: props.audioId,
-        item_type: props.itemType,
-        title: props.title,
-      })
-      .select()
-      .single();
-
-    if (error) throw new Error(`Failed to add item to folder: ${error.message}`);
+    let row: StudyFolderItemRow;
+    try {
+      const result = await this.postgresService.query<StudyFolderItemRow>(
+        `INSERT INTO study_folder_items (folder_id, user_id, transcription_id, audio_id, item_type, title)
+         VALUES ($1, $2, $3, $4, $5, $6)
+         RETURNING *`,
+        [
+          props.folderId,
+          props.userId,
+          props.transcriptionId,
+          props.audioId,
+          props.itemType,
+          props.title,
+        ],
+      );
+      row = result.rows[0];
+    } catch (err) {
+      throw new Error(`Failed to add item to folder: ${toMessage(err)}`);
+    }
 
     await this.syncFolderCount(props.folderId);
 
-    return this.toItemEntity(data);
+    return this.toItemEntity(row);
   }
 
   async removeItem(itemId: string): Promise<void> {
-    const { data: item } = await this.supabaseService
-      .getClient()
-      .from('study_folder_items')
-      .select('folder_id')
-      .eq('id', itemId)
-      .single();
+    const found = await this.postgresService.query<{ folder_id: string }>(
+      'SELECT folder_id FROM study_folder_items WHERE id = $1',
+      [itemId],
+    );
+    const folderId = found.rows[0]?.folder_id ?? null;
 
-    const { error } = await this.supabaseService
-      .getClient()
-      .from('study_folder_items')
-      .delete()
-      .eq('id', itemId);
+    try {
+      await this.postgresService.query('DELETE FROM study_folder_items WHERE id = $1', [itemId]);
+    } catch (err) {
+      throw new Error(`Failed to remove item: ${toMessage(err)}`);
+    }
 
-    if (error) throw new Error(`Failed to remove item: ${error.message}`);
-
-    if (item?.folder_id) {
-      await this.syncFolderCount(item.folder_id as string);
+    if (folderId) {
+      await this.syncFolderCount(folderId);
     }
   }
 
   async findItemsByFolderId(folderId: string): Promise<StudyFolderItemEntity[]> {
-    const { data, error } = await this.supabaseService
-      .getClient()
-      .from('study_folder_items')
-      .select()
-      .eq('folder_id', folderId)
-      .order('created_at', { ascending: true });
-
-    if (error) throw new Error(`Failed to fetch folder items: ${error.message}`);
-    return (data ?? []).map((r) => this.toItemEntity(r));
+    try {
+      const result = await this.postgresService.query<StudyFolderItemRow>(
+        'SELECT * FROM study_folder_items WHERE folder_id = $1 ORDER BY created_at ASC',
+        [folderId],
+      );
+      return result.rows.map((r) => this.toItemEntity(r));
+    } catch (err) {
+      throw new Error(`Failed to fetch folder items: ${toMessage(err)}`);
+    }
   }
 
   async findItemById(itemId: string): Promise<StudyFolderItemEntity | null> {
-    const { data, error } = await this.supabaseService
-      .getClient()
-      .from('study_folder_items')
-      .select()
-      .eq('id', itemId)
-      .single();
+    const result = await this.postgresService.query<StudyFolderItemRow>(
+      'SELECT * FROM study_folder_items WHERE id = $1',
+      [itemId],
+    );
 
-    if (error || !data) return null;
-    return this.toItemEntity(data);
+    if (result.rows.length === 0) return null;
+    return this.toItemEntity(result.rows[0]);
   }
 
   async itemExists(
@@ -157,61 +183,55 @@ export class StudyFolderRepositoryImpl implements IStudyFolderRepository {
     transcriptionId: string,
     itemType: FolderItemType,
   ): Promise<boolean> {
-    const { data } = await this.supabaseService
-      .getClient()
-      .from('study_folder_items')
-      .select('id')
-      .eq('folder_id', folderId)
-      .eq('transcription_id', transcriptionId)
-      .eq('item_type', itemType)
-      .maybeSingle();
+    const result = await this.postgresService.query<{ id: string }>(
+      `SELECT id FROM study_folder_items
+       WHERE folder_id = $1 AND transcription_id = $2 AND item_type = $3
+       LIMIT 1`,
+      [folderId, transcriptionId, itemType],
+    );
 
-    return !!data;
+    return result.rows.length > 0;
   }
 
   private async syncFolderCount(folderId: string): Promise<void> {
-    const { count } = await this.supabaseService
-      .getClient()
-      .from('study_folder_items')
-      .select('*', { count: 'exact', head: true })
-      .eq('folder_id', folderId);
+    const countResult = await this.postgresService.query<{ count: string | number }>(
+      'SELECT COUNT(*) AS count FROM study_folder_items WHERE folder_id = $1',
+      [folderId],
+    );
 
-    const itemCount = count ?? 0;
+    const itemCount = Number(countResult.rows[0]?.count ?? 0);
 
-    await this.supabaseService
-      .getClient()
-      .from('study_folders')
-      .update({
-        item_count: itemCount,
-        recommendations_unlocked: itemCount >= 5,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', folderId);
+    await this.postgresService.query(
+      `UPDATE study_folders
+       SET item_count = $1, recommendations_unlocked = $2, updated_at = NOW()
+       WHERE id = $3`,
+      [itemCount, itemCount >= 5, folderId],
+    );
   }
 
-  private toEntity(raw: Record<string, unknown>): StudyFolderEntity {
+  private toEntity(row: StudyFolderRow): StudyFolderEntity {
     return {
-      id: raw.id as string,
-      userId: raw.user_id as string,
-      name: raw.name as string,
-      description: (raw.description as string | null) ?? null,
-      itemCount: raw.item_count as number,
-      recommendationsUnlocked: raw.recommendations_unlocked as boolean,
-      createdAt: new Date(raw.created_at as string),
-      updatedAt: new Date(raw.updated_at as string),
+      id: row.id,
+      userId: row.user_id,
+      name: row.name,
+      description: row.description ?? null,
+      itemCount: row.item_count,
+      recommendationsUnlocked: row.recommendations_unlocked,
+      createdAt: new Date(row.created_at),
+      updatedAt: new Date(row.updated_at),
     };
   }
 
-  private toItemEntity(raw: Record<string, unknown>): StudyFolderItemEntity {
+  private toItemEntity(row: StudyFolderItemRow): StudyFolderItemEntity {
     return {
-      id: raw.id as string,
-      folderId: raw.folder_id as string,
-      userId: raw.user_id as string,
-      transcriptionId: raw.transcription_id as string,
-      audioId: raw.audio_id as string,
-      itemType: raw.item_type as FolderItemType,
-      title: raw.title as string,
-      createdAt: new Date(raw.created_at as string),
+      id: row.id,
+      folderId: row.folder_id,
+      userId: row.user_id,
+      transcriptionId: row.transcription_id,
+      audioId: row.audio_id,
+      itemType: row.item_type,
+      title: row.title,
+      createdAt: new Date(row.created_at),
     };
   }
 }

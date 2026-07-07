@@ -6,40 +6,39 @@ import { writeFile, readFile, unlink } from 'fs/promises';
 import { randomUUID } from 'crypto';
 import ffmpeg from 'fluent-ffmpeg';
 import ffmpegStatic from 'ffmpeg-static';
-import Groq from 'groq-sdk';
+import OpenAI, { toFile } from 'openai';
 
-// Usa o binário estático incluso no pacote (funciona em qualquer ambiente, incluindo Railway)
 if (ffmpegStatic) ffmpeg.setFfmpegPath(ffmpegStatic);
 import type { ITranscriptionProvider, TranscriptionResult } from '../../domain/repositories/transcription.provider.js';
-import { toFile } from 'openai';
 
-const GROQ_MAX_BYTES = 24 * 1024 * 1024; // 24MB safe threshold
+// Limite da API de áudio da OpenAI é 25MB — comprime acima de 24MB
+const OPENAI_MAX_BYTES = 24 * 1024 * 1024;
 
 @Injectable()
-export class GroqWhisperProviderImpl implements ITranscriptionProvider {
-  private readonly logger = new Logger(GroqWhisperProviderImpl.name);
-  private readonly groq: Groq;
+export class OpenAiWhisperProviderImpl implements ITranscriptionProvider {
+  private readonly logger = new Logger(OpenAiWhisperProviderImpl.name);
+  private readonly openai: OpenAI;
 
   constructor(private readonly configService: ConfigService) {
-    this.groq = new Groq({
-      apiKey: this.configService.getOrThrow<string>('GROQ_API_KEY'),
+    this.openai = new OpenAI({
+      apiKey: this.configService.getOrThrow<string>('OPENAI_API_KEY'),
     });
   }
 
   async transcribe(audioBuffer: Buffer, language = 'pt'): Promise<TranscriptionResult> {
-    this.logger.log(`Transcribing with Groq Whisper | size=${(audioBuffer.length / 1024 / 1024).toFixed(1)}MB`);
+    this.logger.log(`Transcribing with OpenAI Whisper | size=${(audioBuffer.length / 1024 / 1024).toFixed(1)}MB`);
 
-    const buffer = audioBuffer.length > GROQ_MAX_BYTES
+    const buffer = audioBuffer.length > OPENAI_MAX_BYTES
       ? await this.compress(audioBuffer)
       : audioBuffer;
 
-    this.logger.log(`Sending to Groq | size=${(buffer.length / 1024 / 1024).toFixed(1)}MB`);
+    this.logger.log(`Sending to OpenAI | size=${(buffer.length / 1024 / 1024).toFixed(1)}MB`);
 
     const file = await toFile(buffer, 'audio.mp3', { type: 'audio/mpeg' });
 
-    const result = await this.groq.audio.transcriptions.create({
+    const result = await this.openai.audio.transcriptions.create({
       file,
-      model: 'whisper-large-v3',
+      model: 'whisper-1',
       language,
       response_format: 'verbose_json',
       timestamp_granularities: ['segment'],

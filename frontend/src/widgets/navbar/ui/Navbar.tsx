@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { Mic, LayoutDashboard, LogOut, Menu, X } from 'lucide-react'
 import { Button } from '@/shared/ui/Button/Button'
-import { supabase } from '@/shared/auth/supabase'
+import { logout } from '@/shared/auth/auth-client'
 import { useSidebarStore } from '@/shared/hooks/useSidebarStore'
 import logoAnotex from '@/shared/assets/logo-anotex.png'
 
@@ -10,7 +10,7 @@ export function Navbar() {
   const { isOpen, toggle: toggleSidebar } = useSidebarStore()
 
   const handleLogout = async (): Promise<void> => {
-    await supabase.auth.signOut()
+    await logout()
     navigate('/login')
   }
 

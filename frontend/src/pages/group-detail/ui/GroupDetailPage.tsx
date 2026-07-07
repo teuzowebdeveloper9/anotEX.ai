@@ -4,7 +4,6 @@ import {
   ArrowLeft, Users, Plus, Loader2, Crown, User2, Trash2,
   ExternalLink, FileText, UserMinus, Pencil
 } from 'lucide-react'
-import { useEffect } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { Sidebar } from '@/widgets/sidebar/ui/Sidebar'
@@ -17,7 +16,7 @@ import { useAddGroupMember } from '@/features/groups/add-member/model/useAddGrou
 import { useUpdateGroup } from '@/features/groups/edit-group/model/useUpdateGroup'
 import { api } from '@/shared/api/axios'
 import { ENDPOINTS } from '@/shared/api/endpoints'
-import { supabase } from '@/shared/auth/supabase'
+import { getUser } from '@/shared/auth/auth-client'
 
 function EditGroupModal({
   groupId,
@@ -134,10 +133,7 @@ export function GroupDetailPage() {
   const [showEditGroup, setShowEditGroup] = useState(false)
   const queryClient = useQueryClient()
 
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: s }) => setCurrentUserId(s.session?.user.id ?? null))
-  }, [])
+  const currentUserId = getUser()?.id ?? null
 
   const removeMember = useMutation({
     mutationFn: async (userId: string) => {

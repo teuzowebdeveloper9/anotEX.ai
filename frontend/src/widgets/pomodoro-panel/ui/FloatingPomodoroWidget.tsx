@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { CheckCircle2, Pause, Play, Target, Timer, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/shared/ui/Button/Button'
+import { useAuth } from '@/shared/auth/useAuth'
 import { usePomodoroSession } from '@/features/pomodoro/session-control/model/usePomodoroSession'
 import { usePomodoroSettings } from '@/features/pomodoro/settings/model/usePomodoroSettings'
 
@@ -19,7 +20,15 @@ function getPhaseLabel(phase: 'focus' | 'short_break' | 'long_break'): string {
   return 'Pausa longa'
 }
 
+// Montado globalmente no App — só pode disparar as queries de pomodoro logado,
+// senão páginas públicas (login/landing) geram 401 em loop
 export function FloatingPomodoroWidget() {
+  const { isAuthenticated } = useAuth()
+  if (!isAuthenticated) return null
+  return <FloatingPomodoroWidgetInner />
+}
+
+function FloatingPomodoroWidgetInner() {
   const location = useLocation()
   const { settings } = usePomodoroSettings()
   const {

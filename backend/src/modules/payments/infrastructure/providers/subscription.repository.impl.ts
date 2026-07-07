@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { PostgresService } from '../../../../shared/infrastructure/config/postgres.config.js';
 
 export interface UserSubscription {
   id: string;
@@ -25,197 +24,132 @@ export interface CreateSubscriptionInput {
   customerTaxId: string;
 }
 
+interface UserSubscriptionRow {
+  id: string;
+  user_id: string;
+  customer_name: string;
+  customer_email: string;
+  customer_cellphone: string;
+  customer_tax_id: string;
+  abacatepay_customer_id: string | null;
+  abacatepay_billing_id: string | null;
+  status: UserSubscription['status'];
+  plan_id: string | null;
+  created_at: Date | string;
+  updated_at: Date | string;
+}
+
 @Injectable()
 export class SubscriptionRepository {
-  private readonly supabase: SupabaseClient;
-
-  constructor(private readonly configService: ConfigService) {
-    this.supabase = createClient(
-      this.configService.getOrThrow<string>('SUPABASE_URL'),
-      this.configService.getOrThrow<string>('SUPABASE_SERVICE_ROLE_KEY'),
-    );
-  }
+  constructor(private readonly postgresService: PostgresService) {}
 
   async findByUserId(userId: string): Promise<UserSubscription | null> {
-    const { data, error } = await this.supabase
-      .from('user_subscriptions')
-      .select('*')
-      .eq('user_id', userId)
-      .single();
+    const result = await this.postgresService.query<UserSubscriptionRow>(
+      'SELECT * FROM user_subscriptions WHERE user_id = $1',
+      [userId],
+    );
 
-    if (error && error.code !== 'PGRST116') {
-      throw new Error(error.message);
-    }
+    if (result.rows.length === 0) return null;
 
-    if (!data) return null;
-
-    return {
-      id: data.id,
-      userId: data.user_id,
-      customerName: data.customer_name,
-      customerEmail: data.customer_email,
-      customerCellphone: data.customer_cellphone,
-      customerTaxId: data.customer_tax_id,
-      abacatepayCustomerId: data.abacatepay_customer_id,
-      abacatepayBillingId: data.abacatepay_billing_id,
-      status: data.status,
-      planId: data.plan_id,
-      createdAt: data.created_at,
-      updatedAt: data.updated_at,
-    };
+    return this.toSubscription(result.rows[0]);
   }
 
   async create(input: CreateSubscriptionInput): Promise<UserSubscription> {
-    const { data, error } = await this.supabase
-      .from('user_subscriptions')
-      .insert({
-        user_id: input.userId,
-        customer_name: input.customerName,
-        customer_email: input.customerEmail.toLowerCase(),
-        customer_cellphone: input.customerCellphone,
-        customer_tax_id: input.customerTaxId,
-        status: 'pending',
-      })
-      .select()
-      .single();
+    const result = await this.postgresService.query<UserSubscriptionRow>(
+      `INSERT INTO user_subscriptions (user_id, customer_name, customer_email, customer_cellphone, customer_tax_id, status)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       RETURNING *`,
+      [
+        input.userId,
+        input.customerName,
+        input.customerEmail.toLowerCase(),
+        input.customerCellphone,
+        input.customerTaxId,
+        'pending',
+      ],
+    );
 
-    if (error) {
-      throw new Error(error.message);
-    }
-
-    return {
-      id: data.id,
-      userId: data.user_id,
-      customerName: data.customer_name,
-      customerEmail: data.customer_email,
-      customerCellphone: data.customer_cellphone,
-      customerTaxId: data.customer_tax_id,
-      abacatepayCustomerId: data.abacatepay_customer_id,
-      abacatepayBillingId: data.abacatepay_billing_id,
-      status: data.status,
-      planId: data.plan_id,
-      createdAt: data.created_at,
-      updatedAt: data.updated_at,
-    };
+    return this.toSubscription(result.rows[0]);
   }
 
   async updateBillingId(userId: string, billingId: string): Promise<void> {
-    const { error } = await this.supabase
-      .from('user_subscriptions')
-      .update({ abacatepay_billing_id: billingId, updated_at: new Date().toISOString() })
-      .eq('user_id', userId);
-
-    if (error) {
-      throw new Error(error.message);
-    }
+    await this.postgresService.query(
+      'UPDATE user_subscriptions SET abacatepay_billing_id = $1, updated_at = NOW() WHERE user_id = $2',
+      [billingId, userId],
+    );
   }
 
   async updateStatus(userId: string, status: UserSubscription['status']): Promise<void> {
-    const { error } = await this.supabase
-      .from('user_subscriptions')
-      .update({ status, updated_at: new Date().toISOString() })
-      .eq('user_id', userId);
-
-    if (error) {
-      throw new Error(error.message);
-    }
+    await this.postgresService.query(
+      'UPDATE user_subscriptions SET status = $1, updated_at = NOW() WHERE user_id = $2',
+      [status, userId],
+    );
   }
 
   async findByBillingId(billingId: string): Promise<UserSubscription | null> {
-    const { data, error } = await this.supabase
-      .from('user_subscriptions')
-      .select('*')
-      .eq('abacatepay_billing_id', billingId)
-      .single();
+    const result = await this.postgresService.query<UserSubscriptionRow>(
+      'SELECT * FROM user_subscriptions WHERE abacatepay_billing_id = $1',
+      [billingId],
+    );
 
-    if (error && error.code !== 'PGRST116') {
-      throw new Error(error.message);
-    }
+    if (result.rows.length === 0) return null;
 
-    if (!data) return null;
-
-    return {
-      id: data.id,
-      userId: data.user_id,
-      customerName: data.customer_name,
-      customerEmail: data.customer_email,
-      customerCellphone: data.customer_cellphone,
-      customerTaxId: data.customer_tax_id,
-      abacatepayCustomerId: data.abacatepay_customer_id,
-      abacatepayBillingId: data.abacatepay_billing_id,
-      status: data.status,
-      planId: data.plan_id,
-      createdAt: data.created_at,
-      updatedAt: data.updated_at,
-    };
+    return this.toSubscription(result.rows[0]);
   }
 
   async findByEmail(email: string): Promise<UserSubscription | null> {
-    const { data, error } = await this.supabase
-      .from('user_subscriptions')
-      .select('*')
-      .eq('customer_email', email.toLowerCase())
-      .single();
+    const result = await this.postgresService.query<UserSubscriptionRow>(
+      'SELECT * FROM user_subscriptions WHERE customer_email = $1',
+      [email.toLowerCase()],
+    );
 
-    if (error && error.code !== 'PGRST116') {
-      throw new Error(error.message);
-    }
+    if (result.rows.length === 0) return null;
 
-    if (!data) return null;
-
-    return {
-      id: data.id,
-      userId: data.user_id,
-      customerName: data.customer_name,
-      customerEmail: data.customer_email,
-      customerCellphone: data.customer_cellphone,
-      customerTaxId: data.customer_tax_id,
-      abacatepayCustomerId: data.abacatepay_customer_id,
-      abacatepayBillingId: data.abacatepay_billing_id,
-      status: data.status,
-      planId: data.plan_id,
-      createdAt: data.created_at,
-      updatedAt: data.updated_at,
-    };
+    return this.toSubscription(result.rows[0]);
   }
 
   async upsert(input: CreateSubscriptionInput): Promise<UserSubscription> {
     const existing = await this.findByUserId(input.userId);
 
     if (existing) {
-      const { data, error } = await this.supabase
-        .from('user_subscriptions')
-        .update({
-          customer_name: input.customerName,
-          customer_email: input.customerEmail.toLowerCase(),
-          customer_cellphone: input.customerCellphone,
-          customer_tax_id: input.customerTaxId,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('user_id', input.userId)
-        .select()
-        .single();
+      const result = await this.postgresService.query<UserSubscriptionRow>(
+        `UPDATE user_subscriptions
+         SET customer_name = $1,
+             customer_email = $2,
+             customer_cellphone = $3,
+             customer_tax_id = $4,
+             updated_at = NOW()
+         WHERE user_id = $5
+         RETURNING *`,
+        [
+          input.customerName,
+          input.customerEmail.toLowerCase(),
+          input.customerCellphone,
+          input.customerTaxId,
+          input.userId,
+        ],
+      );
 
-      if (error) {
-        throw new Error(error.message);
-      }
-
-      return {
-        id: data.id,
-        userId: data.user_id,
-        customerName: data.customer_name,
-        customerEmail: data.customer_email,
-        customerCellphone: data.customer_cellphone,
-        customerTaxId: data.customer_tax_id,
-        abacatepayCustomerId: data.abacatepay_customer_id,
-        abacatepayBillingId: data.abacatepay_billing_id,
-        status: data.status,
-        planId: data.plan_id,
-        createdAt: data.created_at,
-        updatedAt: data.updated_at,
-      };
+      return this.toSubscription(result.rows[0]);
     }
 
     return this.create(input);
+  }
+
+  private toSubscription(row: UserSubscriptionRow): UserSubscription {
+    return {
+      id: row.id,
+      userId: row.user_id,
+      customerName: row.customer_name,
+      customerEmail: row.customer_email,
+      customerCellphone: row.customer_cellphone,
+      customerTaxId: row.customer_tax_id,
+      abacatepayCustomerId: row.abacatepay_customer_id,
+      abacatepayBillingId: row.abacatepay_billing_id,
+      status: row.status,
+      planId: row.plan_id,
+      createdAt: new Date(row.created_at).toISOString(),
+      updatedAt: new Date(row.updated_at).toISOString(),
+    };
   }
 }
