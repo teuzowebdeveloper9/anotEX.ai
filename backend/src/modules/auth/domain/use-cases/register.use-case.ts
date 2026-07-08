@@ -26,22 +26,18 @@ export class RegisterUseCase {
     const email = input.email.trim().toLowerCase();
     const existing = await this.userRepository.findByEmail(email);
 
-    if (existing?.passwordHash) {
-      this.logger.warn('Registro rejeitado: email já possui senha cadastrada');
+    // SEGURANÇA: nunca definir senha nem emitir sessão para uma conta PRÉ-EXISTENTE
+    // sem prova de posse do email. Contas criadas via magic link (sem senha) devem
+    // continuar entrando por magic link — permitir "reivindicá-las" aqui era account
+    // takeover (atacante define a senha da conta alheia e recebe tokens válidos).
+    if (existing) {
+      this.logger.warn('Registro rejeitado: email já cadastrado');
       return fail(new ConflictException('Email already registered'));
     }
 
     const passwordHash = await bcrypt.hash(input.password, BCRYPT_SALT_ROUNDS);
-
-    let user = existing;
-    if (user) {
-      // Usuário criado via magic link (sem senha) — define a senha
-      await this.userRepository.setPassword(user.id, passwordHash);
-      this.logger.log(`Senha definida para usuário existente | userId=${user.id}`);
-    } else {
-      user = await this.userRepository.create(email, passwordHash);
-      this.logger.log(`Usuário registrado | userId=${user.id}`);
-    }
+    const user = await this.userRepository.create(email, passwordHash);
+    this.logger.log(`Usuário registrado | userId=${user.id}`);
 
     const session = await this.createSessionUseCase.execute({ id: user.id, email: user.email });
     return ok(session);

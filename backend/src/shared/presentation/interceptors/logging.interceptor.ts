@@ -17,14 +17,16 @@ export class LoggingInterceptor implements NestInterceptor {
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
     const request = context.switchToHttp().getRequest<Request>();
-    const { method, url } = request;
+    const { method } = request;
+    // Sem query string nos logs — pode conter segredos (ex: webhookSecret)
+    const path = request.originalUrl.split('?')[0];
     const start = Date.now();
 
     return next.handle().pipe(
       catchError((err: unknown) => {
         const ms = Date.now() - start;
         const message = err instanceof Error ? err.message : String(err);
-        this.logger.error(`${method} ${url} ${ms}ms | ${message}`, err instanceof Error ? err.stack : undefined);
+        this.logger.error(`${method} ${path} ${ms}ms | ${message}`, err instanceof Error ? err.stack : undefined);
         return throwError(() => err);
       }),
     );

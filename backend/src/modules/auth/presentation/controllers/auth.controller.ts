@@ -36,7 +36,9 @@ export class AuthController {
     return { message: 'Magic link sent' };
   }
 
+  // 10 tentativas de verificação por minuto por IP
   @Public()
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
   @Post('verify')
   @HttpCode(HttpStatus.OK)
   async verify(@Body() dto: VerifyMagicLinkDto): Promise<AuthSession> {
@@ -57,7 +59,9 @@ export class AuthController {
     return result.data;
   }
 
+  // 10 tentativas de login por minuto por IP — mitiga brute-force de senha
   @Public()
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
   @Post('login')
   @HttpCode(HttpStatus.OK)
   async login(@Body() dto: LoginDto): Promise<AuthSession> {

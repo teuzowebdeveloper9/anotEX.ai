@@ -51,10 +51,17 @@ async function bootstrapApi() {
 
   app.use(helmet());
 
+  // Atrás do ingress do Azure Container Apps: confia no 1º proxy para que req.ip
+  // seja o IP real do cliente — sem isso o rate limit por IP e os logs de auth
+  // ficam todos no IP do ingress (throttling inútil / auditoria cega).
+  app.getHttpAdapter().getInstance().set('trust proxy', 1);
+
   app.enableCors({
     origin: allowedOrigins,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
-    credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    // Auth é por Bearer token (não cookies) — credentials desnecessário
+    credentials: false,
   });
 
   app.useGlobalPipes(

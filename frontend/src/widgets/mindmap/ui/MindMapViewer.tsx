@@ -1,9 +1,26 @@
 import { useEffect, useRef } from 'react'
 import { Transformer } from 'markmap-lib'
 import { Markmap } from 'markmap-view'
+import DOMPurify from 'dompurify'
 
 interface MindMapViewerProps {
   markdown: string
+}
+
+// O markmap renderiza o conteúdo de cada nó como HTML cru (markdown-it com html:true).
+// Como o markdown vem de conteúdo gerado por IA (fonte não confiável) e o mindmap
+// aparece até em páginas públicas de compartilhamento, sanitizamos cada nó com
+// DOMPurify para neutralizar XSS (ex: <img onerror=...>), preservando formatação segura.
+interface MarkmapNode {
+  content?: string
+  children?: MarkmapNode[]
+}
+
+function sanitizeNode(node: MarkmapNode): void {
+  if (typeof node.content === 'string') {
+    node.content = DOMPurify.sanitize(node.content, { USE_PROFILES: { html: true } })
+  }
+  node.children?.forEach(sanitizeNode)
 }
 
 const MARKMAP_STYLES = `
@@ -47,6 +64,7 @@ export function MindMapViewer({ markdown }: MindMapViewerProps) {
 
     const transformer = new Transformer()
     const { root } = transformer.transform(markdown)
+    sanitizeNode(root as MarkmapNode)
 
     if (!mmRef.current) {
       mmRef.current = Markmap.create(svgRef.current, {

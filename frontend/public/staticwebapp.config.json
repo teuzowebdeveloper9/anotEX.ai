@@ -5,5 +5,13 @@
   },
   "mimeTypes": {
     ".woff2": "font/woff2"
+  },
+  "globalHeaders": {
+    "Content-Security-Policy": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data:; connect-src 'self' https://anotex-api.calmhill-a7701bda.brazilsouth.azurecontainerapps.io; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self' https://app.abacatepay.com",
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "Strict-Transport-Security": "max-age=63072000; includeSubDomains; preload",
+    "Permissions-Policy": "camera=(), geolocation=(), payment=()"
   }
 }
