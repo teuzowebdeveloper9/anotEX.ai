@@ -42,6 +42,10 @@ import type { TranscriptionJobData } from '../../../transcription/application/se
 // lógico validado depois no use-case.
 const MAX_UPLOAD_BYTES = (Number(process.env.MAX_AUDIO_SIZE_MB ?? 100) + 5) * 1024 * 1024;
 
+// Limite de uploads por hora por usuário — controla abuso e custo de IA (cada upload
+// dispara transcrição + resumo na OpenAI). Configurável via env; default 30/h.
+const MAX_UPLOADS_PER_HOUR = Number(process.env.MAX_UPLOADS_PER_HOUR ?? 30);
+
 @Controller('audio')
 export class AudioController {
   private readonly logger = new Logger(AudioController.name);
@@ -55,9 +59,9 @@ export class AudioController {
     @InjectQueue(TRANSCRIPTION_QUEUE) private readonly transcriptionQueue: Queue<TranscriptionJobData>,
   ) {}
 
-  // 10 uploads por hora por usuário autenticado
+  // Uploads por hora por usuário autenticado (MAX_UPLOADS_PER_HOUR, default 30)
   @UseGuards(UserUploadThrottlerGuard)
-  @Throttle({ default: { limit: 10, ttl: 3600000 } })
+  @Throttle({ default: { limit: MAX_UPLOADS_PER_HOUR, ttl: 3600000 } })
   @Post('upload')
   @HttpCode(HttpStatus.CREATED)
   @UseInterceptors(FileInterceptor('audio', { limits: { fileSize: MAX_UPLOAD_BYTES } }))
