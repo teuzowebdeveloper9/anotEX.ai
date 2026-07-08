@@ -3,6 +3,7 @@ import {
   Inject,
   Injectable,
   InternalServerErrorException,
+  Logger,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
@@ -17,21 +18,46 @@ export interface CreateAbacatepayCheckoutCommand {
   dto: CreateAbacatepayCheckoutDto;
 }
 
+interface CatalogProduct {
+  readonly priceInCents: number;
+  readonly name: string;
+}
+
 @Injectable()
 export class CreateAbacatepayCheckoutUseCase {
+  private readonly logger = new Logger(CreateAbacatepayCheckoutUseCase.name);
+
   constructor(
     @Inject(ABACATEPAY_PROVIDER)
     private readonly abacatepayProvider: IAbacatepayProvider,
     private readonly configService: ConfigService,
   ) {}
 
-  async execute(command: CreateAbacatepayCheckoutCommand): Promise<AbacatepayCheckoutResponse> {
-    const allowedProductIds = (this.configService.get<string>('ABACATEPAY_ALLOWED_PRODUCT_IDS') ?? '')
-      .split(',')
-      .map((id) => id.trim())
-      .filter(Boolean);
+  /**
+   * Catálogo autoritativo (server-side) montado a partir de ABACATEPAY_PRODUCTS:
+   * "productId:priceCents:Nome do produto" separados por vírgula.
+   * O preço e o nome NUNCA vêm do cliente — evita o cliente pagar valor arbitrário.
+   */
+  private buildCatalog(): Map<string, CatalogProduct> {
+    const raw = this.configService.get<string>('ABACATEPAY_PRODUCTS') ?? '';
+    const catalog = new Map<string, CatalogProduct>();
+    for (const entry of raw.split(',').map((e) => e.trim()).filter(Boolean)) {
+      const [id, price, ...nameParts] = entry.split(':');
+      const priceInCents = Number(price);
+      if (id && Number.isInteger(priceInCents) && priceInCents > 0) {
+        catalog.set(id, { priceInCents, name: nameParts.join(':').trim() || 'Assinatura' });
+      }
+    }
+    return catalog;
+  }
 
-    if (allowedProductIds.length > 0 && !allowedProductIds.includes(command.dto.productId)) {
+  async execute(command: CreateAbacatepayCheckoutCommand): Promise<AbacatepayCheckoutResponse> {
+    const catalog = this.buildCatalog();
+
+    // Fail-closed: sem catálogo configurado ou produto desconhecido → recusa.
+    const product = catalog.get(command.dto.productId);
+    if (!product) {
+      this.logger.warn(`Checkout recusado: produto não permitido | productId=${command.dto.productId}`);
       throw new BadRequestException('Product not allowed');
     }
 
@@ -44,15 +70,17 @@ export class CreateAbacatepayCheckoutUseCase {
         items: [
           {
             id: command.dto.productId,
+            name: product.name,
             quantity: command.dto.quantity,
-            priceInCents: command.dto.priceInCents,
+            // Preço SEMPRE do catálogo do servidor — ignora qualquer valor do cliente
+            priceInCents: product.priceInCents,
           },
         ],
         externalId,
         frequency: command.dto.frequency,
-        returnUrl: command.dto.returnUrl ?? this.configService.get<string>('ABACATEPAY_RETURN_URL'),
-        completionUrl:
-          command.dto.completionUrl ?? this.configService.get<string>('ABACATEPAY_COMPLETION_URL'),
+        // URLs de retorno vêm apenas da config — nunca do cliente (evita open redirect/phishing)
+        returnUrl: this.configService.get<string>('ABACATEPAY_RETURN_URL'),
+        completionUrl: this.configService.get<string>('ABACATEPAY_COMPLETION_URL'),
         methods: command.dto.methods,
         metadata: {
           userId: command.userId,
@@ -61,10 +89,12 @@ export class CreateAbacatepayCheckoutUseCase {
         customer: command.dto.customer,
       });
     } catch (error) {
-      throw new InternalServerErrorException(
-        error instanceof Error ? error.message : 'Failed to create AbacatePay checkout',
+      // Loga o detalhe internamente, retorna mensagem genérica ao cliente
+      this.logger.error(
+        `Falha ao criar checkout AbacatePay | userId=${command.userId}`,
+        error instanceof Error ? error.stack : String(error),
       );
+      throw new InternalServerErrorException('Failed to create checkout');
     }
   }
-
 }

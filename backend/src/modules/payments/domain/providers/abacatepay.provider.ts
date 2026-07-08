@@ -1,8 +1,10 @@
 export interface CreateAbacatepayCheckoutInput {
   items: Array<{
     id: string;
+    name: string;
     quantity: number;
-    priceInCents?: number;
+    // Preço resolvido no servidor a partir do catálogo — nunca vem do cliente
+    priceInCents: number;
   }>;
   externalId: string;
   frequency?: 'ONE_TIME' | 'SUBSCRIPTION';
