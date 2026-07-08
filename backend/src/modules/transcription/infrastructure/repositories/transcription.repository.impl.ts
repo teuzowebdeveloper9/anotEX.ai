@@ -67,12 +67,15 @@ export class TranscriptionRepositoryImpl implements ITranscriptionRepository {
 
   async findByUserId(userId: string, search?: string): Promise<TranscriptionEntity[]> {
     try {
+      // Escapa os coringas do LIKE (% _ \) para que o termo de busca seja tratado
+      // como literal — evita match amplo / degradação de performance por input
+      const escapedSearch = search?.replace(/[\\%_]/g, '\\$&');
       const result = search
         ? await this.postgresService.query<TranscriptionRow>(
             `SELECT * FROM transcriptions
              WHERE user_id = $1 AND (title ILIKE $2 OR transcription_text ILIKE $2)
              ORDER BY created_at DESC`,
-            [userId, `%${search}%`],
+            [userId, `%${escapedSearch}%`],
           )
         : await this.postgresService.query<TranscriptionRow>(
             'SELECT * FROM transcriptions WHERE user_id = $1 ORDER BY created_at DESC',
