@@ -37,6 +37,11 @@ import {
 } from '../../../transcription/application/services/transcription-queue.processor.js';
 import type { TranscriptionJobData } from '../../../transcription/application/services/transcription-queue.processor.js';
 
+// Teto de tamanho aplicado no transporte (Multer aborta o stream antes de bufferizar
+// o arquivo em memória) — impede DoS por exaustão de RAM. +5MB de folga sobre o limite
+// lógico validado depois no use-case.
+const MAX_UPLOAD_BYTES = (Number(process.env.MAX_AUDIO_SIZE_MB ?? 100) + 5) * 1024 * 1024;
+
 @Controller('audio')
 export class AudioController {
   private readonly logger = new Logger(AudioController.name);
@@ -55,7 +60,7 @@ export class AudioController {
   @Throttle({ default: { limit: 10, ttl: 3600000 } })
   @Post('upload')
   @HttpCode(HttpStatus.CREATED)
-  @UseInterceptors(FileInterceptor('audio'))
+  @UseInterceptors(FileInterceptor('audio', { limits: { fileSize: MAX_UPLOAD_BYTES } }))
   async upload(
     @UploadedFile() file: Express.Multer.File,
     @Body() dto: UploadAudioDto,
