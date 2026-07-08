@@ -7,7 +7,7 @@
     ".woff2": "font/woff2"
   },
   "globalHeaders": {
-    "Content-Security-Policy": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data:; connect-src 'self' https://anotex-api.calmhill-a7701bda.brazilsouth.azurecontainerapps.io; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self' https://app.abacatepay.com",
+    "Content-Security-Policy": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; media-src 'self' blob: https://stanotexf9cf7.blob.core.windows.net; font-src 'self' data:; connect-src 'self' https://anotex-api.calmhill-a7701bda.brazilsouth.azurecontainerapps.io https://stanotexf9cf7.blob.core.windows.net; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self' https://app.abacatepay.com",
     "X-Content-Type-Options": "nosniff",
     "X-Frame-Options": "DENY",
     "Referrer-Policy": "strict-origin-when-cross-origin",
