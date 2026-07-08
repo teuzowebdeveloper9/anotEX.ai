@@ -11,6 +11,11 @@ FROM node:22-slim
 WORKDIR /app
 ENV NODE_ENV=production
 
+# Atrela o pacote ghcr.io ao repositório (aparece em "Packages" no GitHub)
+LABEL org.opencontainers.image.source="https://github.com/teuzowebdeveloper9/anotEX.ai"
+LABEL org.opencontainers.image.description="anotEX.ai backend — API + worker (NestJS)"
+LABEL org.opencontainers.image.licenses="UNLICENSED"
+
 # ffmpeg para compressão de áudio; python3 + yt-dlp para download de vídeos do YouTube
 RUN apt-get update \
   && apt-get install -y --no-install-recommends ffmpeg python3 ca-certificates curl \
