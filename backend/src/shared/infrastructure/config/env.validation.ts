@@ -43,6 +43,7 @@ export const envValidationSchema = Joi.object({
   ABACATEPAY_COMPLETION_URL: Joi.string().uri().optional(),
 
   MAX_AUDIO_SIZE_MB: Joi.number().default(100),
+  MAX_UPLOADS_PER_HOUR: Joi.number().default(30),
   SIGNED_URL_EXPIRES_IN_SECONDS: Joi.number().default(900),
 
   YOUTUBE_API_KEY: Joi.string().required(),
