@@ -51,9 +51,17 @@
   --warning-bg: rgba(245, 158, 11, 0.12);
   --danger-bg: rgba(186, 26, 26, 0.1);
 
-  --shadow-card: 0 20px 48px rgba(25, 28, 31, 0.06);
-  --shadow-elevated: 0 28px 72px rgba(25, 28, 31, 0.12);
+  /* Sombras em camadas — contato nítido + ambiente suave (leitura premium) */
+  --shadow-card: 0 1px 2px rgba(25, 28, 31, 0.04), 0 8px 24px rgba(25, 28, 31, 0.06);
+  --shadow-elevated: 0 2px 6px rgba(25, 28, 31, 0.05), 0 18px 50px rgba(25, 28, 31, 0.12);
+  --shadow-hover: 0 2px 4px rgba(25, 28, 31, 0.05), 0 14px 34px rgba(37, 99, 235, 0.12);
   --glass-strong: linear-gradient(180deg, rgba(255,255,255,0.92) 0%, rgba(247,249,253,0.86) 100%);
+
+  /* Motion — easing e durações consistentes em toda a plataforma */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.5, 1);
+  --dur-fast: 140ms;
+  --dur: 220ms;
 
   --mouse-x: 50%;
   --mouse-y: 50%;
@@ -105,8 +113,9 @@
   --warning-bg: rgba(251, 191, 36, 0.12);
   --danger-bg: rgba(255, 180, 171, 0.12);
 
-  --shadow-card: 0 18px 46px rgba(0, 0, 0, 0.28);
-  --shadow-elevated: 0 28px 68px rgba(0, 0, 0, 0.38);
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.24), 0 12px 34px rgba(0, 0, 0, 0.3);
+  --shadow-elevated: 0 2px 6px rgba(0, 0, 0, 0.3), 0 24px 60px rgba(0, 0, 0, 0.42);
+  --shadow-hover: 0 2px 6px rgba(0, 0, 0, 0.3), 0 16px 40px rgba(127, 177, 255, 0.22);
 }
 
 @layer base {
@@ -131,6 +140,31 @@
 
   #root {
     min-height: 100vh;
+  }
+
+  /* Títulos com tracking levemente negativo — leitura mais sofisticada */
+  h1, h2, h3, h4 {
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+
+  p, li { text-wrap: pretty; }
+
+  /* Foco acessível e discreto em toda a plataforma */
+  :focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--surface-base), 0 0 0 4px var(--ring-soft);
+    border-radius: 8px;
+  }
+
+  /* Respeita quem prefere menos movimento */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 
   [data-theme="dark"] body {
@@ -322,6 +356,35 @@
   box-shadow: var(--shadow-card);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
+  transition:
+    transform var(--dur) var(--ease-out),
+    box-shadow var(--dur) var(--ease-out),
+    border-color var(--dur) var(--ease-out);
+}
+
+/* Cards e superfícies transicionam suavemente qualquer mudança de estado */
+.pen-card,
+.pen-surface {
+  transition:
+    transform var(--dur) var(--ease-out),
+    box-shadow var(--dur) var(--ease-out),
+    border-color var(--dur) var(--ease-out);
+}
+
+/* Hover que "levanta" — micro-prazer em cards clicáveis (links e botões que contêm o card) */
+a .pen-list-card,
+button .pen-list-card,
+a.pen-list-card,
+.pen-list-card.is-interactive {
+  cursor: pointer;
+}
+a:hover .pen-list-card,
+button:hover .pen-list-card,
+a.pen-list-card:hover,
+.pen-list-card.is-interactive:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-hover);
+  border-color: var(--border-strong);
 }
 
 .pen-pill {
@@ -388,22 +451,22 @@
 .markdown-body li { margin-bottom: 0.3em; }
 .markdown-body li strong { color: var(--text-primary); }
 .markdown-body code {
-  background: rgba(56,171,228,0.08);
-  border: 1px solid rgba(56,171,228,0.20);
-  border-radius: 5px;
+  background: var(--brand-accent-soft);
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
   padding: 0.15em 0.45em;
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.8em;
   color: var(--accent-5);
 }
 .markdown-body pre {
-  background: rgba(255,255,255,0.75);
-  border: 1px solid rgba(56,171,228,0.18);
-  border-radius: 12px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border-soft);
+  border-radius: 14px;
   padding: 1.125rem;
   overflow-x: auto;
   margin-bottom: 1em;
-  box-shadow: inset 0 1px 3px rgba(56,171,228,0.08);
+  box-shadow: var(--shadow-card);
 }
 .markdown-body pre code { background: none; border: none; padding: 0; color: var(--text-primary); }
 .markdown-body blockquote {

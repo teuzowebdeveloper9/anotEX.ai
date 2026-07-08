@@ -9,7 +9,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
     const variants = {
       primary:
-        'rounded-full text-white active:scale-[0.985] hover:-translate-y-px hover:brightness-[1.03] hover:shadow-[var(--shadow-elevated)]',
+        'rounded-full text-white active:scale-[0.98] hover:-translate-y-0.5 hover:brightness-[1.04] hover:shadow-[var(--shadow-hover)]',
       ghost:
         'rounded-2xl bg-transparent text-[var(--text-secondary)] hover:bg-[var(--surface-panel)] hover:text-[var(--text-primary)]',
       outline:
