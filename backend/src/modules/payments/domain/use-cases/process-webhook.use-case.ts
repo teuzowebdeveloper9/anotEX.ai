@@ -21,38 +21,40 @@ export class ProcessWebhookUseCase {
       const billingId = billing?.id;
       const customerEmail = customer?.metadata?.email;
 
-      if (!customerEmail) {
-        this.logger.warn('Webhook billing.paid without customer email');
+      // Casa preferencialmente pelo billingId (vínculo confiável gravado no checkout);
+      // email é fallback (é dado fornecido pelo usuário, spoofável em payload forjado)
+      const subscription =
+        (billingId ? await this.subscriptionRepository.findByBillingId(billingId) : null) ??
+        (customerEmail ? await this.subscriptionRepository.findByEmail(customerEmail) : null);
+
+      if (!subscription) {
+        this.logger.warn('Webhook billing.paid: assinatura não encontrada (billingId/email)');
         return;
       }
 
-      const subscription = await this.subscriptionRepository.findByEmail(customerEmail);
-      if (subscription) {
-        if (billingId) {
-          await this.subscriptionRepository.updateBillingId(subscription.userId, billingId);
-        }
-        await this.subscriptionRepository.updateStatus(subscription.userId, 'active');
-        this.logger.log(`Subscription activated for user: ${subscription.userId} (email: ${customerEmail})`);
-      } else {
-        this.logger.warn(`Subscription not found for email: ${customerEmail}`);
+      if (billingId) {
+        await this.subscriptionRepository.updateBillingId(subscription.userId, billingId);
       }
+      await this.subscriptionRepository.updateStatus(subscription.userId, 'active');
+      this.logger.log(`Assinatura ativada | userId=${subscription.userId}`);
     }
 
     if (command.event === 'billing.expired' || command.event === 'billing.cancelled') {
+      const billing = command.data?.billing as { id?: string } | undefined;
       const customer = command.data?.customer as { metadata?: { email?: string } } | undefined;
+      const billingId = billing?.id;
       const customerEmail = customer?.metadata?.email;
 
-      if (!customerEmail) {
-        this.logger.warn(`Webhook ${command.event} without customer email`);
-        return;
-      }
+      const subscription =
+        (billingId ? await this.subscriptionRepository.findByBillingId(billingId) : null) ??
+        (customerEmail ? await this.subscriptionRepository.findByEmail(customerEmail) : null);
 
-      const subscription = await this.subscriptionRepository.findByEmail(customerEmail);
       if (subscription) {
-        await this.subscriptionRepository.updateStatus(subscription.userId, 
-          command.event === 'billing.expired' ? 'expired' : 'cancelled'
+        await this.subscriptionRepository.updateStatus(
+          subscription.userId,
+          command.event === 'billing.expired' ? 'expired' : 'cancelled',
         );
-        this.logger.log(`Subscription ${command.event} for user: ${subscription.userId}`);
+        this.logger.log(`Assinatura ${command.event} | userId=${subscription.userId}`);
       }
     }
   }
