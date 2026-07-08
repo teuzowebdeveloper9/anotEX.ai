@@ -13,9 +13,21 @@ function sanitizeFilename(name: string): string {
   return name.replace(/[^a-zA-Z0-9À-ÿ\s-_]/g, '').trim().slice(0, 80)
 }
 
-// Converte markdown básico para HTML para a janela de impressão
+// Escapa HTML para impedir XSS ao injetar conteúdo (gerado por IA) na janela de impressão
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
+// Converte markdown básico para HTML para a janela de impressão.
+// Escapa o HTML ANTES de aplicar o markdown — assim tags do conteúdo viram texto
+// inerte e só as tags que nós inserimos (h1/strong/li...) são renderizadas.
 function markdownToHtml(md: string): string {
-  return md
+  return escapeHtml(md)
     .replace(/^### (.+)$/gm, '<h3>$1</h3>')
     .replace(/^## (.+)$/gm, '<h2>$1</h2>')
     .replace(/^# (.+)$/gm, '<h1>$1</h1>')
@@ -37,6 +49,8 @@ export function exportTxt(title: string, text: string) {
 
 export function exportPdf(title: string, summaryMarkdown: string, date: string) {
   const html = markdownToHtml(summaryMarkdown)
+  const safeTitle = escapeHtml(title)
+  const safeDate = escapeHtml(date)
   const win = window.open('', '_blank')
   if (!win) return
 
@@ -44,7 +58,7 @@ export function exportPdf(title: string, summaryMarkdown: string, date: string) 
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>${title}</title>
+  <title>${safeTitle}</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -85,15 +99,16 @@ export function exportPdf(title: string, summaryMarkdown: string, date: string) 
 </head>
 <body>
   <header>
-    <h1>${title}</h1>
-    <p>Resumo gerado por anotEX.ai · ${date}</p>
+    <h1>${safeTitle}</h1>
+    <p>Resumo gerado por anotEX.ai · ${safeDate}</p>
   </header>
   <main>${html}</main>
   <footer>anotEX.ai — Resumos inteligentes para suas aulas</footer>
-  <script>window.onload = () => { window.print(); }</script>
 </body>
 </html>`)
   win.document.close()
+  // Impressão disparada pelo opener (sem <script> inline, compatível com a CSP)
+  win.onload = () => win.print()
 }
 
 export function exportAnki(title: string, flashcards: FlashcardItem[]) {
