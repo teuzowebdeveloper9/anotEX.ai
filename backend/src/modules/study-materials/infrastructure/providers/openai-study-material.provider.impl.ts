@@ -79,7 +79,15 @@ export class OpenAiStudyMaterialProviderImpl implements IStudyMaterialProvider {
   async generateMindmap(summaryText: string): Promise<MindmapContent> {
     this.logger.log('Generating mindmap...');
     const markdown = await this.callOpenAi(`${MINDMAP_PROMPT}\n\n${summaryText}`, 1024);
-    return { markdown: markdown.trim() };
+    return { markdown: this.stripCodeFence(markdown) };
+  }
+
+  // gpt-4o-mini às vezes embrulha a resposta em ```markdown ... ``` — o markmap
+  // renderiza a cerca como um bloco de texto único em vez do diagrama. Remove-a.
+  private stripCodeFence(md: string): string {
+    const trimmed = md.trim();
+    const match = trimmed.match(/^```[a-zA-Z]*\n([\s\S]*?)\n?```$/);
+    return (match ? match[1] : trimmed).trim();
   }
 
   async generateQuiz(summaryText: string): Promise<QuizItem[]> {
