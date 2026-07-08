@@ -23,6 +23,7 @@ Grave, faça upload ou cole um link do YouTube. A IA transcreve, resume e gera m
 ![OpenAI](https://img.shields.io/badge/OpenAI-412991?style=for-the-badge&logo=openai&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 
+[![Publicar imagem Docker](https://github.com/teuzowebdeveloper9/anotEX.ai/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/teuzowebdeveloper9/anotEX.ai/actions/workflows/docker-publish.yml)
 [![Docker Image](https://img.shields.io/docker/v/teuzowebdeveloper9/anotex-backend?label=docker%20hub&logo=docker&sort=semver)](https://hub.docker.com/r/teuzowebdeveloper9/anotex-backend)
 [![Image Size](https://img.shields.io/docker/image-size/teuzowebdeveloper9/anotex-backend/latest?logo=docker)](https://hub.docker.com/r/teuzowebdeveloper9/anotex-backend)
 ![License](https://img.shields.io/badge/license-UNLICENSED-lightgrey)
@@ -167,9 +168,16 @@ anotEX.ai/
 
 ## Docker
 
-A imagem do backend (api + worker na mesma imagem) está publicada no **Docker Hub**:
+A imagem do backend (api + worker na mesma imagem) é publicada automaticamente a cada push na `main` e a cada tag `vN` via **GitHub Actions** (`.github/workflows/docker-publish.yml`), em dois registries:
+
+- **GitHub Container Registry** (aparece em *Packages* no repo): `ghcr.io/teuzowebdeveloper9/anotex-backend`
+- **Docker Hub**: `teuzowebdeveloper9/anotex-backend`
 
 ```bash
+# GitHub Container Registry
+docker pull ghcr.io/teuzowebdeveloper9/anotex-backend:latest
+
+# ou Docker Hub
 docker pull teuzowebdeveloper9/anotex-backend:latest
 ```
 
