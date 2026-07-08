@@ -23,6 +23,15 @@ function sanitizeNode(node: MarkmapNode): void {
   node.children?.forEach(sanitizeNode)
 }
 
+// A IA às vezes devolve o markdown embrulhado numa code fence (```markdown ... ```).
+// Sem remover, o markmap renderiza o bloco inteiro como um único nó de texto
+// em vez do diagrama. Desembrulha uma cerca que envolva todo o conteúdo.
+function stripCodeFence(md: string): string {
+  const trimmed = md.trim()
+  const match = trimmed.match(/^```[a-zA-Z]*\n([\s\S]*?)\n?```$/)
+  return match ? match[1].trim() : trimmed
+}
+
 const MARKMAP_STYLES = `
   .markmap-node text {
     fill: #ffffff !important;
@@ -63,7 +72,7 @@ export function MindMapViewer({ markdown }: MindMapViewerProps) {
     }
 
     const transformer = new Transformer()
-    const { root } = transformer.transform(markdown)
+    const { root } = transformer.transform(stripCodeFence(markdown))
     sanitizeNode(root as MarkmapNode)
 
     if (!mmRef.current) {
