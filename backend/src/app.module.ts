@@ -38,6 +38,10 @@ import { LoggingMiddleware } from './shared/presentation/middlewares/logging.mid
         const host = process.env.REDIS_HOST ?? 'localhost';
         const useTls = (process.env.REDIS_TLS ?? 'true') === 'true';
         return {
+          // Hash-tag no prefixo força todas as chaves das filas ao MESMO slot do
+          // Redis Cluster (Azure Managed Redis usa clustering). Sem isso, os scripts
+          // Lua do Bull que tocam várias chaves (wait/paused/...) falham com CROSSSLOT.
+          prefix: '{bull}',
           redis: {
             host,
             port: Number(process.env.REDIS_PORT ?? 10000),
