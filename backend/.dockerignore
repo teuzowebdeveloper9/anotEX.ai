@@ -1,0 +1,26 @@
+# Segredos e ambiente — NUNCA no build context / imagem
+.env
+.env.*
+!.env.example
+
+# Dependências e build (reinstalados/rebuildados na imagem)
+node_modules
+dist
+coverage
+
+# Testes e dev
+**/*.spec.ts
+test
+.eslintrc*
+.prettierrc*
+
+# VCS e editor
+.git
+.gitignore
+.vscode
+.idea
+
+# Logs e temporários
+*.log
+npm-debug.log*
+tmp
