@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type {
   AbacatepayCheckoutResponse,
@@ -14,6 +14,7 @@ interface AbacatepayApiResponse<T> {
 
 @Injectable()
 export class AbacatepayProviderImpl implements IAbacatepayProvider {
+  private readonly logger = new Logger(AbacatepayProviderImpl.name);
   private readonly apiBaseUrl: string;
   private readonly apiKey?: string;
 
@@ -21,8 +22,6 @@ export class AbacatepayProviderImpl implements IAbacatepayProvider {
     this.apiBaseUrl =
       this.configService.get<string>('ABACATEPAY_API_BASE_URL') ?? 'https://api.abacatepay.com/v2';
     this.apiKey = this.configService.get<string>('ABACATEPAY_API_KEY');
-
-    console.log('[AbacatepayProvider] API Base URL:', this.apiBaseUrl);
   }
 
   async createCheckout(input: CreateAbacatepayCheckoutInput): Promise<AbacatepayCheckoutResponse> {
@@ -37,9 +36,9 @@ export class AbacatepayProviderImpl implements IAbacatepayProvider {
       methods: input.methods ?? ['PIX', 'CARD'],
       products: input.items.map((item) => ({
         externalId: item.id,
-        name: 'AnotEx Pro',
+        name: item.name,
         quantity: item.quantity,
-        price: item.priceInCents ?? 3990,
+        price: item.priceInCents,
       })),
       returnUrl: input.returnUrl ?? '',
       completionUrl: input.completionUrl ?? '',
@@ -56,11 +55,6 @@ export class AbacatepayProviderImpl implements IAbacatepayProvider {
       };
     }
 
-    console.log('[AbacatepayProvider] Creating checkout', {
-      url: `${this.apiBaseUrl}/billing/create`,
-      hasCustomer: !!input.customer,
-    });
-
     const response = await fetch(`${this.apiBaseUrl}/billing/create`, {
       method: 'POST',
       headers: {
@@ -70,13 +64,11 @@ export class AbacatepayProviderImpl implements IAbacatepayProvider {
       body: JSON.stringify(v1Payload),
     });
 
-    console.log('[AbacatepayProvider] Response status:', response.status);
-
     const payload = (await response.json()) as AbacatepayApiResponse<AbacatepayCheckoutResponse>;
 
     if (!response.ok || !payload.success || !payload.data) {
       const errorMsg = payload.error ?? `HTTP ${response.status}: ${response.statusText}`;
-      console.error('[AbacatepayProvider] Checkout failed:', errorMsg);
+      this.logger.error(`Checkout AbacatePay falhou: ${errorMsg}`);
       throw new Error(errorMsg);
     }
 

@@ -20,20 +20,21 @@ export class LoginUseCase {
     private readonly createSessionUseCase: CreateSessionUseCase,
   ) {}
 
+  // Hash bcrypt descartável usado quando o usuário não existe/não tem senha,
+  // para que o tempo de resposta seja o mesmo — evita enumeração por timing.
+  private static readonly DUMMY_HASH = '$2b$10$CwTycUXWue0Thq9StjUM0uJ8Dq4Q6bV3yqCZ7f4nQ0hVqJ8oQ0y1a';
+
   async execute(input: LoginInput): Promise<Result<AuthSession>> {
     const email = input.email.trim().toLowerCase();
     const user = await this.userRepository.findByEmail(email);
 
-    // 401 genérico — nunca revela se o email existe ou se a senha está errada
-    if (!user?.passwordHash) {
-      this.logger.warn('Login rejeitado: usuário inexistente ou sem senha');
-      return fail(new UnauthorizedException('Invalid credentials'));
-    }
+    // 401 genérico — nunca revela se o email existe ou se a senha está errada.
+    // Sempre roda um bcrypt.compare (real ou dummy) para não vazar existência por timing.
+    const hashToCompare = user?.passwordHash ?? LoginUseCase.DUMMY_HASH;
+    const passwordMatches = await bcrypt.compare(input.password, hashToCompare);
 
-    // bcrypt.compare é compatível com hashes $2a$/$2b$ importados do Supabase
-    const passwordMatches = await bcrypt.compare(input.password, user.passwordHash);
-    if (!passwordMatches) {
-      this.logger.warn(`Login rejeitado: senha inválida | userId=${user.id}`);
+    if (!user?.passwordHash || !passwordMatches) {
+      this.logger.warn('Login rejeitado: credenciais inválidas');
       return fail(new UnauthorizedException('Invalid credentials'));
     }
 

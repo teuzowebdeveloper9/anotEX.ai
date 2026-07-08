@@ -6,7 +6,6 @@ import {
   IsObject,
   IsOptional,
   IsString,
-  IsUrl,
   Min,
 } from 'class-validator';
 
@@ -14,11 +13,9 @@ export class CreateAbacatepayCheckoutDto {
   @IsString()
   productId!: string;
 
-  @Type(() => Number)
-  @IsInt()
-  @Min(100)
-  @IsOptional()
-  priceInCents?: number;
+  // priceInCents, returnUrl e completionUrl foram REMOVIDOS de propósito:
+  // eram controlados pelo cliente e permitiam pagar valor arbitrário / open redirect.
+  // O preço e as URLs de retorno são resolvidos exclusivamente no backend.
 
   @Type(() => Number)
   @IsInt()
@@ -32,18 +29,6 @@ export class CreateAbacatepayCheckoutDto {
   @IsOptional()
   @IsString()
   frequency?: 'ONE_TIME' | 'SUBSCRIPTION';
-
-  @IsOptional()
-  @IsUrl({
-    require_protocol: true,
-  })
-  returnUrl?: string;
-
-  @IsOptional()
-  @IsUrl({
-    require_protocol: true,
-  })
-  completionUrl?: string;
 
   @IsOptional()
   @IsArray()

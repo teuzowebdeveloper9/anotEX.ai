@@ -36,7 +36,9 @@ export const envValidationSchema = Joi.object({
   ABACATEPAY_API_BASE_URL: Joi.string().uri().default('https://api.abacatepay.com/v2'),
   ABACATEPAY_WEBHOOK_SECRET: Joi.string().optional(),
   ABACATEPAY_PUBLIC_HMAC_KEY: Joi.string().optional(),
-  ABACATEPAY_ALLOWED_PRODUCT_IDS: Joi.string().allow('').default(''),
+  // Catálogo autoritativo: "productId:priceCents:Nome" separados por vírgula.
+  // O preço é resolvido aqui no servidor — nunca aceito do cliente.
+  ABACATEPAY_PRODUCTS: Joi.string().allow('').default(''),
   ABACATEPAY_RETURN_URL: Joi.string().uri().optional(),
   ABACATEPAY_COMPLETION_URL: Joi.string().uri().optional(),
 

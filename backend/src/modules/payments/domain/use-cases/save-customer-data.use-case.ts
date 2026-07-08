@@ -14,8 +14,9 @@ export class SaveCustomerDataUseCase {
   constructor(private readonly subscriptionRepository: SubscriptionRepository) {}
 
   async execute(command: SaveCustomerDataCommand) {
-    this.logger.log(`Saving customer data for user ${command.userId}: ${JSON.stringify(command.dto)}`);
-    
+    // Nunca logar PII (nome, email, telefone, CPF) — apenas o userId
+    this.logger.log(`Salvando dados de cliente | userId=${command.userId}`);
+
     const subscription = await this.subscriptionRepository.upsert({
       userId: command.userId,
       customerName: command.dto.name,
@@ -24,7 +25,7 @@ export class SaveCustomerDataUseCase {
       customerTaxId: command.dto.taxId,
     });
 
-    this.logger.log(`Subscription saved: ${JSON.stringify(subscription)}`);
+    this.logger.log(`Assinatura salva | userId=${command.userId} | status=${subscription.status}`);
 
     return {
       hasSubscription: subscription.status === 'active',

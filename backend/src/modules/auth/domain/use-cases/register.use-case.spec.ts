@@ -54,18 +54,18 @@ describe('RegisterUseCase', () => {
       expect(createSessionUseCase.execute).not.toHaveBeenCalled();
     });
 
-    it('deve definir a senha quando o usuário existe sem senha (criado via magic link)', async () => {
+    it('deve rejeitar (sem definir senha nem emitir sessão) se o email já existe sem senha — previne account takeover', async () => {
       userRepository.findByEmail.mockResolvedValue(makeUser({ passwordHash: null }));
 
       const result = await useCase.execute({ email: 'user@example.com', password: 'senha-forte' });
 
-      expect(result.success).toBe(true);
-      expect(userRepository.setPassword).toHaveBeenCalledTimes(1);
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error).toBeInstanceOf(ConflictException);
+      }
+      expect(userRepository.setPassword).not.toHaveBeenCalled();
       expect(userRepository.create).not.toHaveBeenCalled();
-
-      const [userId, passwordHash] = userRepository.setPassword.mock.calls[0];
-      expect(userId).toBe('user-1');
-      expect(await bcrypt.compare('senha-forte', passwordHash)).toBe(true);
+      expect(createSessionUseCase.execute).not.toHaveBeenCalled();
     });
 
     it('deve criar o usuário com hash bcrypt quando o email não existe', async () => {
