@@ -14,13 +14,18 @@ Grave, faça upload ou cole um link do YouTube. A IA transcreve, resume e gera m
 ![React](https://img.shields.io/badge/React_19-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS_v4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)
-![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)
-![Cloudflare](https://img.shields.io/badge/Cloudflare_R2-F38020?style=for-the-badge&logo=cloudflare&logoColor=white)
-![BullMQ](https://img.shields.io/badge/BullMQ-FF6B35?style=for-the-badge&logo=bull&logoColor=white)
-![Redis](https://img.shields.io/badge/Upstash_Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)
-![Railway](https://img.shields.io/badge/Railway-0B0D0E?style=for-the-badge&logo=railway&logoColor=white)
 ![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)
-![Groq](https://img.shields.io/badge/Groq_AI-F55036?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSIxMiIgZmlsbD0id2hpdGUiLz48L3N2Zz4=&logoColor=white)
+<br/>
+![Azure](https://img.shields.io/badge/Microsoft_Azure-0078D4?style=for-the-badge&logo=microsoftazure&logoColor=white)
+![Container Apps](https://img.shields.io/badge/Azure_Container_Apps-0078D4?style=for-the-badge&logo=microsoftazure&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
+![Redis](https://img.shields.io/badge/Azure_Managed_Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)
+![OpenAI](https://img.shields.io/badge/OpenAI-412991?style=for-the-badge&logo=openai&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+
+[![Docker Image](https://img.shields.io/docker/v/teuzowebdeveloper9/anotex-backend?label=docker%20hub&logo=docker&sort=semver)](https://hub.docker.com/r/teuzowebdeveloper9/anotex-backend)
+[![Image Size](https://img.shields.io/docker/image-size/teuzowebdeveloper9/anotex-backend/latest?logo=docker)](https://hub.docker.com/r/teuzowebdeveloper9/anotex-backend)
+![License](https://img.shields.io/badge/license-UNLICENSED-lightgrey)
 
 </div>
 
@@ -33,21 +38,20 @@ Grave, faça upload ou cole um link do YouTube. A IA transcreve, resume e gera m
 - [Arquitetura](#arquitetura)
 - [Stack Completa](#stack-completa)
 - [Estrutura do Projeto](#estrutura-do-projeto)
+- [Docker](#docker)
 - [Como Rodar Localmente](#como-rodar-localmente)
 - [Variáveis de Ambiente](#variáveis-de-ambiente)
-- [Banco de Dados — Supabase](#banco-de-dados--supabase)
+- [Banco de Dados](#banco-de-dados)
 - [Segurança](#segurança)
-- [Deploy](#deploy)
-- [Performance — Teste de Carga](#performance--teste-de-carga)
-- [Endpoints da API](#endpoints-da-api)
+- [Deploy — Azure](#deploy--azure)
 
 ---
 
 ## Visão Geral
 
-O **anotEX.ai** é uma plataforma de estudo com IA que automatiza o processo de anotação. Você grava uma aula, faz upload de um arquivo de áudio ou cola um link do YouTube — o sistema transcreve com Groq Whisper Large v3, gera um resumo inteligente com título, cria flashcards para revisão espaçada, estrutura um mapa mental navegável, gera um quiz de múltipla escolha, permite conversar com o conteúdo da aula via chat RAG, e agenda revisões automáticas com o algoritmo SM-2 (Anki), tudo de forma assíncrona.
+O **anotEX.ai** é uma plataforma de estudo com IA que automatiza o processo de anotação. Você grava uma aula, faz upload de um arquivo de áudio ou cola um link do YouTube — o sistema **transcreve com OpenAI Whisper** (com timestamps), gera um **resumo inteligente** com título, cria **flashcards** para revisão espaçada, estrutura um **mapa mental** navegável, gera um **quiz** de múltipla escolha, permite **conversar com o conteúdo** da aula via chat, e agenda **revisões automáticas** com o algoritmo SM-2 (Anki) — tudo de forma assíncrona.
 
-O backend foi construído com **NestJS e Clean Architecture** estrita com 9 módulos. O frontend segue **Feature-Sliced Design (FSD)** com 17 rotas. Todo processamento de áudio passa por uma fila **BullMQ + Upstash Redis** para garantir resiliência e escalabilidade.
+O backend usa **NestJS com Clean Architecture** estrita (12 módulos). O frontend segue **Feature-Sliced Design (FSD)**. Todo processamento de áudio passa por uma fila **Bull + Azure Managed Redis** para resiliência e escala. A infraestrutura é **100% Microsoft Azure**.
 
 ---
 
@@ -55,235 +59,88 @@ O backend foi construído com **NestJS e Clean Architecture** estrita com 9 mód
 
 ### Gravação e Upload
 - Gravação de áudio direto pelo browser via **MediaRecorder API** (`audio/webm;codecs=opus`)
-- Upload de arquivos de áudio de qualquer origem
-- Armazenamento seguro no **Cloudflare R2** com URLs assinadas (15 minutos de expiração)
+- Upload de arquivos de áudio de qualquer origem (validação por magic bytes, não pelo MIME do cliente)
+- Import de vídeos do **YouTube** via `yt-dlp`
+- Armazenamento privado no **Azure Blob Storage** com **SAS URLs** (15 min de expiração)
 
-### Processamento com IA
-- **Transcrição com timestamps** via Groq Whisper Large v3 — retorna segmentos com `start/end` por trecho
-- **Resumo inteligente** com título gerado automaticamente via Groq Llama 3.3 70B
-- **Flashcards** gerados automaticamente com frente, verso, dificuldade e tópico
-- **Mapa mental** estruturado em Markdown navegável via markmap
-- **Quiz de múltipla escolha** com 4 opções, resposta correta e explicação por questão
+### Processamento com IA (OpenAI)
+- **Transcrição com timestamps** via **Whisper (`whisper-1`)** — segmentos com `start/end` por trecho
+- **Resumo inteligente** + título gerados via **`gpt-4o-mini`**
+- **Flashcards** com frente, verso, dificuldade e tópico
+- **Mapa mental** em Markdown navegável (markmap)
+- **Quiz** de múltipla escolha com 4 opções, resposta correta e explicação
 
 ### Player com Timestamps Clicáveis
-- Cada trecho da transcrição é um botão com o timestamp do áudio (`1:14`, `2:32`, etc.)
-- Clicar num trecho posiciona o player naquele momento exato e inicia a reprodução
-- Durante a reprodução, o trecho ativo é destacado em tempo real com auto-scroll
+- Cada trecho da transcrição é clicável e posiciona o player no momento exato
 
-### Chat com a Aula (RAG)
-- Interface de chat onde o aluno faz perguntas sobre o conteúdo de uma aula específica
-- A IA responde com base **exclusivamente** na transcrição daquela aula
-- **Full context** para transcrições até ~50k tokens; **chunking TF-IDF** para transcrições longas
-- Histórico persistido por sessão com opção de limpar
-- Streaming de tokens via **Server-Sent Events (SSE)**
+### Chat com a Aula
+- Converse com o conteúdo da aula (streaming SSE via `gpt-4o-mini`)
 
 ### Revisão Espaçada — Algoritmo SM-2
-- Sistema de repetição espaçada baseado no **algoritmo SM-2** (mesmo do Anki)
-- Após revisar um flashcard, o aluno marca como **Difícil**, **Médio** ou **Fácil**
-- O sistema agenda a próxima revisão automaticamente — cards difíceis aparecem amanhã, fáceis daqui a dias/semanas
-- Widget no Dashboard: **"X cards para revisar hoje"** com botão direto para `/review`
-- Histórico de revisões persistido para analytics futuros
+- Agendamento automático de revisões dos flashcards (mesmo algoritmo do Anki)
 
-### Quiz Interativo
-- Tela de quiz com uma pergunta por vez e 4 opções (A/B/C/D)
-- Ao responder: opção correta em verde, errada em vermelho
-- Explicação da IA exibida após cada resposta
-- Tela de resultado com score e breakdown completo por questão
-
-### Exportar Materiais
-- **PDF do resumo** — abre janela de impressão com o resumo formatado
-- **TXT da transcrição** — baixa o texto completo como `.txt`
-- **Flashcards para Anki** — gera um `.txt` tab-separado importável no Anki Desktop
-
-### Pastas de Estudo
-- Crie pastas temáticas e adicione materiais de qualquer gravação
-- **Recomendações de vídeo** via YouTube Data API v3 a partir de 5 itens
-- **Processe vídeos do YouTube** direto na plataforma via yt-dlp — sem sair do app
-
-### Compartilhamento e Grupos
-- Gere links públicos para transcrições e pastas com toggle público/privado
-- Crie grupos de estudo, adicione membros e compartilhe materiais com o grupo
-
-### Conta e LGPD
-- **Exportar todos os dados** (`GET /user/export`) — portabilidade conforme LGPD Art. 18
-- **Deletar conta** (`DELETE /user`) — elimina todos os dados do R2 e banco conforme LGPD Art. 18
-- Retenção automática: áudios com mais de 365 dias são deletados por cron mensal (pg_cron)
-
-### Subscription Guard — Verificação de Assinatura
-- Após login, o `SubscriptionGuard` verifica automaticamente se o usuário tem assinatura ativa
-- Se não tiver → abre modal pedindo dados (nome, CPF, celular, email)
-- Após preenchimento → cria checkout na AbacatePay e redireciona para pagamento PIX
-- Garante que usuários free acessem o app mas sejam incentivados a assinar
+### Extras
+- **Pastas de estudo**, **compartilhamento** por link público e **grupos de estudo**
+- **Pomodoro** integrado
+- **Exportar** materiais (PDF, TXT, Anki)
+- **Conta e LGPD**: exclusão de conta com cascade e retenção automática de dados
+- **Assinatura** via AbacatePay (PIX/cartão), preço resolvido server-side
 
 ---
 
 ## Arquitetura
 
-### Backend — Clean Architecture (9 módulos)
+### Backend — Clean Architecture (12 módulos)
+
+Separação rígida de camadas; as dependências apontam sempre para dentro.
 
 ```
-backend/src/
-├── modules/
-│   ├── audio/             # Upload, storage, status, URL assinada
-│   ├── transcription/     # Transcrição + resumo + segments
-│   ├── study-materials/   # Flashcards (SM-2), mindmap, quiz
-│   ├── chat/              # Chat RAG com TF-IDF + SSE streaming
-│   ├── sharing/           # Links públicos com token
-│   ├── study-folders/     # Pastas temáticas + YouTube
-│   ├── study-groups/      # Grupos de estudo + membros
-│   ├── spaced-repetition/ # Algoritmo SM-2 (GET /review/due, POST /review)
-│   └── user/              # LGPD — export + delete account
-├── shared/
-│   ├── domain/            # Result<T, E> pattern
-│   ├── infrastructure/    # Config, env validation (Joi)
-│   └── presentation/      # HttpExceptionFilter, LoggingInterceptor
-└── main.ts                # API ou Worker (WORKER_ONLY=true)
+src/modules/<módulo>/
+  domain/           # entidades, interfaces (repositories/providers), use-cases
+  application/      # DTOs, services de orquestração
+  infrastructure/   # implementações concretas (Postgres, OpenAI, Azure Blob)
+  presentation/     # controllers, guards
 ```
 
-Cada módulo segue a separação em camadas:
+Módulos: `auth`, `audio`, `transcription`, `study-materials`, `study-folders`, `sharing`, `study-groups`, `chat`, `spaced-repetition`, `pomodoro`, `payments`, `user`.
+
+- **Dependency Inversion**: use-cases dependem de interfaces (`ITranscriptionProvider`, `IStorageRepository`), nunca de implementações — trocar OpenAI por outro provider é uma classe nova, sem tocar no domínio.
+- **Auth própria**: magic link (Azure Communication Services) + email/senha (bcrypt), JWT HS256 (1h) + refresh token opaco rotacionado (30 dias), guard global validando localmente.
+- **Acesso a dados**: `pg` com SQL parametrizado (`PostgresService` global) — sem ORM, sem RLS; autorização por `user_id` do JWT na camada de aplicação.
+
+### Frontend — Feature-Sliced Design (FSD)
 
 ```
-módulo/
-├── domain/
-│   ├── entities/       # Entidades e tipos de domínio puro
-│   ├── repositories/   # Interfaces (contratos abstratos)
-│   └── use-cases/      # Regras de negócio — sem dependência de infra
-├── application/
-│   ├── dto/            # Data Transfer Objects com class-validator
-│   └── services/       # Queue processors (BullMQ workers)
-├── infrastructure/
-│   ├── repositories/   # Implementações concretas (Supabase)
-│   └── providers/      # Implementações de IA (Groq, YouTube)
-└── presentation/
-    └── controllers/    # Recebem requisição, delegam ao use-case
+app → pages → widgets → features → entities → shared
 ```
 
-**Regra de ouro:** dependências sempre apontam para dentro. `domain/` nunca importa de `infrastructure/` ou de bibliotecas externas.
-
-### Frontend — Feature-Sliced Design (FSD, 17 rotas)
-
-```
-frontend/src/
-├── app/        # Providers globais, router, estilos globais
-├── pages/      # 17 páginas (Landing, Dashboard, Review, Chat, etc.)
-├── widgets/    # Blocos de UI independentes (FlashcardDeck, QuizPlayer, ChatPanel, DueCardsWidget, etc.)
-├── features/   # Ações do usuário (login, gravar, upload, exportar, revisar flashcard, etc.)
-├── entities/   # Modelos de negócio com UI e queries
-└── shared/     # UI base, axios, supabase client, hooks, tipos
-```
-
-**Regra de importação:** `app → pages → widgets → features → entities → shared`.
+Camadas superiores importam das inferiores, nunca o contrário. Auth via `shared/auth/auth-client.ts` (tokens em localStorage, refresh single-flight, interceptor Axios com retry em 401).
 
 ### Fluxo de Processamento Assíncrono
 
 ```
-1. POST /api/v1/audio/upload
-        │
-        ├─► Salva áudio no Cloudflare R2
-        ├─► Cria registro em audios (status: PENDING)
-        ├─► Cria registro em transcriptions (status: PENDING)
-        └─► Enfileira job no BullMQ (Upstash Redis)
-
-2. Worker de transcrição (serviço separado no Railway)
-        │
-        ├─► Groq Whisper Large v3 (verbose_json) → texto + segments com timestamps
-        ├─► Groq Llama 3.3 70B                   → resumo + título
-        └─► Salva COMPLETED + segments JSONB no Supabase
-
-3. Worker de materiais (mesmo processo do worker de transcrição)
-        │
-        ├─► Groq Llama 3.3 70B  → flashcards com reviewData SM-2
-        ├─► Groq Llama 3.3 70B  → mapa mental (Markdown)
-        ├─► Groq Llama 3.3 70B  → quiz (array JSON com explicações)
-        └─► Salva em study_materials no Supabase
-
-4. Frontend
-        └─► TanStack Query polling a cada 5s → exibe resultado ao completar
+Upload → Azure Blob → job na fila (Bull/Redis) → Worker:
+  Whisper (transcrição) → gpt-4o-mini (resumo/título) →
+  materiais (flashcards/mapa mental/quiz) → status COMPLETED
 ```
 
----
-
-### Fluxo de Assinatura e Pagamento
-
-O sistema de assinatura foi integrado com **AbacatePay** (gateway de pagamento brasileiro):
-
-1. **Novo usuário faz login** → `SubscriptionGuard` verifica se tem assinatura ativa
-2. **Se não tem** → Abre modal pedindo dados: nome, CPF, celular
-3. **Dados salvos** → Redireciona para checkout da AbacatePay
-4. **Pagamento via PIX** → Webhook atualiza status no banco
-
-**Endpoints de pagamento:**
-```
-POST   /api/v1/payments/abacatepay/checkout    # Cria sessão de checkout
-POST   /api/v1/payments/save-customer-data     # Salva dados do cliente
-GET    /api/v1/payments/subscription-status    # Verifica se tem assinatura ativa
-```
-
-### OpenCode — Skills de Segurança
-
-O projeto utiliza o **opencode** com skills especializadas para testes de segurança:
-
-| Skill | Uso |
-|---|---|
-| **SecLists Fuzzing** | SQL injection, command injection, special characters |
-| **SecLists Passwords** | Wordlists para teste de senhas |
-| **SecLists Pattern-Matching** | Detecção de dados sensíveis (API keys, CPFs, emails) |
-| **SecLists Payloads** | Arquivos de teste para exploração |
-| **SecLists Usernames** | Enumeração de usuários |
-| **SecLists Web-Shells** | Detecção e análise de web shells |
+O **worker** roda a mesma imagem do backend com `WORKER_ONLY=true` (sem HTTP) e escala pela fila via **KEDA**.
 
 ---
 
 ## Stack Completa
 
-### Backend
-
-| Tecnologia | Versão | Uso |
-|---|---|---|
-| Node.js | 22+ | Runtime |
-| NestJS | 11 | Framework HTTP + injeção de dependência |
-| TypeScript | 5.7 | Linguagem (strict mode, sem `any`) |
-| Groq SDK | 0.37 | Transcrição (Whisper Large v3) + LLM (Llama 3.3 70B) |
-| @supabase/supabase-js | 2.98 | Banco de dados + Auth |
-| @aws-sdk/client-s3 | 3 | Cloudflare R2 (compatível com S3) |
-| BullMQ | 5 | Fila de jobs assíncrona |
-| yt-dlp-wrap | — | Download de áudio do YouTube |
-| Helmet | 8 | Headers de segurança HTTP |
-| @nestjs/throttler | 6 | Rate limiting global + por endpoint |
-| class-validator | 0.15 | Validação de DTOs |
-| Joi | 18 | Validação de variáveis de ambiente no startup |
-| Jest | 30 | Testes unitários |
-
-### Frontend
-
-| Tecnologia | Versão | Uso |
-|---|---|---|
-| React | 19 | UI |
-| Vite | 7 | Build tool |
-| TypeScript | 5.9 | Linguagem (strict mode) |
-| Tailwind CSS | 4 | Estilização via CSS custom properties |
-| Framer Motion | 12 | Animações (flip card, transições) |
-| TanStack Query | 5 | Cache, polling e sincronização de dados |
-| React Router | 7 | Roteamento SPA |
-| Zustand | 5 | Estado global |
-| Axios | 1 | HTTP client com interceptor JWT automático |
-| @supabase/supabase-js | 2 | Auth (email + senha) |
-| Lucide React | 0.577 | Ícones (sem emojis na UI) |
-| markmap-lib + markmap-view | 0.18 | Renderização interativa de mapa mental |
-| react-markdown | 10 | Renderização de Markdown |
-| Sonner | 2 | Toasts de feedback |
-
-### Infraestrutura
-
-| Serviço | Uso |
+| Camada | Tecnologia |
 |---|---|
-| **Supabase** | Banco de dados (Postgres), autenticação, RLS por tabela, pg_cron |
-| **Cloudflare R2** | Storage de áudio — S3-compatible, zero egress fee |
-| **Upstash Redis** | Broker da fila BullMQ — serverless, TLS |
-| **Railway** | Deploy do backend — API e Worker como serviços separados |
-| **Cloudflare Workers** | Deploy do frontend — edge, modo SPA |
-| **Groq** | Whisper Large v3 (transcrição com timestamps) + Llama 3.3 70B (LLM) |
-| **YouTube Data API v3** | Busca de vídeos recomendados para Pastas de Estudo |
+| **Backend** | Node.js 22 · NestJS · TypeScript estrito |
+| **Frontend** | Vite · React 19 · TypeScript · Tailwind CSS v4 · Framer Motion · TanStack Query · Zustand |
+| **IA** | OpenAI — `whisper-1` (transcrição) · `gpt-4o-mini` (resumo, chat, materiais) |
+| **Banco** | Azure Database for PostgreSQL Flexible Server 16 (`pg`, SQL parametrizado) |
+| **Auth** | Própria — magic link (Azure Communication Services) + email/senha (bcrypt) + JWT |
+| **Storage** | Azure Blob Storage (SAS URLs privadas) |
+| **Fila** | Bull + Azure Managed Redis (TLS) |
+| **Pagamentos** | AbacatePay (PIX/cartão) |
+| **Deploy** | Azure Container Apps (api + worker) · Azure Static Web Apps (frontend) · Azure Container Registry |
 
 ---
 
@@ -291,65 +148,49 @@ O projeto utiliza o **opencode** com skills especializadas para testes de segura
 
 ```
 anotEX.ai/
-├── backend/
-│   ├── src/
-│   │   ├── modules/
-│   │   │   ├── audio/               # Upload, storage, status, URL assinada
-│   │   │   ├── transcription/       # Transcrição + resumo + fila + segments
-│   │   │   ├── study-materials/     # Flashcards (SM-2), mindmap, quiz
-│   │   │   ├── chat/                # Chat RAG, TF-IDF, SSE, histórico
-│   │   │   ├── sharing/             # Links públicos com toggle
-│   │   │   ├── study-folders/       # Pastas + YouTube recomendações
-│   │   │   ├── study-groups/        # Grupos de estudo + membros
-│   │   │   ├── spaced-repetition/   # SM-2: due cards + review endpoint
-│   │   │   └── user/                # LGPD: export + delete account
-│   │   ├── shared/
-│   │   │   ├── domain/              # Result<T, E> pattern
-│   │   │   ├── infrastructure/      # Config, Supabase, env validation
-│   │   │   └── presentation/        # HttpExceptionFilter, LoggingInterceptor
-│   │   ├── app.module.ts
-│   │   └── main.ts
-│   └── package.json
-│
-├── frontend/
-│   ├── src/
-│   │   ├── app/                     # Router (17 rotas), providers, globals.css
-│   │   ├── pages/                   # Landing, Login, Dashboard, Transcription,
-│   │   │                            # Chat, Review, Quiz, StudyFolders, Groups, etc.
-│   │   ├── widgets/
-│   │   │   ├── flashcard-deck/      # FlashcardDeck com flip animation
-│   │   │   ├── quiz-player/         # QuizPlayer com score e breakdown
-│   │   │   ├── chat-panel/          # ChatMessage, ChatInput, useChatStream (SSE)
-│   │   │   ├── due-cards-widget/    # Contador SM-2 no Dashboard
-│   │   │   ├── mindmap/             # MindMapViewer (markmap)
-│   │   │   ├── navbar/ sidebar/ mouse-light/
-│   │   │   └── transcription-viewer/
-│   │   ├── features/
-│   │   │   ├── auth/                # login-with-password, logout
-│   │   │   ├── recording/           # useRecorder, useUploadAudio
-│   │   │   ├── transcription/       # export (PDF/TXT/Anki), copy, delete, poll
-│   │   │   ├── flashcards/          # review-flashcard (useSpacedRepetition, ReviewCard)
-│   │   │   ├── sharing/             # create-share-link, toggle-visibility
-│   │   │   ├── groups/              # share-to-group
-│   │   │   └── study-folders/       # create, delete, add/remove item, process-video
-│   │   ├── entities/                # audio, transcription, study-material,
-│   │   │                            # study-folder, study-group, share-link
-│   │   └── shared/
-│   │       ├── api/                 # axios.ts (interceptor JWT) + endpoints.ts
-│   │       ├── auth/                # supabase.ts client
-│   │       ├── hooks/               # useAudioLevel, useMousePosition, useSidebarStore
-│   │       ├── ui/                  # Button, Card, Input, Badge, Skeleton, ShareModal
-│   │       └── assets/              # logos e imagens
-│   └── package.json
-│
-├── supabase/
-│   └── migrations/                  # 13 migrations — todas rodadas em produção
-│
-├── ai-docs/                         # Specs técnicas de features e roadmap
-├── CLAUDE.md                        # Guia de desenvolvimento para o agente IA
-├── AGENTS.md                        # Regras operacionais para agents no repositório
-├── .opencode/skills/                # Skills especializadas (SecLists, motion design)
-└── README.md
+├── backend/                 # NestJS (Clean Architecture)
+│   ├── src/modules/         # 12 módulos de domínio
+│   ├── src/shared/          # config, filters, interceptors, guards globais
+│   ├── Dockerfile           # node:22-slim + ffmpeg + yt-dlp
+│   └── .env.example
+├── frontend/                # Vite + React (FSD)
+│   ├── src/{app,pages,widgets,features,entities,shared}/
+│   └── public/staticwebapp.config.json   # SPA fallback + security headers (CSP)
+├── infra/
+│   ├── azure-postgres-schema.sql          # schema consolidado (PG16)
+│   ├── azure-resources.env                # nomes dos recursos (sem segredos)
+│   └── data-migration-supabase.md         # guia de migração de dados
+└── ai-docs/                 # documentação técnica e planos
+```
+
+---
+
+## Docker
+
+A imagem do backend (api + worker na mesma imagem) está publicada no **Docker Hub**:
+
+```bash
+docker pull teuzowebdeveloper9/anotex-backend:latest
+```
+
+### Rodar a API
+
+```bash
+docker run -p 3000:3000 --env-file backend/.env teuzowebdeveloper9/anotex-backend:latest
+```
+
+### Rodar o Worker (mesma imagem, sem HTTP)
+
+```bash
+docker run --env-file backend/.env -e WORKER_ONLY=true teuzowebdeveloper9/anotex-backend:latest
+```
+
+> A imagem inclui **ffmpeg** (compressão de áudio) e **yt-dlp** (import do YouTube). Nenhum segredo é embutido — toda configuração vem por variáveis de ambiente em runtime.
+
+### Build local
+
+```bash
+docker build -t anotex-backend ./backend
 ```
 
 ---
@@ -357,95 +198,49 @@ anotEX.ai/
 ## Como Rodar Localmente
 
 ### Pré-requisitos
-
 - Node.js 22+
-- npm 10+
-- Conta no [Supabase](https://supabase.com)
-- Conta no [Groq](https://console.groq.com)
-- Bucket no [Cloudflare R2](https://dash.cloudflare.com)
-- Banco no [Upstash Redis](https://console.upstash.com)
-- Chave da [YouTube Data API v3](https://console.cloud.google.com)
+- ffmpeg (ou use a imagem Docker)
+- Uma instância PostgreSQL 16 e um Redis (ou os recursos Azure)
+- Chave da OpenAI
 
----
-
-### 1. Clone o repositório
+### 1. Clone e instale
 
 ```bash
-git clone https://github.com/seu-usuario/anotEx.ai.git
-cd anotEx.ai
+git clone https://github.com/teuzowebdeveloper9/anotEX.ai.git
+cd anotEX.ai/backend && npm install
+cd ../frontend && npm install
 ```
 
----
+### 2. Configure o banco
 
-### 2. Configure o Supabase
+Aplique o schema consolidado em um Postgres vazio:
 
-1. Crie um projeto em [supabase.com](https://supabase.com)
-2. No **SQL Editor**, execute as migrations em ordem (pasta `supabase/migrations/`)
-3. Vá em **Authentication → Providers → Email** e confirme que está habilitado
-4. Em **Authentication → URL Configuration**, adicione como Redirect URL:
-   - `http://localhost:5173/auth/callback`
+```bash
+psql "$DATABASE_URL" -1 -f infra/azure-postgres-schema.sql
+```
 
----
-
-### 3. Configure o Cloudflare R2
-
-1. No Cloudflare Dashboard → **R2 → Create bucket** → nome: `audios-anotex`
-2. Gere as credenciais em **Manage R2 API Tokens**
-3. Anote: `Account ID`, `Access Key ID`, `Secret Access Key`
-
----
-
-### 4. Configure o Upstash Redis
-
-1. Acesse [console.upstash.com](https://console.upstash.com) → **Create Database**
-2. Anote: `UPSTASH_REDIS_URL` e `UPSTASH_REDIS_TOKEN`
-
----
-
-### 5. Rode o backend
+### 3. Backend
 
 ```bash
 cd backend
-npm install
-cp .env.example .env
-# Preencha o .env com suas credenciais
+cp .env.example .env        # preencha os valores
+npm run start:dev           # http://localhost:3000/api/v1
 ```
 
-Em dois terminais separados:
-
-```bash
-# Terminal 1 — API
-npm run start:dev
-
-# Terminal 2 — Worker (processa os jobs da fila)
-WORKER_ONLY=true npm run start:dev
-```
-
-Verifique:
-```bash
-curl http://localhost:3000/api/v1/health
-# { "status": "ok" }
-```
-
----
-
-### 6. Rode o frontend
+### 4. Frontend
 
 ```bash
 cd frontend
-npm install
+cp .env.example .env        # VITE_API_BASE_URL=http://localhost:3000/api/v1
+npm run dev                 # http://localhost:5173
 ```
 
-Crie o `.env`:
-```env
-VITE_SUPABASE_URL=https://xxxx.supabase.co
-VITE_SUPABASE_ANON_KEY=sua_anon_key
-VITE_API_BASE_URL=http://localhost:3000/api/v1
-```
+### Testes
 
 ```bash
-npm run dev
-# http://localhost:5173
+cd backend
+npm test          # unitários (Jest)
+npm run test:cov  # cobertura
 ```
 
 ---
@@ -454,282 +249,131 @@ npm run dev
 
 ### Backend — `.env`
 
-```env
+```bash
 # App
 NODE_ENV=development
 PORT=3000
 ALLOWED_ORIGINS=http://localhost:5173
 
-# Supabase
-SUPABASE_URL=https://xxxx.supabase.co
-SUPABASE_ANON_KEY=
-SUPABASE_SERVICE_ROLE_KEY=          # Nunca expor ao frontend
+# Banco
+DATABASE_URL=postgresql://user:pass@host:5432/anotex?sslmode=require
 
-# Groq
-GROQ_API_KEY=
+# Auth
+JWT_SECRET=                        # mínimo 32 caracteres
+JWT_EXPIRES_IN=1h
+MAGIC_LINK_EXPIRES_IN_MINUTES=15
+FRONTEND_URL=http://localhost:5173
 
-# Cloudflare R2
-R2_ACCOUNT_ID=
-R2_ACCESS_KEY_ID=
-R2_SECRET_ACCESS_KEY=
-R2_BUCKET_NAME=audios-anotex
-R2_PUBLIC_URL=https://pub-xxxx.r2.dev
+# Azure Communication Services (magic links)
+ACS_CONNECTION_STRING=
+ACS_SENDER_ADDRESS=
 
-# Upstash Redis
-UPSTASH_REDIS_URL=rediss://xxxx.upstash.io:6379
-UPSTASH_REDIS_TOKEN=
+# OpenAI
+OPENAI_API_KEY=
 
-# YouTube Data API v3
-YOUTUBE_API_KEY=
+# Azure Blob Storage
+AZURE_STORAGE_ACCOUNT=
+AZURE_STORAGE_KEY=
+AZURE_STORAGE_CONTAINER=audios
+
+# Redis (Azure Managed Redis — TLS, porta 10000)
+REDIS_HOST=
+REDIS_PORT=10000
+REDIS_PASSWORD=
+REDIS_TLS=true
+
+# AbacatePay (catálogo autoritativo: "productId:precoCentavos:Nome")
+ABACATEPAY_API_KEY=
+ABACATEPAY_WEBHOOK_SECRET=
+ABACATEPAY_PUBLIC_HMAC_KEY=
+ABACATEPAY_PRODUCTS=prod_xxx:3990:AnotEx Pro
+ABACATEPAY_RETURN_URL=
+ABACATEPAY_COMPLETION_URL=
 
 # Limites
-MAX_AUDIO_SIZE_MB=500
+MAX_AUDIO_SIZE_MB=100
+MAX_UPLOADS_PER_HOUR=30
 SIGNED_URL_EXPIRES_IN_SECONDS=900
+
+# YouTube
+YOUTUBE_API_KEY=
 ```
 
-> Todas as variáveis são validadas com Joi no startup. A aplicação não sobe se alguma obrigatória estiver ausente.
+> A lista canônica (com validação Joi) fica em `backend/src/shared/infrastructure/config/env.validation.ts`.
 
 ### Frontend — `.env`
 
-```env
-VITE_SUPABASE_URL=https://xxxx.supabase.co
-VITE_SUPABASE_ANON_KEY=
+```bash
 VITE_API_BASE_URL=http://localhost:3000/api/v1
 ```
 
 ---
 
-## Banco de Dados — Supabase
+## Banco de Dados
 
-### Tabelas
+Azure Database for PostgreSQL Flexible Server 16. Schema consolidado em **`infra/azure-postgres-schema.sql`** (18 tabelas).
 
-| Tabela | Descrição |
-|---|---|
-| `audios` | Registro de cada arquivo de áudio — status, path no R2, user_id |
-| `transcriptions` | Texto transcrito, resumo, título, segments (JSONB) e status |
-| `study_materials` | Flashcards (com `reviewData` SM-2), mapa mental e quiz por transcrição |
-| `study_folders` | Pastas temáticas do usuário |
-| `study_folder_items` | Itens salvos em cada pasta |
-| `share_links` | Links de compartilhamento com token único e flag isPublic |
-| `study_groups` | Grupos de estudo com membros e compartilhamentos |
-| `chat_messages` | Histórico de mensagens do chat RAG por transcrição |
-| `flashcard_reviews` | Histórico de revisões SM-2 (quality, reviewed_at, flashcard_index) |
-
-### Row Level Security (RLS)
-
-**Todas as tabelas têm RLS habilitado.** Cada usuário acessa somente seus próprios dados via `auth.uid()`.
-
-### Retenção de Dados (LGPD)
-
-Um cron mensal via **pg_cron** executa `delete_old_user_data()` todo dia 1 do mês às 3h UTC, removendo áudios com mais de 365 dias de usuários inativos.
+- Acesso exclusivamente via `pg` com **SQL parametrizado** (`PostgresService`) — sem ORM.
+- **Sem RLS**: a autorização é feita na aplicação; toda query multi-tenant filtra por `user_id` vindo do JWT (`req.user.id`).
+- Índices em `user_id` obrigatórios; TLS com verificação de certificado.
+- Retenção de dados (LGPD) via função `delete_old_user_data()`.
 
 ---
 
 ## Segurança
 
-O projeto foi auditado contra **OWASP API Security Top 10 (2023)**, **OWASP Top 10 Web** e **LGPD**. Veja o relatório completo em `ai-docs/08-cybersecurity-audit.md`.
+Auditada por revisão defensiva (OWASP API Top 10) com verificação adversarial. Medidas em produção:
 
-### Testes de Segurança Automatizados
-
-O projeto utiliza **OpenCode** com skills especializadas para testes de segurança:
-
-| Skill | Uso |
-|---|---|
-| **SecLists Fuzzing** | SQL injection, command injection, special characters |
-| **SecLists Passwords** | Wordlists para teste de senhas |
-| **SecLists Pattern-Matching** | Detecção de dados sensíveis (API keys, CPFs, emails) |
-| **SecLists Payloads** | Arquivos de teste para exploração |
-| **SecLists Usernames** | Enumeração de usuários |
-| **SecLists Web-Shells** | Detecção e análise de web shells |
-| **Playwright** | Testes automatizados no navegador |
-
-### Resultados dos Testes
-
-Veja o relatório completo em `ai-docs/security-test-report.md`.
-
-| Teste | Resultado | Status |
-|---|---|---|
-| SQL Injection | ✅ Bloqueado | PASS |
-| XSS | ✅ Protegido | PASS |
-| Command Injection | ✅ Bloqueado | PASS |
-| Path Traversal | ✅ Bloqueado | PASS |
-| Web Shells | ✅ Não detectado | PASS |
-| Rate Limiting | ✅ 100 req/min | PASS |
-| Security Headers | ✅ Presentes | PASS |
-| Cloudflare Protection | ✅ Ativo (403 para bots) | PASS |
-
-### Medidas implementadas
-
-| Camada | Medida |
-|---|---|
-| **Auth** | JWT validado no Supabase a cada request, timeout de 5s, log de tentativas inválidas com IP |
-| **Autorização** | `APP_GUARD` global — todas as rotas protegidas por padrão; rotas públicas marcadas com `@Public()` |
-| **Banco** | RLS em todas as tabelas — sem acesso cruzado entre usuários |
-| **Input** | `ValidationPipe` global com `whitelist: true` — campos extras removidos automaticamente |
-| **Rate limiting** | 100 req/min global por IP + 30 req/min específico em transcrição e materiais |
-| **Headers** | `helmet()` — X-Content-Type-Options, X-Frame-Options, HSTS, etc. |
-| **CORS** | Origins allowlist com trim — sem wildcard `*` em produção |
-| **Storage** | R2 privado — URLs assinadas com expiração de 15 minutos |
-| **Secrets** | `SUPABASE_SERVICE_ROLE_KEY` nunca exposta ao frontend |
-| **LGPD** | `DELETE /user` (eliminação) + `GET /user/export` (portabilidade) + cron de retenção |
+- **Auth**: JWT HS256 com algoritmo fixado, refresh rotacionado, bcrypt; `/register` não permite reivindicar conta alheia; login sem enumeração (timing-safe).
+- **Autorização**: identidade só de `req.user.id`; checagem de ownership em toda leitura/escrita e na criação de links de compartilhamento (anti-IDOR/BOLA).
+- **Pagamentos**: preço resolvido server-side (cliente não escolhe valor); webhook com secret timing-safe + HMAC do corpo; match por `billingId`.
+- **Input**: `ValidationPipe` global (`whitelist` + `forbidNonWhitelisted`); limite de upload no transporte (anti-DoS); SQL 100% parametrizado.
+- **Headers**: `helmet` na API; **CSP** + HSTS + X-Frame-Options + nosniff no frontend (Static Web Apps).
+- **Segredos**: só em variáveis de ambiente / secrets do Container Apps; nunca em imagem, código ou logs; `.env` fora do git.
+- **Rate limiting**: `@nestjs/throttler` global (100/min por IP) + limites específicos por usuário (uploads) e por rota (login, magic link).
 
 ---
 
-## Deploy
+## Deploy — Azure
 
-### Backend — Railway
+Tudo no resource group `rg-anotex-prod` (região `brazilsouth`).
 
-O backend roda como **dois serviços separados** no Railway. O mesmo binário decide o que fazer pela variável `WORKER_ONLY`.
+| Componente | Serviço Azure |
+|---|---|
+| API + Worker | **Azure Container Apps** (imagem única do ACR; worker com `WORKER_ONLY=true` + KEDA) |
+| Frontend | **Azure Static Web Apps** |
+| Banco | **Azure Database for PostgreSQL Flexible Server** |
+| Fila | **Azure Managed Redis** |
+| Storage | **Azure Blob Storage** |
+| Registry | **Azure Container Registry** |
+| Email | **Azure Communication Services** |
 
-#### Serviço `api`
+### Redeploy do backend
 
-1. [railway.app](https://railway.app) → **New Project → Deploy from GitHub repo**
-2. **Settings:** Root Directory: `backend` · Start Command: `node dist/main.js`
-3. **Variables:** adicione todas as env vars do backend
+```bash
+docker build -t <acr>.azurecr.io/anotex-backend:vN ./backend
+az acr login --name <acr>
+docker push <acr>.azurecr.io/anotex-backend:vN
+az containerapp update -n anotex-api    -g rg-anotex-prod --image <acr>.azurecr.io/anotex-backend:vN
+az containerapp update -n anotex-worker -g rg-anotex-prod --image <acr>.azurecr.io/anotex-backend:vN
+```
 
-#### Serviço `worker`
-
-1. No mesmo projeto → **+ Create → GitHub Repo** → mesmo repositório
-2. **Settings:** Root Directory: `backend` · Start Command: `node dist/main.js`
-3. **Variables:** mesmas env vars do `api` + `WORKER_ONLY=true`
-
----
-
-### Frontend — Cloudflare Workers
-
-O frontend é deployado como **Cloudflare Workers com Assets**:
+### Redeploy do frontend
 
 ```bash
 cd frontend
-npm run build
-npx wrangler deploy --assets ./dist
+VITE_API_BASE_URL="https://<api-host>/api/v1" npm run build
+npx @azure/static-web-apps-cli deploy ./dist \
+  --deployment-token "$(az staticwebapp secrets list -n <swa> -g rg-anotex-prod --query properties.apiKey -o tsv)" \
+  --env production
 ```
 
-**Configuração do `wrangler.toml`:**
-
-```toml
-name = "anoteexai"
-compatibility_date = "2025-09-27"
-
-[assets]
-not_found_handling = "single-page-application"
-```
-
-> **Importante:** sempre use `--assets ./dist`. Sem a flag, o Wrangler lê o projeto inteiro.
-> 
-> O `not_found_handling = "single-page-application"` garante que todas as rotas redirecionem para `index.html` (SPA routing).
-
----
-
-### Checklist de deploy
-
-- [ ] `GET /api/v1/health` retorna 200 no Railway
-- [ ] Logs do serviço `worker` mostram jobs sendo processados
-- [ ] Login com email + senha funcionando
-- [ ] Upload de áudio e transcrição ponta a ponta funcionando
-- [ ] Flashcards, mapa mental e quiz gerados após transcrição
-- [ ] Chat com a aula respondendo via SSE
-- [ ] Revisão espaçada SM-2 agendando próximas revisões
-- [ ] Widget "cards para revisar hoje" aparecendo no Dashboard
-- [ ] Exportar PDF, TXT e Anki funcionando
-- [ ] Pastas de Estudo e recomendações YouTube funcionando
-- [ ] Compartilhamento de links funcionando
-- [ ] `DELETE /user` e `GET /user/export` funcionando
-
----
-
-## Performance — Teste de Carga
-
-Testado com **k6** em 22/03/2026 contra o ambiente de produção (Railway single instance).
-
-### Cenário: 100 usuários simultâneos navegando pelo app (leitura)
-
-| Métrica | Resultado |
-|---|---|
-| **Total de requisições** | 3.598 |
-| **Taxa de erro** | **0%** — zero crashes, zero 4xx/5xx |
-| **Latência média** | 1.13s |
-| **Latência p90** | 2.35s |
-| **Throughput sustentado** | 33 req/s |
-
-| Usuários simultâneos | Latência média | Status |
-|---|---|---|
-| 10 | ~400ms | Rápido |
-| 50 | ~900ms | OK |
-| 100 | ~2.4s | Lento mas estável, zero erro |
-
----
-
-## Endpoints da API
-
-Todas as rotas (exceto `/health` e `/sharing/public/:token`) exigem `Authorization: Bearer <token>`.
-
-```
-GET    /api/v1/health
-
-# Áudio
-POST   /api/v1/audio/upload
-GET    /api/v1/audio
-GET    /api/v1/audio/:id/status
-GET    /api/v1/audio/:id/url
-DELETE /api/v1/audio/:id
-
-# Transcrições
-GET    /api/v1/transcription
-GET    /api/v1/transcription/:audioId
-
-# Materiais de estudo
-GET    /api/v1/study-materials/:transcriptionId
-GET    /api/v1/study-materials/:transcriptionId/:type    # flashcards | mindmap | quiz
-POST   /api/v1/study-materials/:transcriptionId/generate
-
-# Chat RAG
-POST   /api/v1/chat/:transcriptionId                     # SSE streaming
-GET    /api/v1/chat/:transcriptionId/history
-DELETE /api/v1/chat/:transcriptionId/history
-GET    /api/v1/chat/conversations
-
-# Revisão Espaçada (SM-2)
-GET    /api/v1/review/due                                # cards com nextReview <= hoje
-POST   /api/v1/review                                    # { studyMaterialId, flashcardIndex, quality }
-
-# Pastas de estudo
-GET    /api/v1/study-folders
-POST   /api/v1/study-folders
-GET    /api/v1/study-folders/:id
-PATCH  /api/v1/study-folders/:id
-DELETE /api/v1/study-folders/:id
-POST   /api/v1/study-folders/:id/items
-DELETE /api/v1/study-folders/:id/items/:itemId
-GET    /api/v1/study-folders/:id/recommendations
-POST   /api/v1/study-folders/:id/process-video
-
-# Compartilhamento
-POST   /api/v1/sharing
-GET    /api/v1/sharing
-GET    /api/v1/sharing/public/:token                     # público, sem auth
-PATCH  /api/v1/sharing/:id/toggle
-DELETE /api/v1/sharing/:id
-
-# Grupos de estudo
-POST   /api/v1/groups
-GET    /api/v1/groups
-GET    /api/v1/groups/:id
-DELETE /api/v1/groups/:id
-POST   /api/v1/groups/:id/members
-DELETE /api/v1/groups/:id/members/:userId
-POST   /api/v1/groups/:id/shares
-DELETE /api/v1/groups/:id/shares/:shareLinkId
-
-# Conta (LGPD)
-GET    /api/v1/user/export                               # exporta todos os dados
-DELETE /api/v1/user                                      # deleta conta e todos os dados
-```
+> Passo a passo completo em [`DEPLOY.md`](DEPLOY.md).
 
 ---
 
 <div align="center">
 
-Feito com foco em estudar melhor — e em construir software bem feito.
+Feito com NestJS, React e Azure.
 
 </div>
